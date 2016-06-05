@@ -1,10 +1,10 @@
 require("initialize")
+require("draw")
 
 function love.load()
-    state = init_gamestate()
+  state = init_gamestate()
 end
 
 function love.draw()
-    local v = state['tiles']['C1']['building_type']
-    love.graphics.print(v, 300, 300)
+  draw_city_map
 end
