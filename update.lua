@@ -127,3 +127,6 @@ function update(dt)
     update_legal(dt)
     update_tiles(dt)
 end
+
+function on_click(x, y)
+end
