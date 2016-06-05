@@ -111,7 +111,6 @@ function draw_city_map(origin_x, origin_y, width, height)
             love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
                 square_width - 6, square_height - 6)
         end
-
     end
 end
 

@@ -49,6 +49,8 @@ function sue(tile)
         return
     end
 
+    print("sued at "..tile.id)
+
     local lawsuit = {type="lawsuit",
         tile=tile,
         influence=0,
@@ -82,6 +84,7 @@ function finish_legal_action(action)
         table.insert(state.moses.positions, action.subtype)
     elseif action.type == "lawsuit" then
         -- get fined
+        print("get fined")
         if (not action.tile.is_approved) then
             state.moses.money = state.moses.money - action.tile.cost * 0.20
         end
@@ -116,6 +119,7 @@ function update_legal(dt)
             finish_legal_action(action)
             table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
+            print("legal action expired")
             state.moses.influence = state.moses.influence + action.influence
             table.insert(to_remove_idxs, action_i)
         end
