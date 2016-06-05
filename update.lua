@@ -97,6 +97,7 @@ function finish_legal_action(action)
         end
         print("lost lawsuit")
         reset_tile(action.tile.id)
+        action.tile.lawsuit = nil
     elseif action.type == "approval" then
         action.tile.is_approved = true
     else
@@ -134,6 +135,9 @@ function update_legal(dt)
             end
             table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
+            if action.type == "lawsuit" then
+                action.tile.lawsuit = nil
+            end
             print("legal action expired")
             if not action_is_pro_user then
                 state.moses.influence = state.moses.influence + action.influence
@@ -142,8 +146,8 @@ function update_legal(dt)
         end
     end
 
-    for _, idx in ipairs(to_remove_idxs) do
-        table.remove(state.legal, idx)
+    for i = #to_remove_idxs, 1, -1 do
+        table.remove(state.legal, to_remove_idxs[i])
     end
 end
 
