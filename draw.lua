@@ -20,8 +20,13 @@ function draw_legal(origin_x, origin_y, width, height)
         love.graphics.setColor(255, 255, 255, 255)
         local y = origin_y + bar_height * action_i
         love.graphics.print(action.type, x + bar_width + 5, y)
+        -- Draw background for legal bars.
         love.graphics.rectangle("fill", x, y + 5, bar_width, bar_height - 10)
+        -- Progress bar for lawsuits.
         love.graphics.setColor(0, 255, 0, 255)
+        if bar_percentage > 0.80 then
+            love.graphics.setColor(255, 100, 0, 255)
+        end
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
         love.graphics.print('+'..action.pros..' -'..action.cons..' exp:'..lume.round(action.expiration_time),
             x + bar_width + 5, y + 30)
