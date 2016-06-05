@@ -20,7 +20,9 @@ function init_gamestate()
         for i = 1, 10 do
             local cost = 10 + math.random(20)
             local building_type = BUILDING_TYPES[math.random(3)]
-            tiles[c..i] = {cost=cost,
+            local tile_id = c..i
+            tiles[tile_id] = {cost=cost,
+                           id=tile_id,
                            influence=cost / 3,
                            revenue=cost / 100.0,
                            elapsed_construction_time=0,
@@ -35,7 +37,7 @@ function init_gamestate()
 
     state["tiles"] = tiles
     state["legal"][0] = {type="nomination",
-                         building=nil,
+                         tile=nil,  -- this is a tile table reference not the tile id
                          pros=0,
                          cons=0,
                          total=100,
