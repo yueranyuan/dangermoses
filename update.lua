@@ -86,6 +86,15 @@ function reset_tile(name)
     tile.elapsed_construction_time = 0
 end
 
+function _contains(arr, el)
+    for _, v in ipairs(arr) do
+        if v == el then
+            return true
+        end
+    end
+    return false
+end
+
 function finish_legal_action(action)
     if action.type == "nomination" then
         table.insert(state.moses.positions, action.subtype)
@@ -161,9 +170,15 @@ function update_government(dt)
 
     if state.world.year / 3 > state.mayor.nomination_cycle_idx then
         state.mayor.nomination_cycle_idx = state.mayor.nomination_cycle_idx + 1
-        add_nomination("park")
-        add_nomination("road")
-        add_nomination("tenement")
+        if not _contains(state.moses.positions, "park") then
+            add_nomination("park")
+        end
+        if not _contains(state.moses.positions, "road") then
+            add_nomination("road")
+        end
+        if not _contains(state.moses.positions, "tenement") then
+            add_nomination("tenement")
+        end
     end
 end
 
