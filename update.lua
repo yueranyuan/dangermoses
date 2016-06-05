@@ -54,7 +54,7 @@ function sue(tile)
     local lawsuit = {type="lawsuit",
         tile=tile,
         influence=0,
-        pros=0,
+        pros=1,
         cons=0,
         position=50,
         total=100,
@@ -84,10 +84,11 @@ function finish_legal_action(action)
         table.insert(state.moses.positions, action.subtype)
     elseif action.type == "lawsuit" then
         -- get fined
-        print("get fined")
         if (not action.tile.is_approved) then
+            print("get fined")
             state.moses.money = state.moses.money - action.tile.cost * 0.20
         end
+        print("lost lawsuit")
         reset_tile(action.tile.id)
     elseif action.type == "approval" then
         action.tile.is_approved = true
@@ -117,6 +118,9 @@ function update_legal(dt)
     local to_remove_idxs = {}
     for action_i, action in ipairs(state.legal) do
         local rate = (action.pros - action.cons) * dt
+        if action.type == "lawsuit" then
+            print(action.pros, rate)
+        end
         action.position = math.max(action.position + rate, 0)
         action.expiration_time = action.expiration_time - dt
         if action.position > action.total then
