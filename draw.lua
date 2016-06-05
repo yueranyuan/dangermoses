@@ -73,8 +73,8 @@ function draw_city_map(origin_x, origin_y, width, height)
         if tile.is_started and not tile.is_completed then
             local progress = tile.elapsed_construction_time / tile.construction_time
             love.graphics.setColor(100, 150, 200, progress * 150)
-            love.graphics.rectangle("fill", box_origin_x, box_origin_y + box_height,
-                square_width / 3, box_height - (box_height * progress))
+            love.graphics.rectangle("fill", box_origin_x, box_origin_y + square_height,
+                square_width / 3, square_height - (square_height * progress))
         end
     end
 end
@@ -87,4 +87,5 @@ function get_cell(x, y)
             return(key)
         end
     end
+    return(false)
 end
