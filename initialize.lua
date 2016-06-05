@@ -20,7 +20,7 @@ function init_gamestate()
     local tiles = {}
     for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
         for i = 1, 10 do
-            local cost = 10 + math.random(20)
+            local cost = 10 + math.random(200)
             local building_type = BUILDING_TYPES[math.random(3)]
             local tile_id = c..i
             tiles[tile_id] = {cost=cost,
@@ -29,7 +29,7 @@ function init_gamestate()
                            influence=cost / 3,
                            revenue=cost / 100.0,
                            elapsed_construction_time=0,
-                           construction_time=cost,
+                           construction_time=cost * 2,
                            building_type=building_type,
                            is_approved=false,
                            is_started=false,

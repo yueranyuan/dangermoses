@@ -86,7 +86,7 @@ function finish_legal_action(action)
         -- get fined
         if (not action.tile.is_approved) then
             print("get fined")
-            state.moses.money = state.moses.money - action.tile.cost * 0.20
+            state.moses.money = state.moses.money - action.tile.cost
         end
         print("lost lawsuit")
         reset_tile(action.tile.id)
