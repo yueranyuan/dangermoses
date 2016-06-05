@@ -1,12 +1,11 @@
+<<<<<<< HEAD
 lume = require("lume")
-
+=======
 function draw_hud(origin_x, origin_y)
-    local money = lume.round(state.moses.money)
-    local influence = lume.round(state.moses.influence)
-    love.graphics.setColor(255, 255, 255, 255)
-    local hud_text = "money: "..money.."      influence: "..influence
+    local hud_text = "money: "..state.moses.money.."      influence: "..state.moses.influence
     love.graphics.print(hud_text, origin_x, origin_y)
 end
+>>>>>>> 6b719d66375fc8d8669ebeead9271b1ddd2cd4f5
 
 function draw_legal(origin_x, origin_y, width, height)
 
@@ -128,4 +127,11 @@ function get_cell(x, y)
         end
     end
     return(false)
+end
+
+function draw_moses()
+    local influence = lume.round(state.moses.influence)
+    local money = lume.round(state.moses.money)
+    love.graphics.print("Influence: "..influence.." | Money: $"..money,
+                        love.graphics.getWidth() / 2, love.graphics.getHeight() - 20)
 end
