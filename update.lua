@@ -161,6 +161,7 @@ end
 
 function update(dt)
     state.world.time = state.world.time + dt
+    state.world.year = state.world.time / 60.0
     update_legal(dt)
     update_tiles(dt)
     update_government(dt)
