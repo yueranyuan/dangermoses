@@ -49,6 +49,24 @@ function draw_legal(origin_x, origin_y, width, height)
             love.graphics.setColor(255, 100, 0, 255)
         end
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
+        -- Line linking legal action to tile
+        if action.tile then
+            for key, tile in pairs(tile_table) do
+                if key == action.tile.id then
+                    love.graphics.line(x, y + 5, tile.x_origin, tile.y_origin)
+                end
+            end
+        end
+        -- Building bar for lawsuits
+        if action.tile then
+            love.graphics.setColor(255, 255, 255, 255)
+            love.graphics.rectangle("fill", x, y + 5, bar_width, 5)
+            local build_bar_percentage = (action.tile.elapsed_construction_time / action.tile.construction_time)
+            love.graphics.setColor(0, 0, 255, 255)
+            love.graphics.rectangle("fill", x, y + 5, bar_width * build_bar_percentage, 5)
+        end
+        -- stats
+        love.graphics.setColor(0, 255, 0, 255)
         love.graphics.print('+'..action.pros..' -'..action.cons..' exp:'..lume.round(action.expiration_time),
             x + bar_width + 5, y + 30)
 
