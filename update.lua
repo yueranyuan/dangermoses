@@ -118,9 +118,6 @@ function update_legal(dt)
     local to_remove_idxs = {}
     for action_i, action in ipairs(state.legal) do
         local rate = (action.pros - action.cons) * dt
-        if action.type == "lawsuit" then
-            print(action.pros, rate)
-        end
         action.position = math.max(action.position + rate, 0)
         action.expiration_time = action.expiration_time - dt
         if action.position > action.total then
