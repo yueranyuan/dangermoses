@@ -94,7 +94,7 @@ function draw_city_map(origin_x, origin_y, width, height)
         -- Draw in-progress building.
         if tile.is_started and not tile.is_completed then
             local progress = tile.elapsed_construction_time / tile.construction_time
-            love.graphics.setColor(100, 150, 200, progress * 255)
+            love.graphics.setColor(100, 150, 200, 100 + progress * 155)
             love.graphics.rectangle("fill", box_origin_x + 2 * square_width / 3,
                 box_origin_y, square_width / 3, square_height * progress)
         end
@@ -112,7 +112,7 @@ function draw_city_map(origin_x, origin_y, width, height)
                 square_width - 6, square_height - 6)
         end
         -- Draw if a building has been approved.
-        if tile.is_completed then
+        if tile.is_approved then
             love.graphics.setColor(0, 255, 0, 150)
             love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
                 square_width - 6, square_height - 6)
