@@ -1,4 +1,7 @@
-lume = require("lume")
+function draw_hud(origin_x, origin_y)
+    local hud_text = "money: "..state.moses.money.."      influence: "..state.moses.influence
+    love.graphics.print(hud_text, origin_x, origin_y)
+end
 
 function draw_legal(origin_x, origin_y, width, height)
 
@@ -16,7 +19,18 @@ function draw_legal(origin_x, origin_y, width, height)
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
 
         -- buttons
-        love.graphics.print("Inf",  x + bar_width + 5, y + bar_height / 2)
+        action.inf_x = x + bar_width + 5
+        action.inf_y = y + bar_height / 2
+        love.graphics.print("Inf",  action.inf_x, action.inf_y)
+    end
+end
+
+function get_influence_button(x, y)
+    for action_i, action in pairs(state.legal) do
+        if (x > action.inf_x and x < action.inf_x + 20
+                and y > action.inf_y and y < action.inf_y + 20) then
+            return action
+        end
     end
 end
 
@@ -109,11 +123,4 @@ function get_cell(x, y)
         end
     end
     return(false)
-end
-
-function draw_moses()
-    local influence = lume.round(state.moses.influence)
-    local money = lume.round(state.moses.money)
-    love.graphics.print("Influence: "..influence.." | Money: $"..money,
-                        love.graphics.getWidth() / 2, love.graphics.getHeight() - 20)
 end

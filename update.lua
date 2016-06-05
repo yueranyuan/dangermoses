@@ -12,8 +12,10 @@ function update_tiles(dt)
             state.moses.money = state.moses.money + tile.revenue * dt
         elseif tile.is_started then
             tile.elapsed_construction_time = tile.elapsed_construction_time + dt
-            tile.is_completed = tile.elapsed_construction_time > tile.construction_time
-            state.moses.influence = state.moses.influence + tile.influence
+            if tile.elapsed_construction_time > tile.construction_time then
+                tile.is_completed = true
+                state.moses.influence = state.moses.influence + tile.influence
+            end
 
             -- start a suit
             if tile.illegality * dt > math.random() then
@@ -65,10 +67,8 @@ function build_tile(name)
         return
     end
 
-    if state.moses.money >= tile.cost then
-        state.moses.money = state.moses.money - tile.cost
-        tile.is_started = true
-    end
+    state.moses.money = state.moses.money - tile.cost
+    tile.is_started = true
 end
 
 function reset_tile(name)
@@ -94,13 +94,16 @@ function finish_legal_action(action)
 end
 
 function add_influence(action)
+    if state.moses.influence == 0 then
+        return
+    end
+    state.moses.influence = state.moses.influence - 1
     action.influence = action.influence + 1
     if (action.type == "nomination" or action.type == "approval") then
         action.pros = action.pros + 1
     else
         action.cons = action.cons + 1
     end
-    assert(false, "can't add influence not implemented")
 end
 
 function update_legal(dt)
@@ -110,7 +113,7 @@ function update_legal(dt)
         action.position = math.max(action.position + rate, 0)
         action.expiration_time = action.expiration_time - dt
         if action.position > action.total then
-            finish_legal_action(action);
+            finish_legal_action(action)
             table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
             state.moses.influence = state.moses.influence + action.influence
@@ -132,5 +135,10 @@ function on_click(x, y)
     tile = get_cell(x, y)
     if tile then
         build_tile(tile)
+    end
+
+    action = get_influence_button(x, y)
+    if action then
+        add_influence(action)
     end
 end
