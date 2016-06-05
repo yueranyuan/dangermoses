@@ -8,6 +8,11 @@ end
 
 function love.update(dt)
     update(dt)
+    function love.mousepressed(x, y, button, istouch)
+        if button == 1 then
+            print(get_cell(x, y))
+        end
+    end
 end
 
 function love.draw()
