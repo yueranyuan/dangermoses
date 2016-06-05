@@ -1,7 +1,12 @@
 require("initialize")
+require("update")
 
 function love.load()
     state = init_gamestate()
+end
+
+function love.update(dt)
+    update(dt)
 end
 
 function love.draw()

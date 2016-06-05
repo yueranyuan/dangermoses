@@ -23,6 +23,7 @@ function init_gamestate()
             local tile_id = c..i
             tiles[tile_id] = {cost=cost,
                            id=tile_id,
+                           illegality=math.random() * 0.2,
                            influence=cost / 3,
                            revenue=cost / 100.0,
                            elapsed_construction_time=0,
@@ -38,8 +39,11 @@ function init_gamestate()
     state["tiles"] = tiles
     state["legal"][0] = {type="nomination",
                          tile=nil,  -- this is a tile table reference not the tile id
+                         subtype="park",
+                         influence=0,
                          pros=0,
                          cons=0,
+                         position=50,
                          total=100,
                          expiration_time=30.0}
                          
