@@ -205,7 +205,7 @@ end
 
 function on_click(x, y)
     tile = get_cell(x, y)
-    if tile then
+    if tile and not tile.is_completed and not tile.is_started then
         build_tile(tile)
     end
 
