@@ -1,20 +1,20 @@
 function draw_legal(origin_x, origin_y, width, height)
 
     local bar_height = 40
-    local bar_width = 80
+    local bar_width = 60
 
-    local y = origin_y + bar_height
     local x = origin_x + 10
-    for _, action in pairs(state.legal) do
+    for action_i, action in pairs(state.legal) do
         local bar_percentage = action.position / action.total
         love.graphics.setColor(255, 255, 255, 255)
-        love.graphics.print("legal", x + bar_height / 2, y)
-        love.graphics.rectangle("fill", x, y, bar_width, bar_height)
+        local y = origin_y + bar_height * action_i
+        love.graphics.print(action.type, x + bar_width + 5, y)
+        love.graphics.rectangle("fill", x, y + 5, bar_width, bar_height - 10)
         love.graphics.setColor(0, 255, 0, 255)
-        love.graphics.rectangle("fill", x, y, bar_width * bar_percentage, bar_height)
+        love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
 
         -- buttons
-        love.graphics.print("Inf",  x + bar_width + 20, y + bar_height / 2)
+        love.graphics.print("Inf",  x + bar_width + 5, y + bar_height / 2)
     end
 end
 

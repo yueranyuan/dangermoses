@@ -38,12 +38,12 @@ function request_approval(tile)
         expiration_time=30.0 }
 
     tile.approval_action = approval
-    state.legal.insert(approval)
+    table.insert(state.legal, approval)
 end
 
 function sue(tile)
     if tile.lawsuit then
-        lawsuit.pros = lawsuit.pros + 1
+        tile.lawsuit.pros = tile.lawsuit.pros + 1
         return
     end
 
@@ -56,7 +56,7 @@ function sue(tile)
         total=100,
         expiration_time=30.0 }
     tile.lawsuit = lawsuit
-    state.legal.insert(lawsuit)
+    table.insert(state.legal, lawsuit)
 end
 
 function build_tile(name)
@@ -79,7 +79,7 @@ end
 
 function finish_legal_action(action)
     if action.type == "nomination" then
-        state.moses.positions.insert(action.subtype)
+        table.insert(state.moses.positions, action.subtype)
     elseif action.type == "lawsuit" then
         -- get fined
         if (not action.tile.is_approved) then
@@ -111,15 +111,15 @@ function update_legal(dt)
         action.expiration_time = action.expiration_time - dt
         if action.position > action.total then
             finish_legal_action(action);
-            to_remove_idxs.insert(action_i)
+            table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
             state.moses.influence = state.moses.influence + action.influence
-            to_remove_idxs.insert(action_i)
+            table.insert(to_remove_idxs, action_i)
         end
     end
 
     for _, idx in ipairs(to_remove_idxs) do
-        state.legal.remove(idx);
+        table.remove(state.legal, idx)
     end
 end
 
