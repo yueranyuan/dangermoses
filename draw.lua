@@ -118,21 +118,21 @@ function draw_city_map(origin_x, origin_y, width, height)
 
         -- Draw whether or not you're getting sued somewhere.
         if tile.lawsuit then
-            love.graphics.setColor(255, 0, 0, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+            love.graphics.setColor(255, 0, 0, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
         -- Draw if the building is built.
         if tile.is_completed then
-            love.graphics.setColor(200, 200, 200, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+            love.graphics.setColor(200, 200, 200, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
         -- Draw if a building has been approved.
         if tile.is_approved then
-            love.graphics.setColor(0, 255, 0, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+            love.graphics.setColor(0, 255, 0, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
     end
 end
