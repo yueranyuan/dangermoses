@@ -6,6 +6,16 @@
 -- To change this template use File | Settings | File Templates.
 --
 
+
+function _contains(arr, el)
+    for _, v in ipairs(arr) do
+        if v == el then
+            return true
+        end
+    end
+    return false
+end
+
 function update_tiles(dt)
     for k, tile in pairs(state["tiles"]) do
         if tile.is_completed then
@@ -52,10 +62,8 @@ function sue(tile)
     print("sued at "..tile.id)
 
     local bonus = 0
-    for i, position in ipairs(state.moses.positions) do
-        if tile.building_type == position then
-            bonus = bonus + 1
-        end
+    if _contains(state.moses.positions, tile.building_type) then
+        bonus = bonus + 1
     end
 
     local lawsuit = {type="lawsuit",
@@ -86,15 +94,6 @@ function reset_tile(name)
     tile.elapsed_construction_time = 0
 end
 
-function _contains(arr, el)
-    for _, v in ipairs(arr) do
-        if v == el then
-            return true
-        end
-    end
-    return false
-end
-
 function finish_legal_action(action)
     if action.type == "nomination" then
         table.insert(state.moses.positions, action.subtype)
@@ -112,6 +111,7 @@ function finish_legal_action(action)
     else
         assert(false, "Other legal action types are not implemented")
     end
+    action.finished = true
 end
 
 function add_influence(action)
@@ -120,11 +120,36 @@ function add_influence(action)
     end
     state.moses.influence = state.moses.influence - 1
     action.influence = action.influence + 1
-    if action_is_pro_user(action) then
-        action.pros = action.pros + 1
-    else
-        action.cons = action.cons + 1
+    local bonus = 0
+    -- commissioner bonus
+    if action.tile then
+        if _contains(state.moses.positions, action.tile.building_type) then
+            bonus = bonus + 1
+        end
     end
+
+    if action_is_pro_user(action) then
+        action.pros = action.pros + 1 + bonus
+    else
+        action.cons = action.cons + 1 + bonus
+    end
+end
+
+function expire_legal_action(action)
+    if action.type == "lawsuit" then
+        action.tile.lawsuit = nil
+    else
+        if not action_is_pro_user then
+            state.moses.influence = state.moses.influence + action.influence
+        end
+    end
+    action.finished = true
+    print("legal action expired")
+end
+
+function settle(action)
+    state.moses.money = state.moses.money - action.settle_price
+    expire_legal_action(action)
 end
 
 function action_is_pro_user(action)
@@ -132,7 +157,18 @@ function action_is_pro_user(action)
 end
 
 function update_legal(dt)
+    -- first remove all the finished actions
     local to_remove_idxs = {}
+    for action_i, action in ipairs(state.legal) do
+        if action.finished then
+            table.insert(to_remove_idxs, action_i)
+        end
+    end
+    for i = #to_remove_idxs, 1, -1 do
+        table.remove(state.legal, to_remove_idxs[i])
+    end
+
+    -- loop through remaining actions
     for action_i, action in ipairs(state.legal) do
         local rate = (action.pros - action.cons) * dt
         action.position = math.max(action.position + rate, 0)
@@ -142,22 +178,23 @@ function update_legal(dt)
             if action_is_pro_user then
                 state.moses.influence = state.moses.influence + action.influence
             end
-            table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
-            if action.type == "lawsuit" then
-                action.tile.lawsuit = nil
-            end
-            print("legal action expired")
-            if not action_is_pro_user then
-                state.moses.influence = state.moses.influence + action.influence
-            end
-            table.insert(to_remove_idxs, action_i)
+            expire_legal_action(action)
         end
     end
+end
 
-    for i = #to_remove_idxs, 1, -1 do
-        table.remove(state.legal, to_remove_idxs[i])
-    end
+function add_nomination(position)
+    local nomination = {type="nomination",
+        tile=nil,  -- this is a tile table reference not the tile id
+        subtype=position,
+        influence=0,
+        pros=0,
+        cons=0,
+        position=0,
+        total=1500,
+        expiration_time=120.0 }
+    table.insert(state.legal, nomination)
 end
 
 function update_government(dt)
@@ -182,25 +219,27 @@ function update_government(dt)
     end
 end
 
-function add_nomination(position)
-    local nomination = {type="nomination",
-                         tile=nil,  -- this is a tile table reference not the tile id
-                         subtype=position,
-                         influence=0,
-                         pros=1,
-                         cons=0,
-                         position=50,
-                         total=100,
-                         expiration_time=30.0 }
-    table.insert(state.legal, nomination)
-end
-
 function update(dt)
     state.world.time = state.world.time + dt
     state.world.year = state.world.time / 60.0
+    state.moses.popularity = math.min(state.moses.popularity + dt / 2, 100)
     update_legal(dt)
     update_tiles(dt)
     update_government(dt)
+end
+
+function resign()
+    for action_i, action in pairs(state.legal) do
+        if action.type == "lawsuit" then
+            state.moses.popularity = state.moses.popularity - 4 * (action.pros * math.random())
+            expire_legal_action(action)
+            action.finished = true
+        end
+    end
+
+    if state.moses.popularity < 0.0 then
+        lose()
+    end
 end
 
 function on_click(x, y)
@@ -212,5 +251,14 @@ function on_click(x, y)
     action = get_influence_button(x, y)
     if action then
         add_influence(action)
+    end
+
+    action = get_settle_button(x, y)
+    if action then
+        settle(action)
+    end
+
+    if check_resignation(x, y) then
+        resign()
     end
 end

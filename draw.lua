@@ -4,13 +4,24 @@ function draw_hud(origin_x, origin_y)
     local money = lume.round(state.moses.money)
     local year = lume.round(state.world.year * 100)
     local influence = lume.round(state.moses.influence)
+    local popularity = lume.round(state.moses.popularity)
     love.graphics.setColor(255, 255, 255, 255)
-    local hud_text = "year: "..year.."    money: "..money.."      influence: "..influence
+    local hud_text = "year: "..year.."    money: "..money.."      influence: "..influence.."      popularity: "..popularity
     hud_text = hud_text.."   positions: "
     for _, position in ipairs(state.moses.positions) do
         hud_text = hud_text.." "..position
     end
     love.graphics.print(hud_text, origin_x, origin_y)
+    love.graphics.setColor(255, 0, 0, 255)
+    love.graphics.print("RESIGN", 500, 0)
+end
+
+function check_word_collision(x, y, x2, y2)
+    return x > x2 and x < x2 + 30 and y > y2 and y < y2 + 20
+end
+
+function check_resignation(x, y)
+    return check_word_collision(x, y, 500, 0)
 end
 
 function draw_legal(origin_x, origin_y, width, height)
@@ -42,17 +53,36 @@ function draw_legal(origin_x, origin_y, width, height)
             x + bar_width + 5, y + 30)
 
         -- buttons
+        love.graphics.setColor(255, 100, 0, 255)
         action.inf_x = x + bar_width + 5
         action.inf_y = y + bar_height / 2
         love.graphics.print("Inf",  action.inf_x, action.inf_y)
+
+        if action.type == "lawsuit" then
+            love.graphics.setColor(200, 200, 0, 255)
+            action.settle_x = x + bar_width + 35
+            action.settle_y = y + bar_height / 2
+            action.settle_price = 2 * action.tile.cost
+            love.graphics.print("Settle("..action.settle_price..")",  action.settle_x, action.settle_y)
+        end
     end
 end
 
 function get_influence_button(x, y)
     for action_i, action in pairs(state.legal) do
-        if (x > action.inf_x and x < action.inf_x + 20
-                and y > action.inf_y and y < action.inf_y + 20) then
+        if check_word_collision(x, y, action.inf_x, action.inf_y) then
             return action
+        end
+    end
+end
+
+
+function get_settle_button(x, y)
+    for action_i, action in pairs(state.legal) do
+        if action.settle_price then
+            if check_word_collision(x, y, action.settle_x, action.settle_y) then
+                return action
+            end
         end
     end
 end
