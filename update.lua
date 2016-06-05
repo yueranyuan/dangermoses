@@ -129,4 +129,8 @@ function update(dt)
 end
 
 function on_click(x, y)
+    tile = get_cell(x, y)
+    if tile then
+        build_tile(tile)
+    end
 end

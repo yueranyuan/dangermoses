@@ -37,15 +37,15 @@ function init_gamestate()
     end
 
     state["tiles"] = tiles
-    state["legal"][0] = {type="nomination",
+    state["legal"] = {{type="nomination",
                          tile=nil,  -- this is a tile table reference not the tile id
                          subtype="park",
                          influence=0,
-                         pros=0,
+                         pros=1,
                          cons=0,
                          position=50,
                          total=100,
-                         expiration_time=30.0}
+                         expiration_time=30.0},}
                          
     return state
 end

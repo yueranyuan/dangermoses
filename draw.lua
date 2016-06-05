@@ -1,3 +1,24 @@
+function draw_legal(origin_x, origin_y, width, height)
+
+    local bar_height = 40
+    local bar_width = 80
+
+    local y = origin_y + bar_height
+    local x = origin_x + 10
+    for _, action in pairs(state.legal) do
+        local bar_percentage = action.position / action.total
+        love.graphics.setColor(255, 255, 255, 255)
+        love.graphics.print("legal", x + bar_height / 2, y)
+        love.graphics.rectangle("fill", x, y, bar_width, bar_height)
+        love.graphics.setColor(0, 255, 0, 255)
+        love.graphics.rectangle("fill", x, y, bar_width * bar_percentage, bar_height)
+
+        -- buttons
+        love.graphics.print("Inf",  x + bar_width + 20, y + bar_height / 2)
+    end
+end
+
+
 function draw_city_map(origin_x, origin_y, width, height)
 
     local alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
