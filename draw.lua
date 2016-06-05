@@ -6,6 +6,10 @@ function draw_hud(origin_x, origin_y)
     local influence = lume.round(state.moses.influence)
     love.graphics.setColor(255, 255, 255, 255)
     local hud_text = "year: "..year.."    money: "..money.."      influence: "..influence
+    hud_text = hud_text.."   positions: "
+    for _, position in ipairs(state.moses.positions) do
+        hud_text = hud_text.." "..position
+    end
     love.graphics.print(hud_text, origin_x, origin_y)
 end
 
