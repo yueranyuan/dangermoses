@@ -1,5 +1,10 @@
+lume = require("lume")
+
 function draw_hud(origin_x, origin_y)
-    local hud_text = "money: "..state.moses.money.."      influence: "..state.moses.influence
+    local money = lume.round(state.moses.money)
+    local influence = lume.round(state.moses.influence)
+    love.graphics.setColor(255, 255, 255, 255)
+    local hud_text = "money: "..money.."      influence: "..influence
     love.graphics.print(hud_text, origin_x, origin_y)
 end
 
