@@ -27,6 +27,7 @@ function init_gamestate()
                            construction_time=cost,
                            building_type=building_type,
                            is_approved=false,
+                           is_started=false,
                            is_completed=false
                            }
         end
