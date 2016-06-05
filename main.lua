@@ -2,8 +2,12 @@ require("initialize")
 require("update")
 require("draw")
 
+function love.mousepressed(x, y, button, istouch)
+    on_click(x, y)
+end
+
 function love.load()
-  state = init_gamestate()
+    state = init_gamestate()
 end
 
 function love.update(dt)
