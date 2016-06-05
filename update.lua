@@ -98,7 +98,7 @@ function finish_legal_action(action)
 end
 
 function add_influence(action)
-    if state.moses.influence == 0 then
+    if state.moses.influence <= 0 then
         return
     end
     state.moses.influence = state.moses.influence - 1
