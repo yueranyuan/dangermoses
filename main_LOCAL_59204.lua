@@ -15,8 +15,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    draw_city_map(50, 30, love.graphics.getWidth() - 200, love.graphics.getHeight() - 100)
+    draw_city_map(50, 10, love.graphics.getWidth() - 200, love.graphics.getHeight() - 100)
     draw_legal(love.graphics.getWidth() - 150, 10)
-    --draw_moses()
-    draw_hud(0, 0)
+    draw_moses()
 end
