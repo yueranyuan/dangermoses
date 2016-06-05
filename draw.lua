@@ -1,3 +1,5 @@
+lume = require("lume")
+
 function draw_legal(origin_x, origin_y, width, height)
 
     local bar_height = 40
@@ -95,7 +97,6 @@ function draw_city_map(origin_x, origin_y, width, height)
             love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
                 square_width - 6, square_height - 6)
         end
-
     end
 end
 
@@ -108,4 +109,11 @@ function get_cell(x, y)
         end
     end
     return(false)
+end
+
+function draw_moses()
+    local influence = lume.round(state.moses.influence)
+    local money = lume.round(state.moses.money)
+    love.graphics.print("Influence: "..influence.." | Money: $"..money,
+                        love.graphics.getWidth() / 2, love.graphics.getHeight() - 20)
 end
