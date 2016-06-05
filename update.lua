@@ -130,9 +130,15 @@ function update_legal(dt)
     end
 end
 
+function update_government(dt)
+
+end
+
 function update(dt)
+    state.world.time = state.world.time + dt
     update_legal(dt)
     update_tiles(dt)
+    update_government(dt)
 end
 
 function on_click(x, y)

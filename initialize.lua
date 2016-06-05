@@ -13,7 +13,9 @@ function init_gamestate()
                  positions={}},
         legal = {},
         mayor = {name="Al Smith",
-                 time_before_election=MAYOR_ELECTION_CYCLE_YEARS * YEAR_LENGTH}
+                 time_before_election=MAYOR_ELECTION_CYCLE_YEARS * YEAR_LENGTH,
+                 nomination_cycle_idx=0,
+                 audit_cycle_idx=0}
         }
     local tiles = {}
     for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
