@@ -102,11 +102,15 @@ function add_influence(action)
     end
     state.moses.influence = state.moses.influence - 1
     action.influence = action.influence + 1
-    if (action.type == "nomination" or action.type == "approval") then
+    if action_is_pro_user(action) then
         action.pros = action.pros + 1
     else
         action.cons = action.cons + 1
     end
+end
+
+function action_is_pro_user(action)
+    return (action.type == "nomination" or action.type == "approval")
 end
 
 function update_legal(dt)
@@ -117,10 +121,15 @@ function update_legal(dt)
         action.expiration_time = action.expiration_time - dt
         if action.position > action.total then
             finish_legal_action(action)
+            if action_is_pro_user then
+                state.moses.influence = state.moses.influence + action.influence
+            end
             table.insert(to_remove_idxs, action_i)
         elseif action.expiration_time < 0.0 then
             print("legal action expired")
-            state.moses.influence = state.moses.influence + action.influence
+            if not action_is_pro_user then
+                state.moses.influence = state.moses.influence + action.influence
+            end
             table.insert(to_remove_idxs, action_i)
         end
     end
