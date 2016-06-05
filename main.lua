@@ -6,5 +6,5 @@ function love.load()
 end
 
 function love.draw()
-  draw_city_map
+  draw_city_map()
 end
