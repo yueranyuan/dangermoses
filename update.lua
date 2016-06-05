@@ -131,7 +131,32 @@ function update_legal(dt)
 end
 
 function update_government(dt)
+    if state.world.year / 5 > state.mayor.audit_cycle_idx then
+        state.mayor.audit_cycle_idx = state.mayor.audit_cycle_idx + 1
+        if state.moses.money < 0 then
+            lose()
+        end
+    end
 
+    if state.world.year / 3 > state.mayor.nomination_cycle_idx then
+        state.mayor.nomination_cycle_idx = state.mayor.nomination_cycle_idx + 1
+        add_nomination("park")
+        add_nomination("road")
+        add_nomination("tenement")
+    end
+end
+
+function add_nomination(position)
+    local nomination = {type="nomination",
+                         tile=nil,  -- this is a tile table reference not the tile id
+                         subtype=position,
+                         influence=0,
+                         pros=1,
+                         cons=0,
+                         position=50,
+                         total=100,
+                         expiration_time=30.0 }
+    table.insert(state.legal, nomination)
 end
 
 function update(dt)
