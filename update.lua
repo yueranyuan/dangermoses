@@ -10,10 +10,12 @@ function update_tiles(dt)
     for k, tile in pairs(state["tiles"]) do
         if tile.is_completed then
             state.moses.money = state.moses.money + tile.revenue * dt
-            state.moses.influence = state.moses.influence + tile.influence
         elseif tile.is_started then
             tile.elapsed_construction_time = tile.elapsed_construction_time + dt
-            tile.is_completed = tile.elapsed_construction_time > tile.construction_time
+            if tile.elapsed_construction_time > tile.construction_time then
+                tile.is_completed = true
+                state.moses.influence = state.moses.influence + tile.influence
+            end
 
             -- start a suit
             if tile.illegality * dt > math.random() then
@@ -65,10 +67,8 @@ function build_tile(name)
         return
     end
 
-    if state.moses.money >= tile.cost then
-        state.moses.money = state.moses.money - tile.cost
-        tile.is_started = true
-    end
+    state.moses.money = state.moses.money - tile.cost
+    tile.is_started = true
 end
 
 function reset_tile(name)
