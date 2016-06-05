@@ -58,7 +58,7 @@ function sue(tile)
         cons=0,
         position=50,
         total=100,
-        expiration_time=30.0 }
+        expiration_time=60.0 }
     tile.lawsuit = lawsuit
     table.insert(state.legal, lawsuit)
 end
