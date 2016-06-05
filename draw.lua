@@ -1,3 +1,8 @@
+function draw_hud(origin_x, origin_y)
+    local hud_text = "money: "..state.moses.money.."      influence: "..state.moses.influence
+    love.graphics.print(hud_text, origin_x, origin_y)
+end
+
 function draw_legal(origin_x, origin_y, width, height)
 
     local bar_height = 40
@@ -14,7 +19,18 @@ function draw_legal(origin_x, origin_y, width, height)
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
 
         -- buttons
-        love.graphics.print("Inf",  x + bar_width + 5, y + bar_height / 2)
+        action.inf_x = x + bar_width + 5
+        action.inf_y = y + bar_height / 2
+        love.graphics.print("Inf",  action.inf_x, action.inf_y)
+    end
+end
+
+function get_influence_button(x, y)
+    for action_i, action in pairs(state.legal) do
+        if (x > action.inf_x and x < action.inf_x + 20
+                and y > action.inf_y and y < action.inf_y + 20) then
+            return action
+        end
     end
 end
 
@@ -72,10 +88,30 @@ function draw_city_map(origin_x, origin_y, width, height)
         -- Draw in-progress building.
         if tile.is_started and not tile.is_completed then
             local progress = tile.elapsed_construction_time / tile.construction_time
-            love.graphics.setColor(100, 150, 200, progress * 150)
-            love.graphics.rectangle("fill", box_origin_x, box_origin_y + square_height,
-                square_width / 3, square_height - (square_height * progress))
+            love.graphics.setColor(100, 150, 200, progress * 255)
+            love.graphics.rectangle("fill", box_origin_x + 2 * square_width / 3,
+                box_origin_y, square_width / 3, square_height * progress)
         end
+
+        -- Draw whether or not you're getting sued somewhere.
+        if tile.lawsuit then
+            love.graphics.setColor(255, 0, 0, 150)
+            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
+                square_width - 6, square_height - 6)
+        end
+        -- Draw if the building is built.
+        if tile.is_completed then
+            love.graphics.setColor(200, 200, 200, 150)
+            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
+                square_width - 6, square_height - 6)
+        end
+        -- Draw if a building has been approved.
+        if tile.is_completed then
+            love.graphics.setColor(0, 255, 0, 150)
+            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
+                square_width - 6, square_height - 6)
+        end
+
     end
 end
 
