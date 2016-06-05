@@ -23,6 +23,8 @@ function draw_legal(origin_x, origin_y, width, height)
         love.graphics.rectangle("fill", x, y + 5, bar_width, bar_height - 10)
         love.graphics.setColor(0, 255, 0, 255)
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
+        love.graphics.print('+'..action.pros..' -'..action.cons..' exp:'..lume.round(action.expiration_time),
+            x + bar_width + 5, y + 30)
 
         -- buttons
         action.inf_x = x + bar_width + 5

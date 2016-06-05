@@ -51,11 +51,18 @@ function sue(tile)
 
     print("sued at "..tile.id)
 
+    local bonus = 0
+    for i, position in ipairs(state.moses.positions) do
+        if tile.building_type == position then
+            bonus = bonus + 1
+        end
+    end
+
     local lawsuit = {type="lawsuit",
         tile=tile,
         influence=0,
         pros=1,
-        cons=0,
+        cons=bonus,
         position=50,
         total=100,
         expiration_time=60.0 }
