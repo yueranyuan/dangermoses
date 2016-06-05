@@ -19,7 +19,13 @@ function draw_legal(origin_x, origin_y, width, height)
         local bar_percentage = action.position / action.total
         love.graphics.setColor(255, 255, 255, 255)
         local y = origin_y + bar_height * action_i
-        love.graphics.print(action.type, x + bar_width + 5, y)
+        local header = action.type
+        if action.type == "nomination" then
+            header = header.."("..action.subtype..")"
+        elseif action.type == "lawsuit" then
+            header = header.."("..action.tile.id..")"
+        end
+        love.graphics.print(header, x + bar_width + 5, y)
         love.graphics.rectangle("fill", x, y + 5, bar_width, bar_height - 10)
         love.graphics.setColor(0, 255, 0, 255)
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
@@ -114,7 +120,7 @@ function draw_city_map(origin_x, origin_y, width, height)
                 square_width - 6, square_height - 6)
         end
         -- Draw if a building has been approved.
-        if tile.is_completed then
+        if tile.is_approved then
             love.graphics.setColor(0, 255, 0, 150)
             love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
                 square_width - 6, square_height - 6)
