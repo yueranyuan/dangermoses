@@ -1,11 +1,28 @@
-<<<<<<< HEAD
-lume = require("lume")
-=======
+lume = require("extern/lume")
+
 function draw_hud(origin_x, origin_y)
-    local hud_text = "money: "..state.moses.money.."      influence: "..state.moses.influence
+    local money = lume.round(state.moses.money)
+    local year = lume.round(state.world.year * 100)
+    local influence = lume.round(state.moses.influence)
+    local popularity = lume.round(state.moses.popularity)
+    love.graphics.setColor(255, 255, 255, 255)
+    local hud_text = "year: "..year.."    money: "..money.."      influence: "..influence.."      popularity: "..popularity
+    hud_text = hud_text.."   positions: "
+    for _, position in ipairs(state.moses.positions) do
+        hud_text = hud_text.." "..position
+    end
     love.graphics.print(hud_text, origin_x, origin_y)
+    love.graphics.setColor(255, 0, 0, 255)
+    love.graphics.print("RESIGN", 500, 0)
 end
->>>>>>> 6b719d66375fc8d8669ebeead9271b1ddd2cd4f5
+
+function check_word_collision(x, y, x2, y2)
+    return x > x2 and x < x2 + 30 and y > y2 and y < y2 + 20
+end
+
+function check_resignation(x, y)
+    return check_word_collision(x, y, 500, 0)
+end
 
 function draw_legal(origin_x, origin_y, width, height)
 
@@ -17,23 +34,73 @@ function draw_legal(origin_x, origin_y, width, height)
         local bar_percentage = action.position / action.total
         love.graphics.setColor(255, 255, 255, 255)
         local y = origin_y + bar_height * action_i
-        love.graphics.print(action.type, x + bar_width + 5, y)
+        local header = action.type
+        if action.type == "nomination" then
+            header = header.."("..action.subtype..")"
+        elseif action.type == "lawsuit" then
+            header = header.."("..action.tile.id..")"
+        end
+        love.graphics.print(header, x + bar_width + 5, y)
+        -- Draw background for legal bars.
         love.graphics.rectangle("fill", x, y + 5, bar_width, bar_height - 10)
+        -- Progress bar for lawsuits.
         love.graphics.setColor(0, 255, 0, 255)
+        if bar_percentage > 0.80 then
+            love.graphics.setColor(255, 100, 0, 255)
+        end
         love.graphics.rectangle("fill", x, y + 5, bar_width * bar_percentage, bar_height - 10)
+        -- Line linking legal action to tile
+        if action.tile then
+            for key, tile in pairs(tile_table) do
+                if key == action.tile.id then
+                    love.graphics.line(x, y + 5, tile.x_origin, tile.y_origin)
+                end
+            end
+        end
+        -- Building bar for lawsuits
+        if action.tile then
+            love.graphics.setColor(255, 255, 255, 255)
+            love.graphics.rectangle("fill", x, y + 5, bar_width, 5)
+            local build_bar_percentage = (action.tile.elapsed_construction_time / action.tile.construction_time)
+            love.graphics.setColor(0, 0, 255, 255)
+            love.graphics.rectangle("fill", x, y + 5, bar_width * build_bar_percentage, 5)
+        end
+        -- stats
+        love.graphics.setColor(0, 255, 0, 255)
+        love.graphics.print('+'..action.pros..' -'..action.cons..' exp:'..lume.round(action.expiration_time),
+            x + bar_width + 5, y + 30)
 
         -- buttons
+        love.graphics.setColor(255, 100, 0, 255)
         action.inf_x = x + bar_width + 5
         action.inf_y = y + bar_height / 2
         love.graphics.print("Inf",  action.inf_x, action.inf_y)
+
+        if action.type == "lawsuit" then
+            love.graphics.setColor(200, 200, 0, 255)
+            action.settle_x = x + bar_width + 35
+            action.settle_y = y + bar_height / 2
+            action.settle_price = 2 * action.tile.cost
+            love.graphics.print("Settle("..action.settle_price..")",  action.settle_x, action.settle_y)
+        end
     end
 end
 
 function get_influence_button(x, y)
     for action_i, action in pairs(state.legal) do
-        if (x > action.inf_x and x < action.inf_x + 20
-                and y > action.inf_y and y < action.inf_y + 20) then
+        if check_word_collision(x, y, action.inf_x, action.inf_y) then
             return action
+        end
+    end
+end
+
+
+function get_settle_button(x, y)
+    for action_i, action in pairs(state.legal) do
+        if action.settle_price then
+            if check_word_collision(x, y, action.settle_x, action.settle_y) then
+                return action
+            end
         end
     end
 end
@@ -92,28 +159,28 @@ function draw_city_map(origin_x, origin_y, width, height)
         -- Draw in-progress building.
         if tile.is_started and not tile.is_completed then
             local progress = tile.elapsed_construction_time / tile.construction_time
-            love.graphics.setColor(100, 150, 200, progress * 255)
+            love.graphics.setColor(100, 150, 200, 100 + progress * 155)
             love.graphics.rectangle("fill", box_origin_x + 2 * square_width / 3,
                 box_origin_y, square_width / 3, square_height * progress)
         end
 
         -- Draw whether or not you're getting sued somewhere.
         if tile.lawsuit then
-            love.graphics.setColor(255, 0, 0, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+            love.graphics.setColor(255, 0, 0, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
         -- Draw if the building is built.
         if tile.is_completed then
-            love.graphics.setColor(200, 200, 200, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+            love.graphics.setColor(200, 200, 200, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
         -- Draw if a building has been approved.
-        if tile.is_completed then
-            love.graphics.setColor(0, 255, 0, 150)
-            love.graphics.rectangle("line", box_origin_x + 3, box_origin_y + 3,
-                square_width - 6, square_height - 6)
+        if tile.is_approved then
+            love.graphics.setColor(0, 255, 0, 100)
+            love.graphics.rectangle("fill", box_origin_x + 2, box_origin_y + 2,
+                square_width - 4, square_height - 4)
         end
     end
 end
@@ -127,11 +194,4 @@ function get_cell(x, y)
         end
     end
     return(false)
-end
-
-function draw_moses()
-    local influence = lume.round(state.moses.influence)
-    local money = lume.round(state.moses.money)
-    love.graphics.print("Influence: "..influence.." | Money: $"..money,
-                        love.graphics.getWidth() / 2, love.graphics.getHeight() - 20)
 end
