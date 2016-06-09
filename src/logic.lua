@@ -14,7 +14,7 @@ local function sue(tile)
         return
     end
 
-    print("sued at "..tile.id)
+    log.trace("sued at "..tile.id)
 
     local bonus = 0
     if lume.find(state.moses.positions, tile.building_type) then
@@ -22,6 +22,7 @@ local function sue(tile)
     end
 
     local lawsuit = {type="lawsuit",
+        id=lume.UUID,
         tile=tile,
         influence=0,
         pros=1,
@@ -46,10 +47,10 @@ local function finish_legal_action(action)
     elseif action.type == "lawsuit" then
         -- get fined
         if (not action.tile.is_approved) then
-            print("get fined")
+            log.trace("get fined")
             state.moses.money = state.moses.money - action.tile.cost
         end
-        print("lost lawsuit")
+        log.trace("lost lawsuit")
         reset_tile(action.tile.id)
         action.tile.lawsuit = nil
     elseif action.type == "approval" then
@@ -69,7 +70,7 @@ local function expire_legal_action(action)
         end
     end
     action.finished = true
-    print("legal action expired")
+    log.trace("legal action expired")
 end
 
 local function action_is_pro_user(action)
@@ -78,6 +79,7 @@ end
 
 local function add_nomination(position)
     local nomination = {type="nomination",
+        id=lume.UUID,
         tile=nil,  -- this is a tile table reference not the tile id
         subtype=position,
         influence=0,
@@ -91,14 +93,10 @@ end
 
 local function update_legal(dt)
     -- first remove all the finished actions
-    local to_remove_idxs = {}
-    for action_i, action in ipairs(state.legal) do
+    for action_i, action in lume.ripairs(state.legal) do
         if action.finished then
-            table.insert(to_remove_idxs, action_i)
+            table.remove(self.legal, action_i)
         end
-    end
-    for i = #to_remove_idxs, 1, -1 do
-        table.remove(state.legal, to_remove_idxs[i])
     end
 
     -- loop through remaining actions
@@ -178,6 +176,7 @@ function logic.inter.request_approval(name)
     end
 
     local approval = {type="approval",
+        id=lume.UUID,
         tile=tile,
         influence=0,
         pros=0,

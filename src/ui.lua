@@ -195,7 +195,6 @@ end
 local function get_cell(x, y)
     -- Given an xy coordinate, return which cell that corresponds to.
     for key, tile in pairs(tile_table) do
-        print(tile.x_origin, tile.y_origin)
         if tile.x_origin < x and tile.x_end >= x and
            tile.y_origin < y and tile.y_end >= y then
             return(key)
