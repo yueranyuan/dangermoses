@@ -28,6 +28,7 @@ local function sue(tile)
         cons=bonus,
         position=50,
         total=100,
+        settle_price=2 * tile.cost,
         expiration_time=60.0 }
     tile.lawsuit = lawsuit
     table.insert(state.legal, lawsuit)
