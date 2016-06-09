@@ -1,6 +1,6 @@
-lume = require("extern/lume")
+local ui = {}
 
-function draw_hud(origin_x, origin_y)
+local function draw_hud(origin_x, origin_y)
     local money = lume.round(state.moses.money)
     local year = lume.round(state.world.year * 100)
     local influence = lume.round(state.moses.influence)
@@ -16,15 +16,15 @@ function draw_hud(origin_x, origin_y)
     love.graphics.print("RESIGN", 500, 0)
 end
 
-function check_word_collision(x, y, x2, y2)
+local function check_word_collision(x, y, x2, y2)
     return x > x2 and x < x2 + 30 and y > y2 and y < y2 + 20
 end
 
-function check_resignation(x, y)
+local function check_resignation(x, y)
     return check_word_collision(x, y, 500, 0)
 end
 
-function draw_legal(origin_x, origin_y, width, height)
+local function draw_legal(origin_x, origin_y, width, height)
 
     local bar_height = 40
     local bar_width = 60
@@ -86,7 +86,7 @@ function draw_legal(origin_x, origin_y, width, height)
     end
 end
 
-function get_influence_button(x, y)
+local function get_influence_button(x, y)
     for action_i, action in pairs(state.legal) do
         if check_word_collision(x, y, action.inf_x, action.inf_y) then
             return action
@@ -94,8 +94,7 @@ function get_influence_button(x, y)
     end
 end
 
-
-function get_settle_button(x, y)
+local function get_settle_button(x, y)
     for action_i, action in pairs(state.legal) do
         if action.settle_price then
             if check_word_collision(x, y, action.settle_x, action.settle_y) then
@@ -105,9 +104,7 @@ function get_settle_button(x, y)
     end
 end
 
-
-function draw_city_map(origin_x, origin_y, width, height)
-
+local function draw_city_map(origin_x, origin_y, width, height)
     local alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     local tile_nums = {}
@@ -185,13 +182,43 @@ function draw_city_map(origin_x, origin_y, width, height)
     end
 end
 
--- Given an xy coordinate, return which cell that corresponds to.
-function get_cell(x, y)
+local function get_cell(x, y)
+    -- Given an xy coordinate, return which cell that corresponds to.
     for key, tile in pairs(tile_table) do
+        print(tile.x_origin, tile.y_origin)
         if tile.x_origin < x and tile.x_end >= x and
            tile.y_origin < y and tile.y_end >= y then
             return(key)
         end
     end
-    return(false)
+    return false
 end
+
+function ui.draw(dt)
+    draw_city_map(0, 30, love.graphics.getWidth() - 200, love.graphics.getHeight() - 100)
+    draw_legal(love.graphics.getWidth() - 200, 10)
+    draw_hud(0, 0)
+end
+
+function ui.onclick(x, y)
+    local tile = get_cell(x, y)
+    if tile and not tile.is_completed and not tile.is_started then
+        logic.inter.build_tile(tile)
+    end
+
+    local action = get_influence_button(x, y)
+    if action then
+        logic.inter.add_influence(action)
+    end
+
+    local action = get_settle_button(x, y)
+    if action then
+        logic.inter.settle(action)
+    end
+
+    if check_resignation(x, y) then
+        logic.inter.resign()
+    end
+end
+
+return ui

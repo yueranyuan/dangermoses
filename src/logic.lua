@@ -6,54 +6,9 @@
 -- To change this template use File | Settings | File Templates.
 --
 
+local logic = {inter={}}
 
-function _contains(arr, el)
-    for _, v in ipairs(arr) do
-        if v == el then
-            return true
-        end
-    end
-    return false
-end
-
-function update_tiles(dt)
-    for k, tile in pairs(state["tiles"]) do
-        if tile.is_completed then
-            state.moses.money = state.moses.money + tile.revenue * dt
-        elseif tile.is_started then
-            tile.elapsed_construction_time = tile.elapsed_construction_time + dt
-            if tile.elapsed_construction_time > tile.construction_time then
-                tile.is_completed = true
-                state.moses.influence = state.moses.influence + tile.influence
-            end
-
-            -- start a suit
-            if tile.illegality * dt > math.random() then
-                sue(tile)
-            end
-        end
-    end
-end
-
-function request_approval(tile)
-    if tile.approval_action then
-        return
-    end
-
-    local approval = {type="approval",
-        tile=tile,
-        influence=0,
-        pros=0,
-        cons=0,
-        position=50,
-        total=100,
-        expiration_time=30.0 }
-
-    tile.approval_action = approval
-    table.insert(state.legal, approval)
-end
-
-function sue(tile)
+local function sue(tile)
     if tile.lawsuit then
         tile.lawsuit.pros = tile.lawsuit.pros + 1
         return
@@ -62,7 +17,7 @@ function sue(tile)
     print("sued at "..tile.id)
 
     local bonus = 0
-    if _contains(state.moses.positions, tile.building_type) then
+    if lume.find(state.moses.positions, tile.building_type) then
         bonus = bonus + 1
     end
 
@@ -78,23 +33,13 @@ function sue(tile)
     table.insert(state.legal, lawsuit)
 end
 
-function build_tile(name)
-    local tile = state.tiles[name]
-    if tile.is_completed then
-        return
-    end
-
-    state.moses.money = state.moses.money - tile.cost
-    tile.is_started = true
-end
-
-function reset_tile(name)
+local function reset_tile(name)
     local tile = state.tiles[name]
     tile.is_started = 0
     tile.elapsed_construction_time = 0
 end
 
-function finish_legal_action(action)
+local function finish_legal_action(action)
     if action.type == "nomination" then
         table.insert(state.moses.positions, action.subtype)
     elseif action.type == "lawsuit" then
@@ -114,28 +59,7 @@ function finish_legal_action(action)
     action.finished = true
 end
 
-function add_influence(action)
-    if state.moses.influence <= 0 then
-        return
-    end
-    state.moses.influence = state.moses.influence - 1
-    action.influence = action.influence + 1
-    local bonus = 0
-    -- commissioner bonus
-    if action.tile then
-        if _contains(state.moses.positions, action.tile.building_type) then
-            bonus = bonus + 1
-        end
-    end
-
-    if action_is_pro_user(action) then
-        action.pros = action.pros + 1 + bonus
-    else
-        action.cons = action.cons + 1 + bonus
-    end
-end
-
-function expire_legal_action(action)
+local function expire_legal_action(action)
     if action.type == "lawsuit" then
         action.tile.lawsuit = nil
     else
@@ -147,16 +71,24 @@ function expire_legal_action(action)
     print("legal action expired")
 end
 
-function settle(action)
-    state.moses.money = state.moses.money - action.settle_price
-    expire_legal_action(action)
-end
-
-function action_is_pro_user(action)
+local function action_is_pro_user(action)
     return (action.type == "nomination" or action.type == "approval")
 end
 
-function update_legal(dt)
+local function add_nomination(position)
+    local nomination = {type="nomination",
+        tile=nil,  -- this is a tile table reference not the tile id
+        subtype=position,
+        influence=0,
+        pros=0,
+        cons=0,
+        position=0,
+        total=1500,
+        expiration_time=120.0 }
+    table.insert(state.legal, nomination)
+end
+
+local function update_legal(dt)
     -- first remove all the finished actions
     local to_remove_idxs = {}
     for action_i, action in ipairs(state.legal) do
@@ -184,20 +116,7 @@ function update_legal(dt)
     end
 end
 
-function add_nomination(position)
-    local nomination = {type="nomination",
-        tile=nil,  -- this is a tile table reference not the tile id
-        subtype=position,
-        influence=0,
-        pros=0,
-        cons=0,
-        position=0,
-        total=1500,
-        expiration_time=120.0 }
-    table.insert(state.legal, nomination)
-end
-
-function update_government(dt)
+local function update_government(dt)
     if state.world.year / 5 > state.mayor.audit_cycle_idx then
         state.mayor.audit_cycle_idx = state.mayor.audit_cycle_idx + 1
         if state.moses.money < 0 then
@@ -207,19 +126,39 @@ function update_government(dt)
 
     if state.world.year / 3 > state.mayor.nomination_cycle_idx then
         state.mayor.nomination_cycle_idx = state.mayor.nomination_cycle_idx + 1
-        if not _contains(state.moses.positions, "park") then
+        if not lume.find(state.moses.positions, "park") then
             add_nomination("park")
         end
-        if not _contains(state.moses.positions, "road") then
+        if not lume.find(state.moses.positions, "road") then
             add_nomination("road")
         end
-        if not _contains(state.moses.positions, "tenement") then
+        if not lume.find(state.moses.positions, "tenement") then
             add_nomination("tenement")
         end
     end
 end
 
-function update(dt)
+local function update_tiles(dt)
+    for k, tile in pairs(state["tiles"]) do
+        if tile.is_completed then
+            state.moses.money = state.moses.money + tile.revenue * dt
+        elseif tile.is_started then
+            tile.elapsed_construction_time = tile.elapsed_construction_time + dt
+            if tile.elapsed_construction_time > tile.construction_time then
+                tile.is_completed = true
+                state.moses.influence = state.moses.influence + tile.influence
+            end
+
+            -- start a suit
+            if tile.illegality * dt > math.random() then
+                sue(tile)
+            end
+        end
+    end
+end
+
+
+function logic.update(dt)
     state.world.time = state.world.time + dt
     state.world.year = state.world.time / 60.0
     state.moses.popularity = math.min(state.moses.popularity + dt / 2, 100)
@@ -228,7 +167,39 @@ function update(dt)
     update_government(dt)
 end
 
-function resign()
+
+---- Call these functions to send user input -----
+
+function logic.inter.request_approval(name)
+    local tile = state.tiles[name]
+    if tile.approval_action then
+        return
+    end
+
+    local approval = {type="approval",
+        tile=tile,
+        influence=0,
+        pros=0,
+        cons=0,
+        position=50,
+        total=100,
+        expiration_time=30.0 }
+
+    tile.approval_action = approval
+    table.insert(state.legal, approval)
+end
+
+function logic.inter.build_tile(name)
+    local tile = state.tiles[name]
+    if tile.is_completed then
+        return
+    end
+
+    state.moses.money = state.moses.money - tile.cost
+    tile.is_started = true
+end
+
+function logic.inter.resign()
     for action_i, action in pairs(state.legal) do
         if action.type == "lawsuit" then
             state.moses.popularity = state.moses.popularity - 4 * (action.pros * math.random())
@@ -242,23 +213,30 @@ function resign()
     end
 end
 
-function on_click(x, y)
-    tile = get_cell(x, y)
-    if tile and not tile.is_completed and not tile.is_started then
-        build_tile(tile)
+function logic.inter.settle(action)
+    state.moses.money = state.moses.money - action.settle_price
+    expire_legal_action(action)
+end
+
+function logic.inter.add_influence(action)
+    if state.moses.influence <= 0 then
+        return
+    end
+    state.moses.influence = state.moses.influence - 1
+    action.influence = action.influence + 1
+    local bonus = 0
+    -- commissioner bonus
+    if action.tile then
+        if lume.find(state.moses.positions, action.tile.building_type) then
+            bonus = bonus + 1
+        end
     end
 
-    action = get_influence_button(x, y)
-    if action then
-        add_influence(action)
-    end
-
-    action = get_settle_button(x, y)
-    if action then
-        settle(action)
-    end
-
-    if check_resignation(x, y) then
-        resign()
+    if action_is_pro_user(action) then
+        action.pros = action.pros + 1 + bonus
+    else
+        action.cons = action.cons + 1 + bonus
     end
 end
+
+return logic
