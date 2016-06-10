@@ -61,20 +61,20 @@ local function finish_legal_action(action)
     action.finished = true
 end
 
+local function action_is_pro_user(action)
+    return (action.type == "nomination" or action.type == "approval")
+end
+
 local function expire_legal_action(action)
     if action.type == "lawsuit" then
         action.tile.lawsuit = nil
     else
-        if not action_is_pro_user then
+        if not action_is_pro_user(action) then
             state.moses.influence = state.moses.influence + action.influence
         end
     end
     action.finished = true
     log.trace("legal action expired")
-end
-
-local function action_is_pro_user(action)
-    return (action.type == "nomination" or action.type == "approval")
 end
 
 local function add_nomination(position)
