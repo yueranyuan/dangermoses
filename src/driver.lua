@@ -9,7 +9,8 @@
 --- All globals are set here
 lume = require "extern/lume"
 log = require "extern/log"
-state, consts = require "src/setup"
+state = require "src/setup"
+consts = require "src/consts"
 logic = require "src/logic"
 ui = require "src/ui"
 

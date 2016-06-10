@@ -1,10 +1,6 @@
 math.randomseed(1337)
 
---- all game constants go here
-local consts = {
-    MAYOR_ELECTION_CYCLE_YEARS = 4,
-    YEAR_LENGTH = 60,
-    BUILDING_TYPES = {'park', 'road', 'tenement'} }
+consts = require "src/consts"
 
 --- the state contains all the data necessary to describe a moment in the game
 --- this information should be the only thing necessary to be held in memory between loops
@@ -15,8 +11,9 @@ local state = {
     tiles = {},
     moses = {influence=10,
              money=100,
+             true_balance=100,
              positions={'park'},
-             popularity=0},
+             popularity=100},
     legal = {},
     mayor = {name="Al Smith",
              time_before_election=consts.MAYOR_ELECTION_CYCLE_YEARS * consts.YEAR_LENGTH,
@@ -32,18 +29,20 @@ for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
         tiles[tile_id] = {cost=cost,
                        id=tile_id,
                        illegality=math.random() * 0.2,
-                       influence=cost / 3,
+                       popularity=cost / 10,
+                       influence=cost / 6,
                        revenue=cost / 100.0,
                        elapsed_construction_time=0,
                        construction_time=cost * 2,
                        building_type=building_type,
                        is_approved=false,
                        is_started=false,
-                       is_completed=false
+                       is_completed=false,
+                       is_stalled=false
                        }
     end
 end
 
 state["tiles"] = tiles
 
-return state, consts
+return state

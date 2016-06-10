@@ -15,11 +15,13 @@ end
 
 local function draw_hud(origin_x, origin_y)
     local money = lume.round(state.moses.money)
+    local true_balance = lume.round(state.moses.true_balance)
     local year = lume.round(state.world.year * 100)
     local influence = lume.round(state.moses.influence)
     local popularity = lume.round(state.moses.popularity)
     love.graphics.setColor(255, 255, 255, 255)
-    local hud_text = "year: "..year.."    money: "..money.."      influence: "..influence.."      popularity: "..popularity
+    local hud_text = ("year: "..year.."    money: "..money.."("..true_balance..")"..
+                      "      influence: "..influence.."      popularity: "..popularity)
     hud_text = hud_text.."   positions: "
     for _, position in ipairs(state.moses.positions) do
         hud_text = hud_text.." "..position
@@ -44,10 +46,10 @@ local function draw_legal(origin_x, origin_y, width, height)
         love.graphics.setColor(255, 255, 255, 255)
         local y = origin_y + bar_height * action_i
         local header = action.type
-        if action.type == "nomination" then
-            header = header.."("..action.subtype..")"
-        elseif action.type == "lawsuit" then
+        if action.type == "lawsuit" then
             header = header.."("..action.tile.id..")"
+        elseif action.subtype then
+            header = header.."("..action.subtype..")"
         end
         love.graphics.print(header, x + bar_width + 5, y)
         -- Draw background for legal bars.

@@ -1,14 +1,31 @@
 --
 -- Created by IntelliJ IDEA.
 -- User: yueran
--- Date: 6/4/16
--- Time: 9:41 PM
+-- Date: 6/10/16
+-- Time: 4:35 AM
 -- To change this template use File | Settings | File Templates.
 --
 
-local logic = {inter={}}
+local logic = {inter={} }
 
-local function sue(tile)
+--- factories for legal actions
+local function add_grant()
+    local amount = lume.round(math.random() * 30 * 2)
+
+    local nomination = {type="grant",
+        id=lume.UUID,
+        tile=nil,
+        subtype=amount,
+        influence=0,
+        pros=0,
+        cons=0,
+        position=0,
+        total=amount * 3,
+        expiration_time=60.0 }
+    table.insert(state.legal, nomination)
+end
+
+local function add_suit(tile)
     if tile.lawsuit then
         tile.lawsuit.pros = tile.lawsuit.pros + 1
         return
@@ -35,6 +52,25 @@ local function sue(tile)
     table.insert(state.legal, lawsuit)
 end
 
+local function add_nomination(position)
+    local nomination = {type="nomination",
+        id=lume.UUID,
+        tile=nil,
+        subtype=position,
+        influence=0,
+        pros=0,
+        cons=0,
+        position=0,
+        total=1500,
+        expiration_time=120.0 }
+    table.insert(state.legal, nomination)
+end
+
+--- legal action management functions and related utilities
+local function action_is_pro_user(action)
+    return (lume.find({"nomination", "approval", "grant"}, action.type))
+end
+
 local function reset_tile(name)
     local tile = state.tiles[name]
     tile.is_started = 0
@@ -42,6 +78,7 @@ local function reset_tile(name)
 end
 
 local function finish_legal_action(action)
+    -- do type specific things
     if action.type == "nomination" then
         table.insert(state.moses.positions, action.subtype)
     elseif action.type == "lawsuit" then
@@ -55,14 +92,17 @@ local function finish_legal_action(action)
         action.tile.lawsuit = nil
     elseif action.type == "approval" then
         action.tile.is_approved = true
+    elseif action.type == "grant" then
+        state.moses.money = state.moses.money + action.subtype
     else
         assert(false, "Other legal action types are not implemented")
     end
-    action.finished = true
-end
 
-local function action_is_pro_user(action)
-    return (action.type == "nomination" or action.type == "approval")
+    -- clean up
+    if action_is_pro_user then
+        state.moses.influence = state.moses.influence + action.influence
+    end
+    action.finished = true
 end
 
 local function expire_legal_action(action)
@@ -77,50 +117,11 @@ local function expire_legal_action(action)
     log.trace("legal action expired")
 end
 
-local function add_nomination(position)
-    local nomination = {type="nomination",
-        id=lume.UUID,
-        tile=nil,  -- this is a tile table reference not the tile id
-        subtype=position,
-        influence=0,
-        pros=0,
-        cons=0,
-        position=0,
-        total=1500,
-        expiration_time=120.0 }
-    table.insert(state.legal, nomination)
-end
-
-local function update_legal(dt)
-    -- first remove all the finished actions
-    for action_i, action in lume.ripairs(state.legal) do
-        if action.finished then
-            table.remove(self.legal, action_i)
-        end
-    end
-
-    -- loop through remaining actions
-    for action_i, action in ipairs(state.legal) do
-        local rate = (action.pros - action.cons) * dt
-        action.position = math.max(action.position + rate, 0)
-        action.expiration_time = action.expiration_time - dt
-        if action.position > action.total then
-            finish_legal_action(action)
-            if action_is_pro_user then
-                state.moses.influence = state.moses.influence + action.influence
-            end
-        elseif action.expiration_time < 0.0 then
-            expire_legal_action(action)
-        end
-    end
-end
+--- Update
 
 local function update_government(dt)
-    if state.world.year / 5 > state.mayor.audit_cycle_idx then
-        state.mayor.audit_cycle_idx = state.mayor.audit_cycle_idx + 1
-        if state.moses.money < 0 then
-            lose()
-        end
+    if dt / consts.GRANT_FREQUENCY > math.random() then
+        add_grant()
     end
 
     if state.world.year / 3 > state.mayor.nomination_cycle_idx then
@@ -137,30 +138,86 @@ local function update_government(dt)
     end
 end
 
-local function update_tiles(dt)
-    for k, tile in pairs(state["tiles"]) do
-        if tile.is_completed then
-            state.moses.money = state.moses.money + tile.revenue * dt
-        elseif tile.is_started then
-            tile.elapsed_construction_time = tile.elapsed_construction_time + dt
-            if tile.elapsed_construction_time > tile.construction_time then
-                tile.is_completed = true
-                state.moses.influence = state.moses.influence + tile.influence
-            end
+local function update_legal(dt)
+    -- first remove all the finished actions
+    for action_i, action in lume.ripairs(state.legal) do
+        if action.finished then
+            table.remove(state.legal, action_i)
+        end
+    end
 
-            -- start a suit
-            if tile.illegality * dt > math.random() then
-                sue(tile)
+    -- loop through remaining actions
+    for action_i, action in ipairs(state.legal) do
+        local rate = (action.pros - action.cons) * dt
+        action.position = math.max(action.position + rate, 0)
+        action.expiration_time = action.expiration_time - dt
+        if action.position > action.total then
+            finish_legal_action(action)
+            if action_is_pro_user(action) then
+                state.moses.influence = state.moses.influence + action.influence
             end
+        elseif action.expiration_time < 0.0 then
+            expire_legal_action(action)
         end
     end
 end
 
+local function update_tile(dt, tile)
+    if tile.is_completed then return end
+    if not tile.is_started then return end
 
-function logic.update(dt)
+    tile.is_stalled = state.moses.money <= 0
+
+    if tile.is_stalled then
+        state.moses.popularity = state.moses.popularity - dt
+    else
+        -- randomly start suits
+        if tile.illegality * dt > math.random() then
+            add_suit(tile)
+        end
+        -- move construction forward
+        tile.elapsed_construction_time = tile.elapsed_construction_time + dt
+        -- charge money
+        local dcost = tile.cost * dt / tile.construction_time
+        state.moses.money = state.moses.money - dcost
+        -- construction finished
+        if tile.elapsed_construction_time > tile.construction_time then
+            state.moses.popularity = state.moses.popularity + tile.popularity
+            tile.is_completed = true
+        end
+    end
+end
+
+local function update_tiles(dt)
+    lume.each(state["tiles"], lume.fn(update_tile, dt))
+end
+
+local function _sum(arr)
+    return lume.reduce(arr, function(a, b) return a + b end, 0)
+end
+
+local function update_moses(dt)
+    state.moses.popularity = state.moses.popularity - 0.1 * dt
+
+    -- compute the real amount of money available i.e. true_balance
+    local future_spending = _sum(lume.map(state["tiles"], function(t)
+        if not t.is_started then
+            return 0
+        else
+            return t.cost * (1.0 - (t.elapsed_construction_time / t.construction_time))
+        end
+    end))
+    state.moses.true_balance = state.moses.money - future_spending
+end
+
+local function update_world(dt)
     state.world.time = state.world.time + dt
     state.world.year = state.world.time / 60.0
-    state.moses.popularity = math.min(state.moses.popularity + dt / 2, 100)
+end
+
+function logic.update(dt)
+    update_world(dt)
+    update_moses(dt)
     update_legal(dt)
     update_tiles(dt)
     update_government(dt)
@@ -169,59 +226,28 @@ end
 
 ---- Call these functions to send user input -----
 
-function logic.inter.request_approval(name)
-    local tile = state.tiles[name]
-    if tile.approval_action then
-        return
-    end
-
-    local approval = {type="approval",
-        id=lume.UUID,
-        tile=tile,
-        influence=0,
-        pros=0,
-        cons=0,
-        position=50,
-        total=100,
-        expiration_time=30.0 }
-
-    tile.approval_action = approval
-    table.insert(state.legal, approval)
-end
-
 function logic.inter.build_tile(name)
+    if state.moses.money <= 0 then return end
+
     local tile = state.tiles[name]
-    if tile.is_completed then
+    if tile.is_started or tile.is_completed then
         return
     end
 
-    state.moses.money = state.moses.money - tile.cost
     tile.is_started = true
-end
-
-function logic.inter.resign()
-    for action_i, action in pairs(state.legal) do
-        if action.type == "lawsuit" then
-            state.moses.popularity = state.moses.popularity - 4 * (action.pros * math.random())
-            expire_legal_action(action)
-            action.finished = true
-        end
-    end
-
-    if state.moses.popularity < 0.0 then
-        lose()
-    end
+    state.moses.influence = state.moses.influence + tile.influence
 end
 
 function logic.inter.settle(action)
-    state.moses.money = state.moses.money - action.settle_price
-    expire_legal_action(action)
+    if state.moses.money - action.settle_price >= 0 then
+        state.moses.money = state.moses.money - action.settle_price
+        expire_legal_action(action)
+    end
 end
 
 function logic.inter.add_influence(action)
-    if state.moses.influence <= 0 then
-        return
-    end
+    if state.moses.influence <= 0 then return end
+
     state.moses.influence = state.moses.influence - 1
     action.influence = action.influence + 1
     local bonus = 0
