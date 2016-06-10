@@ -1,6 +1,19 @@
-lume = require("lume")
+local ui = {}
 
-function draw_hud(origin_x, origin_y)
+local function box_contains(box, x, y)
+    return (x > box.x and x < box.x + box.w and y > box.y and y < box.y + box.h)
+end
+
+local button_pool = {}
+local function add_button(x, y, w, h, callback)
+    table.insert(button_pool, {x=x, y=y, w=w, h=h, callback=callback})
+end
+
+local function add_text_button(x, y, length, callback)
+    add_button(x, y, 5 * length, 20, callback)
+end
+
+local function draw_hud(origin_x, origin_y)
     local money = lume.round(state.moses.money)
     local year = lume.round(state.world.year * 100)
     local influence = lume.round(state.moses.influence)
@@ -14,17 +27,13 @@ function draw_hud(origin_x, origin_y)
     love.graphics.print(hud_text, origin_x, origin_y)
     love.graphics.setColor(255, 0, 0, 255)
     love.graphics.print("RESIGN", 500, 0)
+    add_text_button(500, 0, string.len("RESIGN"),
+        function()
+            logic.inter.resign()
+        end)
 end
 
-function check_word_collision(x, y, x2, y2)
-    return x > x2 and x < x2 + 30 and y > y2 and y < y2 + 20
-end
-
-function check_resignation(x, y)
-    return check_word_collision(x, y, 500, 0)
-end
-
-function draw_legal(origin_x, origin_y, width, height)
+local function draw_legal(origin_x, origin_y, width, height)
 
     local bar_height = 40
     local bar_width = 60
@@ -70,44 +79,34 @@ function draw_legal(origin_x, origin_y, width, height)
         love.graphics.print('+'..action.pros..' -'..action.cons..' exp:'..lume.round(action.expiration_time),
             x + bar_width + 5, y + 30)
 
-        -- buttons
+        -- influence button
         love.graphics.setColor(255, 100, 0, 255)
-        action.inf_x = x + bar_width + 5
-        action.inf_y = y + bar_height / 2
-        love.graphics.print("Inf",  action.inf_x, action.inf_y)
+        local inf_x = x + bar_width + 5
+        local inf_y = y + bar_height / 2
+        local inf_text = "Inf"
+        love.graphics.print(inf_text,  inf_x, inf_y)
+        add_text_button(inf_x, inf_y, string.len(inf_text),
+            function()
+                logic.inter.add_influence(action)
+            end)
 
+        -- lawsuit button
         if action.type == "lawsuit" then
             love.graphics.setColor(200, 200, 0, 255)
-            action.settle_x = x + bar_width + 35
-            action.settle_y = y + bar_height / 2
             action.settle_price = 2 * action.tile.cost
-            love.graphics.print("Settle("..action.settle_price..")",  action.settle_x, action.settle_y)
+            local settle_x = x + bar_width + 30
+            local settle_y = y + bar_height / 2
+            local settle_text = "Settle("..action.settle_price..")"
+            love.graphics.print(settle_text,  settle_x, settle_y)
+            add_text_button(settle_x, settle_y, string.len(settle_text),
+                function()
+                    logic.inter.settle(action)
+                end)
         end
     end
 end
 
-function get_influence_button(x, y)
-    for action_i, action in pairs(state.legal) do
-        if check_word_collision(x, y, action.inf_x, action.inf_y) then
-            return action
-        end
-    end
-end
-
-
-function get_settle_button(x, y)
-    for action_i, action in pairs(state.legal) do
-        if action.settle_price then
-            if check_word_collision(x, y, action.settle_x, action.settle_y) then
-                return action
-            end
-        end
-    end
-end
-
-
-function draw_city_map(origin_x, origin_y, width, height)
-
+local function draw_city_map(origin_x, origin_y, width, height)
     local alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     local tile_nums = {}
@@ -136,6 +135,14 @@ function draw_city_map(origin_x, origin_y, width, height)
 
         local box_origin_x = origin_x + x_value * square_width
         local box_origin_y = origin_y + y_value * square_height
+
+        -- add button to build tile
+        add_button(box_origin_x, box_origin_y, square_width, square_height,
+            function()
+                if not tile.is_completed and not tile.is_started then
+                    logic.inter.build_tile(tile.id)
+                end
+            end)
 
         -- Add coordinates to the tile table.
         tile_table[k] = { x_origin = box_origin_x, y_origin = box_origin_y,
@@ -185,13 +192,30 @@ function draw_city_map(origin_x, origin_y, width, height)
     end
 end
 
--- Given an xy coordinate, return which cell that corresponds to.
-function get_cell(x, y)
+local function get_cell(x, y)
+    -- Given an xy coordinate, return which cell that corresponds to.
     for key, tile in pairs(tile_table) do
         if tile.x_origin < x and tile.x_end >= x and
            tile.y_origin < y and tile.y_end >= y then
             return(key)
         end
     end
-    return(false)
+    return false
 end
+
+function ui.draw(dt)
+    button_pool = {}  --- clear button pool
+    draw_city_map(0, 30, love.graphics.getWidth() - 200, love.graphics.getHeight() - 100)
+    draw_legal(love.graphics.getWidth() - 200, 10)
+    draw_hud(0, 0)
+end
+
+function ui.onclick(x, y)
+    for _, b in ipairs(button_pool) do
+        if box_contains(b, x, y) then
+            b.callback()
+        end
+    end
+end
+
+return ui
