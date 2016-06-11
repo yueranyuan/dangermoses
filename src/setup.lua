@@ -7,31 +7,30 @@ consts = require "src/consts"
 --- and the only thing necessary to communicate from the game logic to the UI
 local state = {
     world = {time=0,
-             year=0},
+             year=0,
+             year_idx=0},
     tiles = {},
-    moses = {influence=10,
-             money=100,
-             true_balance=100,
+    moses = {influence=1,
+             money=0,
+             true_balance=0,
              positions={'park'},
              popularity=100},
     legal = {},
-    mayor = {name="Al Smith",
-             time_before_election=consts.MAYOR_ELECTION_CYCLE_YEARS * consts.YEAR_LENGTH,
-             nomination_cycle_idx=0,
-             audit_cycle_idx=0}
+    mayor = {nomination_cycle_idx=0,
+             grant_cycle_idx=0}
     }
 local tiles = {}
 for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
     for i = 1, 10 do
         local cost = 10 + math.random(200)
+        local level = lume.round(math.random(5))
         local building_type = consts.BUILDING_TYPES[math.random(3)]
         local tile_id = c..i
-        tiles[tile_id] = {cost=cost,
+        tiles[tile_id] = {cost=level * 100,
                        id=tile_id,
                        illegality=math.random() * 0.2,
-                       popularity=cost / 10,
-                       influence=cost / 6,
-                       revenue=cost / 100.0,
+                       popularity=level * 5,
+                       influence=level,
                        elapsed_construction_time=0,
                        construction_time=cost * 2,
                        building_type=building_type,
@@ -43,6 +42,6 @@ for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
     end
 end
 
-state["tiles"] = tiles
+state.tiles = tiles
 
 return state

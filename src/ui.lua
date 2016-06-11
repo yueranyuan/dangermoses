@@ -1,9 +1,5 @@
 local ui = {}
 
-local function box_contains(box, x, y)
-    return (x > box.x and x < box.x + box.w and y > box.y and y < box.y + box.h)
-end
-
 local button_pool = {}
 local function add_button(x, y, w, h, callback)
     table.insert(button_pool, {x=x, y=y, w=w, h=h, callback=callback})
@@ -14,18 +10,16 @@ local function add_text_button(x, y, length, callback)
 end
 
 local function draw_hud(origin_x, origin_y)
-    local money = lume.round(state.moses.money)
-    local true_balance = lume.round(state.moses.true_balance)
-    local year = lume.round(state.world.year * 100)
-    local influence = lume.round(state.moses.influence)
-    local popularity = lume.round(state.moses.popularity)
     love.graphics.setColor(255, 255, 255, 255)
-    local hud_text = ("year: "..year.."    money: "..money.."("..true_balance..")"..
-                      "      influence: "..influence.."      popularity: "..popularity)
-    hud_text = hud_text.."   positions: "
-    for _, position in ipairs(state.moses.positions) do
-        hud_text = hud_text.." "..position
-    end
+    local hud_text = lume.format(
+        "year: {year}\tmoney: {money}({true_balance})\tinfluence: {influence}\tpopularity:{popularity}\tpositions:{positions}",
+        {money = lume.round(state.moses.money),
+         year = string.format("%.2f", state.world.year),
+         influence = lume.round(state.moses.influence),
+         popularity = lume.round(state.moses.popularity),
+         true_balance = lume.round(state.moses.true_balance),
+         positions = lume.reduce(state.moses.positions, function(a, b) return a..b end)
+        })
     love.graphics.print(hud_text, origin_x, origin_y)
     love.graphics.setColor(255, 0, 0, 255)
     love.graphics.print("RESIGN", 500, 0)
@@ -48,6 +42,8 @@ local function draw_legal(origin_x, origin_y, width, height)
         local header = action.type
         if action.type == "lawsuit" then
             header = header.."("..action.tile.id..")"
+        elseif action.type == "grant" then
+            header = header.."("..lume.round(action.amount / 100).."h)"
         elseif action.subtype then
             header = header.."("..action.subtype..")"
         end
@@ -160,8 +156,9 @@ local function draw_city_map(origin_x, origin_y, width, height)
             square_width, square_height)
 
         -- Draw values for cost.
-        love.graphics.setColor(100, 255, 100, 255)
-        love.graphics.print(tile.cost, box_origin_x, box_origin_y + 15)
+        love.graphics.setColor(100, 150 + tile.cost / 5, 100, 255)
+        local cost_text = lume.round(tile.cost / 100)..'h'
+        love.graphics.print(cost_text, box_origin_x, box_origin_y + 15)
         love.graphics.setColor(255, 100, 100, 255)
         love.graphics.print(tile.building_type, box_origin_x, box_origin_y + 30)
 
@@ -214,7 +211,7 @@ end
 
 function ui.onclick(x, y)
     for _, b in ipairs(button_pool) do
-        if box_contains(b, x, y) then
+        if utils.box_contains(b, x, y) then
             b.callback()
         end
     end

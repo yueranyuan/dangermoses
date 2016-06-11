@@ -8,20 +8,18 @@
 
 local logic = {inter={} }
 
---- factories for legal actions
-local function add_grant()
-    local amount = lume.round(math.random() * 30 * 2)
-
+--- factories for legal actions ---
+local function add_grant(amount)
     local nomination = {type="grant",
         id=lume.UUID,
         tile=nil,
-        subtype=amount,
+        amount=amount,
         influence=0,
         pros=0,
         cons=0,
         position=0,
-        total=amount * 3,
-        expiration_time=60.0 }
+        total=amount / 2,
+        expiration_time=60.0}
     table.insert(state.legal, nomination)
 end
 
@@ -47,7 +45,7 @@ local function add_suit(tile)
         position=50,
         total=100,
         settle_price=2 * tile.cost,
-        expiration_time=60.0 }
+        expiration_time=60.0}
     tile.lawsuit = lawsuit
     table.insert(state.legal, lawsuit)
 end
@@ -66,7 +64,7 @@ local function add_nomination(position)
     table.insert(state.legal, nomination)
 end
 
---- legal action management functions and related utilities
+--- legal action management functions and related utilities ---
 local function action_is_pro_user(action)
     return (lume.find({"nomination", "approval", "grant"}, action.type))
 end
@@ -93,7 +91,7 @@ local function finish_legal_action(action)
     elseif action.type == "approval" then
         action.tile.is_approved = true
     elseif action.type == "grant" then
-        state.moses.money = state.moses.money + action.subtype
+        state.moses.money = state.moses.money + action.amount
     else
         assert(false, "Other legal action types are not implemented")
     end
@@ -117,25 +115,10 @@ local function expire_legal_action(action)
     log.trace("legal action expired")
 end
 
---- Update
-
-local function update_government(dt)
-    if dt / consts.GRANT_FREQUENCY > math.random() then
-        add_grant()
-    end
-
-    if state.world.year / 3 > state.mayor.nomination_cycle_idx then
-        state.mayor.nomination_cycle_idx = state.mayor.nomination_cycle_idx + 1
-        if not lume.find(state.moses.positions, "park") then
-            add_nomination("park")
-        end
-        if not lume.find(state.moses.positions, "road") then
-            add_nomination("road")
-        end
-        if not lume.find(state.moses.positions, "tenement") then
-            add_nomination("tenement")
-        end
-    end
+--- Update ---
+local function update_world(dt)
+    state.world.time = state.world.time + dt
+    state.world.year = state.world.time / 60.0
 end
 
 local function update_legal(dt)
@@ -189,18 +172,14 @@ local function update_tile(dt, tile)
 end
 
 local function update_tiles(dt)
-    lume.each(state["tiles"], lume.fn(update_tile, dt))
-end
-
-local function _sum(arr)
-    return lume.reduce(arr, function(a, b) return a + b end, 0)
+    lume.each(state.tiles, lume.fn(update_tile, dt))
 end
 
 local function update_moses(dt)
     state.moses.popularity = state.moses.popularity - 0.1 * dt
 
     -- compute the real amount of money available i.e. true_balance
-    local future_spending = _sum(lume.map(state["tiles"], function(t)
+    local future_spending = utils.sum(lume.map(state.tiles, function(t)
         if not t.is_started then
             return 0
         else
@@ -210,17 +189,43 @@ local function update_moses(dt)
     state.moses.true_balance = state.moses.money - future_spending
 end
 
-local function update_world(dt)
-    state.world.time = state.world.time + dt
-    state.world.year = state.world.time / 60.0
+local function new_year()
+    local int_year = math.floor(state.world.year)
+
+    -- add my yearly budget for my positions
+    lume.each(state.moses.positions, function()
+        state.moses.money = state.moses.money + consts.YEARLY_BUDGET
+    end)
+
+    -- add one small grant and one big grant
+    if int_year % consts.GRANT_CYCLE_YEARS == 0 then
+        add_grant(lume.randomchoice(consts.SMALL_GRANTS))
+        add_grant(lume.randomchoice(consts.BIG_GRANTS))
+    end
+
+    -- nominations for all the positions I don't have yet
+    if int_year % consts.NOMINATION_CYCLE_YEARS == 0 then
+        if not lume.find(state.moses.positions, "park") then
+            add_nomination("park")
+        end
+        if not lume.find(state.moses.positions, "road") then
+            add_nomination("road")
+        end
+        if not lume.find(state.moses.positions, "tenement") then
+            add_nomination("tenement")
+        end
+    end
 end
 
 function logic.update(dt)
     update_world(dt)
-    update_moses(dt)
-    update_legal(dt)
     update_tiles(dt)
-    update_government(dt)
+    update_legal(dt)
+    update_moses(dt)
+    if state.world.year > state.world.year_idx then
+        state.world.year_idx = state.world.year_idx + 1
+        new_year()
+    end
 end
 
 
