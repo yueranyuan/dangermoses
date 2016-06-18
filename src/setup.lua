@@ -22,7 +22,6 @@ local state = {
 local tiles = {}
 for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
     for i = 1, 10 do
-        local cost = 10 + math.random(200)
         local level = lume.round(math.random(5))
         local building_type = consts.BUILDING_TYPES[math.random(3)]
         local tile_id = c..i
@@ -32,7 +31,7 @@ for _, c in ipairs({"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"}) do
                        popularity=level * 5,
                        influence=level,
                        elapsed_construction_time=0,
-                       construction_time=cost * 2,
+                       construction_time=level * 200,
                        building_type=building_type,
                        is_approved=false,
                        is_started=false,

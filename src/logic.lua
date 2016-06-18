@@ -97,7 +97,7 @@ local function finish_legal_action(action)
     end
 
     -- clean up
-    if action_is_pro_user then
+    if action_is_pro_user(action) then
         state.moses.influence = state.moses.influence + action.influence
     end
     action.finished = true
@@ -106,10 +106,8 @@ end
 local function expire_legal_action(action)
     if action.type == "lawsuit" then
         action.tile.lawsuit = nil
-    else
-        if not action_is_pro_user(action) then
-            state.moses.influence = state.moses.influence + action.influence
-        end
+    if not action_is_pro_user(action) then
+        state.moses.influence = state.moses.influence + action.influence
     end
     action.finished = true
     log.trace("legal action expired")
@@ -160,6 +158,7 @@ local function update_tile(dt, tile)
         end
         -- move construction forward
         tile.elapsed_construction_time = tile.elapsed_construction_time + dt
+        print(tile.elapsed_construction_time, tile.id, tile.construction_time)
         -- charge money
         local dcost = tile.cost * dt / tile.construction_time
         state.moses.money = state.moses.money - dcost
