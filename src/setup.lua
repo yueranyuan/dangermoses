@@ -10,7 +10,7 @@ local state = {
              year=0,
              year_idx=0},
     tiles = {},
-    moses = {influence=1,
+    moses = {influence=3,
              money=0,
              true_balance=0,
              positions={'park'},

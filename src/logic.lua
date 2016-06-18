@@ -71,7 +71,7 @@ end
 
 local function reset_tile(name)
     local tile = state.tiles[name]
-    tile.is_started = 0
+    tile.is_started = false
     tile.elapsed_construction_time = 0
 end
 
@@ -86,6 +86,7 @@ local function finish_legal_action(action)
             state.moses.money = state.moses.money - action.tile.cost
         end
         log.trace("lost lawsuit")
+        state.moses.influence = state.moses.influence - action.tile.influence
         reset_tile(action.tile.id)
         action.tile.lawsuit = nil
     elseif action.type == "approval" then
@@ -159,7 +160,6 @@ local function update_tile(dt, tile)
         end
         -- move construction forward
         tile.elapsed_construction_time = tile.elapsed_construction_time + dt
-        print(tile.elapsed_construction_time, tile.id, tile.construction_time)
         -- charge money
         local dcost = tile.cost * dt / tile.construction_time
         state.moses.money = state.moses.money - dcost
