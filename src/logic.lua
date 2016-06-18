@@ -106,6 +106,7 @@ end
 local function expire_legal_action(action)
     if action.type == "lawsuit" then
         action.tile.lawsuit = nil
+    end
     if not action_is_pro_user(action) then
         state.moses.influence = state.moses.influence + action.influence
     end
