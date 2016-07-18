@@ -1,11 +1,5 @@
---
--- Created by IntelliJ IDEA.
--- User: yueran
--- Date: 6/11/16
--- Time: 1:23 AM
--- To change this template use File | Settings | File Templates.
---
-
+-- these functions aren't used in the current version of the game.
+-- but I figure these might be useful and at any rate a utils file will probably be needed sometime
 local utils = {}
 
 function utils.box_contains(box, x, y)
