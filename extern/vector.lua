@@ -56,12 +56,24 @@ function vector.__unm(a)
 end
 
 function vector.__add(a,b)
-	assert(isvector(a) and isvector(b), "Add: wrong argument types (<vector> expected)")
-	return new(a.x+b.x, a.y+b.y)
+    if not isvector(a) then
+        assert(type(a) == "number")
+        a = v(a, a)
+    elseif not isvector(b) then
+        assert(type(b) == "number")
+        b = v(b, b)
+    end
+    return new(a.x+b.x, a.y+b.y)
 end
 
 function vector.__sub(a,b)
-	assert(isvector(a) and isvector(b), "Sub: wrong argument types (<vector> expected)")
+    if not isvector(a) then
+        assert(type(a) == "number")
+        a = v(a, a)
+    elseif not isvector(b) then
+        assert(type(b) == "number")
+        b = v(b, b)
+    end
 	return new(a.x-b.x, a.y-b.y)
 end
 

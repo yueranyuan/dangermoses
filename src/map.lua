@@ -1,13 +1,10 @@
 class "Building" (Object) {
-    SHAPES = {"eagle", "tree"},
-    _cached_images = {},
+    PATTERNS = {"eagle", "tree", "moses-lot", "scorp"},
+    all_imgs = {},
 
-    __init__ = function(self, shape, type)
-        if Building._cached_images[shape] == nil then
-            self.img = love.graphics.newImage("grafix/"..shape..".png")
-        else
-            self.img = Building._cached_images[shape]
-        end
+    __init__ = function(self, pattern, type)
+        assert(lume.find(Building.PATTERNS, pattern) ~= nil)
+        self.img = Building.all_imgs[pattern]
         self.type = type
         self.state = "waiting"
         self.color = Map.TYPES[self.type]
@@ -28,8 +25,25 @@ class "Building" (Object) {
     draw = function(self)
         --- draw nothing. The building is shown by its effects on the cells
         --- it hovers over on the Map
+    end,
+
+    is_buildable = function(self, builder)
+        local cells = map:get_cell_collisions(self)
+        local active_types = lume.set(lume.concat(map:get_active_types(cells), {self.type}))
+        for _, com in ipairs(committees) do
+            if lume.find(active_types, com.type) then
+                local favorable_votes = com.seat_holders["neutral"] * builder.popularity / 100
+                if favorable_votes + com.seat_holders[builder] < com.n_seats / 2 then
+                    return false
+                end
+            end
+        end
+        return true
     end
 }
+lume.each(Building.PATTERNS, function(v)
+    Building.all_imgs[v] = love.graphics.newImage("grafix/"..v..".png")
+end)
 
 class "Map" (Object){
     TYPES = {park={0, 255, 0}, house={255, 0, 0}, road={0, 0, 255}},
@@ -53,7 +67,7 @@ class "Map" (Object){
             self.grid[y] = row
         end
         self.hovered_cells = {}
-        self.active_committees = {}
+        self.active_types = {}
         self:super__init__()
     end,
 
@@ -78,7 +92,7 @@ class "Map" (Object){
         return collisions
     end,
 
-    get_active_committees = function(self, cells)
+    get_active_types = function(self, cells)
         -- This function can also be used by the AI to evaluate placements
         return lume.set(lume.map(cells, function(coord) return self.grid[coord.y][coord.x] end))
     end,
@@ -91,7 +105,7 @@ class "Map" (Object){
             color = {0, 0, 0}
         end
         love.graphics.setColor(color)
-        love.graphics.rectangle("fill", coord.x * Map.scale, coord.y * Map.scale, Map.scale, Map.scale)
+        love.graphics.rectangle("fill", (coord.x-1) * Map.scale, (coord.y-1) * Map.scale, Map.scale, Map.scale)
     end,
 
     place_building = function(self, building)
@@ -107,10 +121,12 @@ class "Map" (Object){
     update = function(self, dt)
         if player.building ~= nil then
             self.hovered_cells = self:get_cell_collisions(player.building)
+            self.active_types = lume.set(lume.concat(self:get_active_types(self.hovered_cells),
+                                                          {player.building.type}))
         else
             self.hovered_cells = {}
+            self.active_types = {}
         end
-        self.active_committees = lume.set(lume.concat(self:get_active_committees(self.hovered_cells), {player.building.type}))
     end,
 
     draw = function(self)
@@ -125,5 +141,59 @@ class "Map" (Object){
         for _, coord in ipairs(self.hovered_cells) do
             self:draw_cell(coord, lume.concat(player.building.color, {100}))
         end
+    end
+}
+
+class "BuildingButton" (Object) {
+    REFRESH_TIME = 10.0,
+    BUTTON_SIZE = 60,
+    ICON_SCALE = 3,
+
+    __init__ = function(self, pos, type)
+        self.type = type
+        self.color = Map.TYPES[type]
+        self.refresh_time = 0.0
+        self:super__init__(pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
+
+        self:next()
+    end,
+
+    next = function(self)
+        self.state = 'showing'
+        self.pattern = lume.randomchoice(Building.PATTERNS)
+        self.icon = Building.all_imgs[self.pattern]
+        self.icon_shape = v(self.icon:getWidth(), self.icon:getHeight())
+    end,
+
+    refresh = function(self)
+        self.refresh_time = BuildingButton.REFRESH_TIME
+        self.state = 'refreshing'
+    end,
+
+    update = function(self, dt)
+        if self.refresh_time > 0 then
+            self.refresh_time = self.refresh_time - dt
+            if self.refresh_time <= 0 then
+                self:next()
+            end
+        end
+    end,
+
+    draw = function(self)
+        -- TODO: offset doesn't work yet
+        self:superdraw()  -- TODO: I wish I had a super
+        local pos = self.pos + self.shape / 2 - BuildingButton.ICON_SCALE * self.icon_shape / 2  -- center icon
+        if self.state == 'showing' then
+            love.graphics.draw(self.icon, pos.x, pos.y, 0, BuildingButton.ICON_SCALE)
+        else
+            love.graphics.setColor({255, 255, 255, 100})
+            local progress = self.refresh_time / BuildingButton.REFRESH_TIME
+            love.graphics.rectangle('fill', self.pos.x, self.pos.y, progress * self.shape.x, self.shape.y)
+        end
+    end,
+
+    on_click = function(self)
+        player:hold_building(Building(self.pattern, self.type))
+        self:refresh()
     end
 }

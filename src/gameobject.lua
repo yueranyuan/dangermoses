@@ -1,7 +1,6 @@
 class "Object" {
     objects = {},
 
-
     --- all Objects must have a pos and shape
     --- name, color are optional and default to empty and white
     super__init__ = function(self, pos, shape)  -- LOL I don't have super
@@ -41,6 +40,10 @@ class "Object" {
         end
     end,
 
+    __init__ = function(self, pos, shape)
+        self.super__init__(pos, shape)
+    end,
+
     __properties__ = {
         --- these functions are like functions decorated with @property() in Python
         --- they are used to implement properties
@@ -54,10 +57,16 @@ class "Object" {
         end
         return self.__properties__[key](self)
     end,
+
     update = function(self, dt)
         --- to be overridden
     end,
+
     draw = function(self, offset)
+        self:superdraw(offset)
+    end,
+
+    superdraw = function(self, offset)
         if not self.shown then
             return
         end
@@ -71,7 +80,7 @@ class "Object" {
         if self.img ~= nil then
             love.graphics.draw(self.img, pos.x, pos.y, 0, self.scale)
         else
-            love.graphics.rectangle("fill", pos.x, pos.y + 5, self.shape.x, self.shape.y)
+            love.graphics.rectangle("fill", pos.x, pos.y, self.shape.x, self.shape.y)
             love.graphics.setColor({ 255, 255, 255, 255 })
             love.graphics.print(self.name, pos.x, pos.y + self.shape.y / 2)
         end
@@ -89,6 +98,13 @@ class "Object" {
 
     destroy = function(self)
         self.dead = true
+    end,
+
+    check_click = function(self, mousepos)
+        if self.on_click == nil then return end
+        if self:collide_point(mousepos) then
+            self:on_click(mousepos)
+        end
     end,
 
     --- method functions
