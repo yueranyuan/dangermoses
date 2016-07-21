@@ -3,6 +3,40 @@ class "Object" {
 
     --- all Objects must have a pos and shape
     --- name, color are optional and default to empty and white
+    __init__ = function(self, pos, shape)
+        if pos == nil then
+            pos = v(0, 0)
+        end
+        if shape == nil then
+            shape = v(1, 1)
+        end
+
+        self.pos = pos
+        if self.color == nil then
+            self.color = { 255, 255, 255, 255 }
+        end
+        if self.scale == nil then
+            self.scale = 1
+        end
+        if self.name == nil then
+            self.name = ""
+        end
+        self.dead = false
+        if self.img ~= nil then
+            self.grid = self.get_collision_map(self.img)
+            self.shape = v(self.img:getWidth() * self.scale, self.img:getHeight() * self.scale)
+        else
+            self.shape = shape
+        end
+        if self.children == nil then
+            self.children = {}
+        end
+        table.insert(Object.objects, self)
+        if self.shown == nil then
+            self.shown = true
+        end
+    end,
+
     super__init__ = function(self, pos, shape)  -- LOL I don't have super
         if pos == nil then
             pos = v(0, 0)
@@ -15,13 +49,16 @@ class "Object" {
         if self.color == nil then
             self.color = { 255, 255, 255, 255 }
         end
+        if self.scale == nil then
+            self.scale = 1
+        end
         if self.name == nil then
             self.name = ""
         end
         self.dead = false
         if self.img ~= nil then
             self.grid = self.get_collision_map(self.img)
-            self.shape = v(self.img:getWidth(), self.img:getHeight())
+            self.shape = v(self.img:getWidth() * self.scale, self.img:getHeight() * self.scale)
         else
             self.shape = shape
         end
@@ -29,19 +66,9 @@ class "Object" {
             self.children = {}
         end
         table.insert(Object.objects, self)
-        if self.parent ~= nil then
-            table.insert(self.parent.children, self)
-        end
         if self.shown == nil then
             self.shown = true
         end
-        if self.scale == nil then
-            self.scale = 1
-        end
-    end,
-
-    __init__ = function(self, pos, shape)
-        self.super__init__(pos, shape)
     end,
 
     __properties__ = {
@@ -86,14 +113,41 @@ class "Object" {
         end
     end,
 
+    set_parent = function(self, parent)
+        self.parent = parent
+        if parent.children == nil then parent.children = {} end
+        table.insert(parent.children, self)
+    end,
+
     collide_point = function(self, target)
         return (self.pos.x <= target.x and self.pos.x + self.shape.x >= target.x
                 and self.pos.y <= target.y and self.pos.y + self.shape.y >= target.y)
     end,
 
+    collide_boxes = function(self, b)
+        return (self.pos.x <= b.pos.x + b.pos.shape.x and self.pos.x + self.pos.shape.x >= b.pos.x and
+                self.pos.y <= b.pos.y + b.pos.shape.y and self.pos.y + self.pos.shape.y >= b.pos.y)
+    end,
+
     collide = function(self, b)
-        --- TODO: support scale
-        return Object.collide_imgs(self, b)
+        if self.grid ~= nil and b.grid ~= nil then  -- pixel perfect collision
+            --- TODO: support scale
+            return Object.collide_imgs(self, b)
+        elseif b.shape ~= nil then
+            self:collide_boxes(b)
+        elseif b.pos ~= nil then
+            self:collide_point(b.pos)
+        elseif b.x ~= nil and b.y ~= nil then
+            self:collide_point(b)
+        else
+            if b.grid ~= nil and self.grid == nil then
+                assert(false, 'b has grid but not shape, pos, x, or y and self does not have grid')
+            elseif self.grid == nil then
+                assert(false, 'b does not have grid, shape, pos, x, or y')
+            else
+                assert(false, 'this should never happen')
+            end
+        end
     end,
 
     destroy = function(self)
@@ -119,9 +173,9 @@ class "Object" {
             local row = {}
             for x = 0, pixels:getWidth() - 1 do
                 local _, _, _, a = pixels:getPixel(x, y)
-                row[x] = (a == 255)
+                row[x+1] = (a == 255)
             end
-            grid[y] = row
+            grid[y+1] = row
         end
         return grid
     end,

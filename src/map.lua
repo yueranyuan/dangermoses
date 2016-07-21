@@ -1,5 +1,5 @@
 class "Building" (Object) {
-    PATTERNS = {"eagle", "tree", "moses-lot", "scorp"},
+    PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)
@@ -9,7 +9,8 @@ class "Building" (Object) {
         self.state = "waiting"
         self.color = Map.TYPES[self.type]
         self.coord = v(0, 0)  -- why not named pos? because pos is for world coordinates
-        self:super__init__()
+
+        self:super(Building).__init__(self)
     end,
 
     update = function(self)
@@ -22,7 +23,7 @@ class "Building" (Object) {
         map:place_building(self)
     end,
 
-    draw = function(self)
+    draw = function()
         --- draw nothing. The building is shown by its effects on the cells
         --- it hovers over on the Map
     end,
@@ -30,12 +31,11 @@ class "Building" (Object) {
     is_buildable = function(self, builder)
         local cells = map:get_cell_collisions(self)
         local active_types = lume.set(lume.concat(map:get_active_types(cells), {self.type}))
-        for _, com in ipairs(committees) do
+        local active_people = map:get_active_people(cells)
+        local popularity = map:get_popularity(active_people)
+        for _, com in ipairs(committee_tray.committees) do
             if lume.find(active_types, com.type) then
-                local favorable_votes = com.seat_holders["neutral"] * builder.popularity / 100
-                if favorable_votes + com.seat_holders[builder] < com.n_seats / 2 then
-                    return false
-                end
+                if not com:check_pass(builder, popularity) then return false end
             end
         end
         return true
@@ -47,28 +47,49 @@ end)
 
 class "Map" (Object){
     TYPES = {park={0, 255, 0}, house={255, 0, 0}, road={0, 0, 255}},
-    scale = 10,
+    scale = 25,
 
     __init__ = function(self)
+        self:super(Map).__init__(self)
+
         -- load grid from map image
         local pixels = love.graphics.newImage("grafix/map.png"):getData()
         self.grid = {}
         for y = 0, pixels:getHeight() - 1 do
             local row = {}
             for x = 0, pixels:getWidth() - 1 do
-                local r, g, b, a = pixels:getPixel(x, y)
-                row[x] = "empty"
+                local r, g, b, _ = pixels:getPixel(x, y)
+                row[x+1] = "empty"
                 for type, color in pairs(Map.TYPES) do
                     if r == color[1] and g == color[2] and b == color[3] then
-                        row[x] = type
+                        row[x+1] = type
                     end
                 end
             end
-            self.grid[y] = row
+            self.grid[y+1] = row
         end
+        self.height = #self.grid
+        self.width = #self.grid[1]
+
+        -- make people
+        self.people_grid = {}
+        self.people = {}
+        for y = 1, #self.grid do
+            local row = {}
+            for x = 1, #self.grid[1] do
+                if math.random() < 0.3 then
+                    local person = Person(v(x, y), lume.randomchoice(lume.keys(Map.TYPES)))
+                    row[x] = person
+                    table.insert(self.people, person)
+                end
+            end
+            self.people_grid[y] = row
+        end
+
         self.hovered_cells = {}
         self.active_types = {}
-        self:super__init__()
+        self.active_people = {}
+        self.hovered_popularity = 0
     end,
 
     get_cell_collisions = function(self, building)
@@ -90,6 +111,21 @@ class "Map" (Object){
             end
         end
         return collisions
+    end,
+
+    get_active_people = function(self, cells)
+        -- This function can also be used by the AI to evaluate placements
+
+        -- can't use map because of in lua setting to nil is interpreted as 'delete' key
+        -- and arrays are dictionaries. I wish we were using python :((((
+        local arr = {}
+        for _, coord in ipairs(cells) do
+            local person = self.people_grid[coord.y][coord.x]
+            if person then
+                table.insert(arr, self.people_grid[coord.y][coord.x])
+            end
+        end
+        return arr
     end,
 
     get_active_types = function(self, cells)
@@ -118,14 +154,36 @@ class "Map" (Object){
         end
     end,
 
-    update = function(self, dt)
+    update = function(self)
+        -- update the various cached reactions of the hovering building
+        for _, person in ipairs(self.people) do
+            person.state = "neutral"
+        end
         if player.building ~= nil then
             self.hovered_cells = self:get_cell_collisions(player.building)
             self.active_types = lume.set(lume.concat(self:get_active_types(self.hovered_cells),
                                                           {player.building.type}))
+            self.active_people = self:get_active_people(self.hovered_cells)
+            for _, person in ipairs(self.active_people) do
+                person.state = person:check_state(player.building.type)
+            end
         else
             self.hovered_cells = {}
             self.active_types = {}
+            self.active_people = {}
+        end
+
+        -- popularity of the hovered move
+        self.hovered_popularity = self:get_popularity(self.active_people)
+    end,
+
+    get_popularity = function(self, people)
+        local n_happy = #lume.filter(lume.map(people), function(p) return p.state == 'happy' end)
+        local n_sad = #lume.filter(lume.map(people), function(p) return p.state == 'sad' end)
+        if n_happy + n_sad == 0 then
+            return 0
+        else
+            return n_happy / (n_happy + n_sad)
         end
     end,
 
@@ -144,56 +202,42 @@ class "Map" (Object){
     end
 }
 
-class "BuildingButton" (Object) {
-    REFRESH_TIME = 10.0,
-    BUTTON_SIZE = 60,
-    ICON_SCALE = 3,
+class "Person" (Object) {
+    PERSON_IMG = lg.newImage("grafix/person.png"),
 
-    __init__ = function(self, pos, type)
+    __init__ = function(self, local_pos, type)
+        self.local_pos = local_pos
         self.type = type
-        self.color = Map.TYPES[type]
-        self.refresh_time = 0.0
-        self:super__init__(pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
-
-        self:next()
+        self.state = 'neutral'
+        self.color = Map.TYPES[self.type]
+        self.img = Person.PERSON_IMG
+        self:super(Person).__init__(self, (local_pos - 1) * Map.scale)
     end,
 
-    next = function(self)
-        self.state = 'showing'
-        self.pattern = lume.randomchoice(Building.PATTERNS)
-        self.icon = Building.all_imgs[self.pattern]
-        self.icon_shape = v(self.icon:getWidth(), self.icon:getHeight())
+    get_cell_type = function(self)
+        return map.grid[self.local_pos.y][self.local_pos.x]
     end,
 
-    refresh = function(self)
-        self.refresh_time = BuildingButton.REFRESH_TIME
-        self.state = 'refreshing'
-    end,
-
-    update = function(self, dt)
-        if self.refresh_time > 0 then
-            self.refresh_time = self.refresh_time - dt
-            if self.refresh_time <= 0 then
-                self:next()
-            end
-        end
-    end,
-
-    draw = function(self)
-        -- TODO: offset doesn't work yet
-        self:superdraw()  -- TODO: I wish I had a super
-        local pos = self.pos + self.shape / 2 - BuildingButton.ICON_SCALE * self.icon_shape / 2  -- center icon
-        if self.state == 'showing' then
-            love.graphics.draw(self.icon, pos.x, pos.y, 0, BuildingButton.ICON_SCALE)
+    check_state = function(self, building_type)
+        if building_type ~= self.type then
+            return 'sad'
+        elseif self:get_cell_type() ~= self.type then
+            return 'happy'
         else
-            love.graphics.setColor({255, 255, 255, 100})
-            local progress = self.refresh_time / BuildingButton.REFRESH_TIME
-            love.graphics.rectangle('fill', self.pos.x, self.pos.y, progress * self.shape.x, self.shape.y)
+            return 'neutral'
         end
     end,
 
-    on_click = function(self)
-        player:hold_building(Building(self.pattern, self.type))
-        self:refresh()
+    draw = function(self, offset)
+        self:super(Person).draw(self, offset)
+
+        local state_text = ''
+        if self.state == 'happy' then
+            state_text = '+'
+        elseif self.state == 'sad' then
+            state_text = '-'
+        end
+        lg.setColor(255, 255, 255)
+        lg.print(state_text, self.pos.x, self.pos.y)
     end
 }

@@ -73,6 +73,7 @@ for i, x in ipairs(modes) do
                         log.usecolor and "\27[0m" or "",
                         lineinfo,
                         msg))
+    io.flush()
 
     -- Output to log file
     if log.outfile then

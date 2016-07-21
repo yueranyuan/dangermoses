@@ -1,11 +1,16 @@
+love.mouse.setVisible(false)
+love.graphics.setDefaultFilter("nearest", "nearest", 1)
+--love.window.setFullscreen(true)
 lg = love.graphics
 lume = require "extern/lume"
 log = require "extern/log"
 class = require "extern/slither"
+utils = require "src/utils"
 require "src/consts"
 require "src/gameobject"
 require "src/legal"
 require "src/map"
+require "src/gui"
 vector = require "extern/vector"
 vec = vector
 v = vec
@@ -16,10 +21,11 @@ class "Player" {
         self.popularity = 50
         self.built_cells = 0
         self.building_queue = {}
+        self.mousepos = v(0, 0)
         self.color = {255, 255, 255}
     end,
 
-    update = function(self, dt)
+    update = function(self)
         -- get the next building to build
         if #self.building_queue > 0 and self.building == nil then
             self.building = table.remove(self.building_queue, 1)
@@ -45,15 +51,25 @@ class "Player" {
 
     place_building = function(self, mouse_pos)
         self:update_building_position(mouse_pos)
-        if self.building:is_buildable(self) then
+        local buildable = self.building:is_buildable(self)
+        if buildable then
             self.building:build()
-            self.building = nil
+            hud:set_message("success in placing building", HUD.SUCCESS)
+        else
+            hud:set_message("failed to build this building", HUD.FAIL)
         end
+        building_button_tray:resolve_active_button(buildable)
+        self.building = nil
     end,
 
     drop_building = function(self)
+        if self.building == nil then
+            return
+        end
+        building_button_tray:resolve_active_button(false)
+        hud:set_message("building canceled", HUD.FAIL)
         self.building = nil
-    end
+    end,
 }
 
 function love.load()
@@ -68,42 +84,28 @@ function love.load()
 
     -- make map side of screen
     map = Map()
-    building_buttons = {}
-    for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-        local b_but = BuildingButton(v(200 + (type_i - 1) * BuildingButton.BUTTON_SIZE,
-                                       GAME_HEIGHT - BuildingButton.BUTTON_SIZE - 10),
-                                     type)
-        table.insert(building_buttons, b_but)
-    end
 
     -- make committee side of screen
-    committees = {}
-    for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-        local com = Committee(v(600, (type_i - 1) * Committee.HEIGHT), type)
-        table.insert(committees, com)
-    end
+    committee_tray = CommitteeTray(600)
+
+    -- draw gui elements
+    building_button_tray = BuildingButtonTray()
+    hud = HUD()
 end
 
-function draw_hud()
-    love.graphics.setColor(255, 255, 255, 255)
-    love.graphics.print("press esc to drop building ", 0, 0)
-    love.graphics.print("popularity: " .. player.popularity, 0, 20)
-    for i = 1,player.big_dudes do
-        love.graphics.rectangle('fill', i * 15, 40, 10, 10)
-    end
+function love.mousemoved(x, y)
+    local mousepos = v(x, y)
+    player.mousepos = mousepos
+    player:update_building_position(mousepos)
 end
 
-function love.mousemoved(x, y, dx, dy, button, istouch)
-    player:update_building_position(v(x, y))
-end
-
-function love.keypressed(key, scancode, isrepeat)
+function love.keypressed(key)
     if key == "escape" then
         player:drop_building()
     end
 end
 
-function love.mousepressed(x, y, dx, dy, button, istouch)
+function love.mousepressed(x, y)
     local mousepos = v(x, y)
     for _, obj in pairs(Object.objects) do
         obj:check_click(mousepos)
@@ -134,5 +136,4 @@ function love.draw()
     for _, obj in pairs(Object.objects) do
         obj:draw()
     end
-    draw_hud()
 end
