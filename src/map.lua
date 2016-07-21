@@ -46,8 +46,8 @@ lume.each(Building.PATTERNS, function(v)
 end)
 
 class "Map" (Object){
-    TYPES = {park={0, 255, 0}, house={255, 0, 0}, road={0, 0, 255}},
-    scale = 25,
+    TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
+    scale = 50,
 
     __init__ = function(self)
         self:super(Map).__init__(self)
@@ -77,7 +77,7 @@ class "Map" (Object){
         for y = 1, #self.grid do
             local row = {}
             for x = 1, #self.grid[1] do
-                if math.random() < 0.3 then
+                if math.random() < 1.0 then
                     local person = Person(v(x, y), lume.randomchoice(lume.keys(Map.TYPES)))
                     row[x] = person
                     table.insert(self.people, person)
@@ -178,13 +178,7 @@ class "Map" (Object){
     end,
 
     get_popularity = function(self, people)
-        local n_happy = #lume.filter(lume.map(people), function(p) return p.state == 'happy' end)
-        local n_sad = #lume.filter(lume.map(people), function(p) return p.state == 'sad' end)
-        if n_happy + n_sad == 0 then
-            return 0
-        else
-            return n_happy / (n_happy + n_sad)
-        end
+        return #lume.filter(lume.map(people), function(p) return p.state == 'happy' end)
     end,
 
     draw = function(self)
@@ -211,7 +205,8 @@ class "Person" (Object) {
         self.state = 'neutral'
         self.color = Map.TYPES[self.type]
         self.img = Person.PERSON_IMG
-        self:super(Person).__init__(self, (local_pos - 1) * Map.scale)
+        self:super(Person).__init__(self)
+        self.pos = (local_pos - 0.5) * Map.scale - self.shape / 2
     end,
 
     get_cell_type = function(self)

@@ -1,6 +1,8 @@
 -- Temporary to show that AI seats can't be replaced until neutrals are gone
 I_AM_AN_AI_PLAYER = {color= {0, 0, 0},
                      big_dudes = 2 }
+TAMMANY = {color= {30, 30, 30},
+           big_dudes = 999}
 
 class "CommitteeTray" (Object) {
     __init__ = function(self, x)
@@ -30,7 +32,7 @@ class "Committee" (Object) {
         self.type = type
         self.base_color = Map.TYPES[self.type]
         self.color = self.base_color
-        self.n_seats = 10
+        self.n_seats = 11
         self:super(Committee).__init__(self, pos, v(GAME_WIDTH - pos.x, Committee.HEIGHT - 5))
 
         -- generate seats
@@ -42,19 +44,20 @@ class "Committee" (Object) {
             local seat = Seat(seat_pos + v(i * seat_shape.x, 0), seat_shape - v(2, 0), "neutral", self)
             table.insert(self.seats, seat)
         end
-        self.seat_holders = {neutral=self.n_seats }
-        self.seat_holders[player] = 0
-        for _, AI in ipairs(AIs) do
-            self.seat_holders[AI] = 0
-        end
-        self.holder_order = lume.concat({player, 'neutral'}, AIs)
 
-        -- TODO: this is temporary to demonstrate AI players hold seats until all neutrals are gone
-        self:update_seat("neutral", I_AM_AN_AI_PLAYER)
+        -- fill the initial seats
+        self.holder_order = lume.concat({player, 'neutral'}, {TAMMANY}, AIs)
+        self.seat_holders = {neutral=math.floor(self.n_seats / 2) }
+        local n_players = #AIs + 1
+        self.seat_holders[TAMMANY] = math.ceil(self.n_seats / 2) - n_players
+        self.seat_holders[player] = 1
+        for _, AI in ipairs(AIs) do
+            self.seat_holders[AI] = 1
+        end
+        self:reshuffle_seats()
     end,
 
     update = function(self)
-
         local alpha = 255
         if player.building == nil then
             alpha = 255
@@ -74,7 +77,7 @@ class "Committee" (Object) {
                     seat.state = 'yea'
                 elseif seat.holder == 'neutral' then
                     neutral_i = neutral_i + 1
-                    if neutral_i / self.seat_holders['neutral'] <= map.hovered_popularity then
+                    if neutral_i <= map.hovered_popularity then
                         seat.state = 'yea'
                     else
                         seat.state = 'nay'
@@ -91,8 +94,10 @@ class "Committee" (Object) {
         assert(self.seat_holders[former] ~= nil)
         if former == incoming then return end
 
-        -- can't replace non-neutral if neutrals exist
-        if former ~= 'neutral' and self.seat_holders[former] > 0 then return end
+        -- can't replace neutral if non-neutrals exist
+        if former == 'neutral' and self.seat_holders[incoming] + self.seat_holders['neutral'] < self.n_seats  then
+            return
+        end
 
         -- subtract big dude from the incoming party
         if incoming ~= "neutral" then
@@ -105,6 +110,10 @@ class "Committee" (Object) {
         self.seat_holders[incoming] = self.seat_holders[incoming] + 1
 
         -- reshuffle seats to reflect count
+        self:reshuffle_seats()
+    end,
+
+    reshuffle_seats = function(self)
         local idx = 1
         for _, holder in ipairs(self.holder_order) do
             for _ = 1,self.seat_holders[holder] do
@@ -115,7 +124,7 @@ class "Committee" (Object) {
     end,
 
     check_pass = function(self, builder, popularity)
-        local neutral_votes = self.seat_holders["neutral"] * popularity
+        local neutral_votes = math.min(self.seat_holders["neutral"], popularity)
         return neutral_votes + self.seat_holders[builder] > self.n_seats / 2
     end
 }

@@ -69,7 +69,7 @@ class "HUD" (Object) {
 class "BuildingButtonTray" (Object) {
     __init__ = function(self)
         self.active_button = nil
-        local shape = v((#lume.keys(Map.TYPES)) * BuildingButton.BUTTON_SIZE + 20, BuildingButton.BUTTON_SIZE + 20)
+        local shape = v((#lume.keys(Map.TYPES) + 1) * BuildingButton.BUTTON_SIZE + 20, BuildingButton.BUTTON_SIZE + 20)
         self:super(BuildingButtonTray).__init__(self, v(190, GAME_HEIGHT - shape.y), shape)
 
         -- add building buttons
@@ -154,7 +154,7 @@ class "RefreshButton" (Button) {
 class "BuildingButton" (Button) {
     REFRESH_TIME = 10.0,
     BUTTON_SIZE = 60,
-    ICON_SCALE = 6,
+    ICON_SCALE = 10,
 
     __init__ = function(self, pos, type, tray)
         self.tray = tray
