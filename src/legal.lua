@@ -14,13 +14,19 @@ class "CommitteeTray" (Object) {
         end
     end,
 
+    get_active_committees = function(self, active_types)
+        local active_committees = {}
+        for _, com in ipairs(self.committees) do
+            if lume.find(active_types, com.type) then
+                table.insert(active_committees, com)
+            end
+        end
+        return active_committees
+    end,
+
     draw = function(self)
         -- draw transparent block
-        local old_blend_mode = lg.getBlendMode()
-        lg.setBlendMode("multiply")
-        lg.setColor(100, 100, 100, 100)
-        lg.rectangle('fill', self.pos.x, 0, GAME_WIDTH, GAME_HEIGHT)
-        lg.setBlendMode(old_blend_mode)
+        draw_transparent_rect(self.pos.x, 0, GAME_WIDTH, GAME_HEIGHT, {50, 50, 50})
     end
 }
 
@@ -123,9 +129,13 @@ class "Committee" (Object) {
         end
     end,
 
-    check_pass = function(self, builder, popularity)
+    count_yays = function(self, builder, popularity)
         local neutral_votes = math.min(self.seat_holders["neutral"], popularity)
-        return neutral_votes + self.seat_holders[builder] > self.n_seats / 2
+        return neutral_votes + self.seat_holders[builder]
+    end,
+
+    check_pass = function(self, builder, popularity)
+        return self:count_yays(builder, popularity) > self.n_seats / 2
     end
 }
 

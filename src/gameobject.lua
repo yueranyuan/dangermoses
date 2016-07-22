@@ -71,6 +71,11 @@ class "Object" {
         end
     end,
 
+    get_grid_shape = function(self)
+        assert(self.grid ~= nil, "object does not have grid")
+        return v(#self.grid[1], #self.grid)
+    end,
+
     __properties__ = {
         --- these functions are like functions decorated with @property() in Python
         --- they are used to implement properties

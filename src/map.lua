@@ -33,10 +33,9 @@ class "Building" (Object) {
         local active_types = lume.set(lume.concat(map:get_active_types(cells), {self.type}))
         local active_people = map:get_active_people(cells)
         local popularity = map:get_popularity(active_people)
-        for _, com in ipairs(committee_tray.committees) do
-            if lume.find(active_types, com.type) then
-                if not com:check_pass(builder, popularity) then return false end
-            end
+        local active_committees = committee_tray:get_active_committees(active_types)
+        for _, com in ipairs(active_committees) do
+            if not com:check_pass(builder, popularity) then return false end
         end
         return true
     end
@@ -130,7 +129,9 @@ class "Map" (Object){
 
     get_active_types = function(self, cells)
         -- This function can also be used by the AI to evaluate placements
-        return lume.set(lume.map(cells, function(coord) return self.grid[coord.y][coord.x] end))
+        local active_types = lume.set(lume.map(cells, function(coord) return self.grid[coord.y][coord.x] end))
+        lume.remove(active_types, 'empty')
+        return active_types
     end,
 
     draw_cell = function(self, coord, color)
@@ -207,6 +208,14 @@ class "Person" (Object) {
         self.img = Person.PERSON_IMG
         self:super(Person).__init__(self)
         self.pos = (local_pos - 0.5) * Map.scale - self.shape / 2
+    end,
+
+    update = function(self)
+        if player.building and self.type ~= player.building.type then
+            self.color = {self.color[1], self.color[2], self.color[3], 50}
+        else
+            self.color = {self.color[1], self.color[2], self.color[3]}
+        end
     end,
 
     get_cell_type = function(self)

@@ -1,3 +1,11 @@
+draw_transparent_rect = function(x, y, w, h, color)
+    local old_blend_mode = lg.getBlendMode()
+    lg.setBlendMode("multiply")
+    lg.setColor(color)
+    lg.rectangle('fill', x, y, w, h)
+    lg.setBlendMode(old_blend_mode)
+end
+
 class "HUD" (Object) {
     SUCCESS = {0, 255, 0},
     FAIL = {255, 0, 0},
@@ -54,12 +62,12 @@ class "HUD" (Object) {
         -- draw mouse
         lg.setColor(255, 255, 255)
         if player.building ~= nil then
-            local popularity_text = ''
-            if player.building:is_buildable(player) then
-                popularity_text = '(ok)'
+            draw_transparent_rect(player.mousepos.x, player.mousepos.y, 30, 15 * #map.active_types, {10, 10, 10})
+            for com_i, com in ipairs(committee_tray:get_active_committees(map.active_types)) do
+                lg.setColor(Map.TYPES[com.type])
+                lg.print(com:count_yays(player, map.hovered_popularity) - math.floor(com.n_seats / 2),
+                         player.mousepos.x, player.mousepos.y + (com_i - 1) * 15)
             end
-            lg.print(popularity_text..' popularity: '..lume.round(map.hovered_popularity * 100),
-                      player.mousepos.x, player.mousepos.y)
         else
             lg.draw(self.MOUSE_IMG, player.mousepos.x, player.mousepos.y)
         end
@@ -109,12 +117,7 @@ class "BuildingButtonTray" (Object) {
     end,
 
     draw = function(self)
-        -- draw transparent block
-        local old_blend_mode = lg.getBlendMode()
-        lg.setBlendMode("multiply")
-        lg.setColor(50, 50, 50)
-        lg.rectangle('fill', self.pos.x, self.pos.y, self.shape.x, self.shape.y)
-        lg.setBlendMode(old_blend_mode)
+        draw_transparent_rect(self.pos.x, self.pos.y, self.shape.x, self.shape.y, {50, 50, 50})
     end
 }
 

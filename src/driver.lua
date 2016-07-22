@@ -45,7 +45,8 @@ class "Player" {
 
     update_building_position = function(self, pos)
         if self.building ~= nil then
-            self.building.coord = v(lume.round(pos.x / Map.scale), lume.round(pos.y / Map.scale))
+            local coord_center = pos / Map.scale - self.building:get_grid_shape() / 2
+            self.building.coord = v(lume.round(coord_center.x), lume.round(coord_center.y))
         end
     end,
 
