@@ -1,9 +1,3 @@
--- Temporary to show that AI seats can't be replaced until neutrals are gone
-I_AM_AN_AI_PLAYER = {color= {0, 0, 0},
-                     big_dudes = 2 }
-TAMMANY = {color= {30, 30, 30},
-           big_dudes = 999}
-
 class "CommitteeTray" (Object) {
     __init__ = function(self, x)
         self:super(CommitteeTray).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
@@ -12,16 +6,6 @@ class "CommitteeTray" (Object) {
             local com = Committee(v(self.pos.x, (type_i) * Committee.HEIGHT), type)
             table.insert(self.committees, com)
         end
-    end,
-
-    get_active_committees = function(self, active_types)
-        local active_committees = {}
-        for _, com in ipairs(self.committees) do
-            if lume.find(active_types, com.type) then
-                table.insert(active_committees, com)
-            end
-        end
-        return active_committees
     end,
 
     draw = function(self)
@@ -38,7 +22,7 @@ class "Committee" (Object) {
         self.type = type
         self.base_color = Map.TYPES[self.type]
         self.color = self.base_color
-        self.n_seats = 11
+        self.n_seats = 9
         self:super(Committee).__init__(self, pos, v(GAME_WIDTH - pos.x, Committee.HEIGHT - 5))
 
         -- generate seats
@@ -65,12 +49,12 @@ class "Committee" (Object) {
 
     update = function(self)
         local alpha = 255
-        if player.building == nil then
+        if player.plan == nil then
             alpha = 255
             for _, seat in ipairs(self.seats) do
                 seat.state = 'idle'
             end
-        elseif lume.find(map.active_types, self.type) == nil then  -- committee not active
+        elseif lume.find(player.plan.committees, self) == nil then  -- committee not active
             alpha = 50
             for _, seat in ipairs(self.seats) do
                 seat.state = 'inactive'
@@ -83,7 +67,7 @@ class "Committee" (Object) {
                     seat.state = 'yea'
                 elseif seat.holder == 'neutral' then
                     neutral_i = neutral_i + 1
-                    if neutral_i <= map.hovered_popularity then
+                    if neutral_i <= player.plan.popularity then
                         seat.state = 'yea'
                     else
                         seat.state = 'nay'
@@ -164,7 +148,7 @@ class "Seat" (Object) {
         end
     end,
 
-    on_click = function(self, mousepos)
+    on_click = function(self)
         -- we need to be able to click on the seats not just the committee so that the player can choose
         -- which of the enemies' dudes to replace.
         -- seat update is done on the committee level so that we can reseat everyone by allegiance

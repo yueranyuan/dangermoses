@@ -6,57 +6,41 @@ class "Building" (Object) {
         assert(lume.find(Building.PATTERNS, pattern) ~= nil)
         self.img = Building.all_imgs[pattern]
         self.type = type
-        self.state = "waiting"
         self.color = Map.TYPES[self.type]
         self.coord = v(0, 0)  -- why not named pos? because pos is for world coordinates
-
         self:super(Building).__init__(self)
     end,
 
-    update = function(self)
-        self.shown = self.state ~= "waiting"
-        self.pos = self.coord * Map.scale
-    end,
-
-    build = function(self)
-        self.state = "built"
-        map:place_building(self)
-    end,
-
-    draw = function()
-        --- draw nothing. The building is shown by its effects on the cells
-        --- it hovers over on the Map
-    end,
-
-    is_buildable = function(self, builder)
-        local cells = map:get_cell_collisions(self)
-        local active_types = lume.set(lume.concat(map:get_active_types(cells), {self.type}))
-        local active_people = map:get_active_people(cells)
-        local popularity = map:get_popularity(active_people)
-        local active_committees = committee_tray:get_active_committees(active_types)
-        for _, com in ipairs(active_committees) do
-            if not com:check_pass(builder, popularity) then return false end
-        end
-        return true
-    end
+    draw = function() end,
 }
+
 lume.each(Building.PATTERNS, function(v)
     Building.all_imgs[v] = love.graphics.newImage("grafix/"..v..".png")
 end)
 
 class "Map" (Object){
     TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
-    scale = 50,
+    scale = 64,
 
-    __init__ = function(self)
+    __init__ = function(self, w, h)
         self:super(Map).__init__(self)
 
         -- load grid from map image
-        local pixels = love.graphics.newImage("grafix/map.png"):getData()
+        local pixels = love.graphics.newImage("grafix/map_blank.png"):getData()
+        if h == nil then
+            h = pixels:getHeight()
+        else
+            h = math.min(h, pixels:getHeight())
+        end
+        if w == nil then
+            w = pixels:getWidth()
+        else
+            w = math.min(w, pixels:getWidth())
+        end
         self.grid = {}
-        for y = 0, pixels:getHeight() - 1 do
+        for y = 0, h - 1 do
             local row = {}
-            for x = 0, pixels:getWidth() - 1 do
+            for x = 0, w - 1 do
                 local r, g, b, _ = pixels:getPixel(x, y)
                 row[x+1] = "empty"
                 for type, color in pairs(Map.TYPES) do
@@ -84,54 +68,6 @@ class "Map" (Object){
             end
             self.people_grid[y] = row
         end
-
-        self.hovered_cells = {}
-        self.active_types = {}
-        self.active_people = {}
-        self.hovered_popularity = 0
-    end,
-
-    get_cell_collisions = function(self, building)
-        -- find the overlapping coordinates.
-        -- This function can also be used by the AI to evaluate placements
-        -- returns: list of colliding coordinates
-        local collisions = {}
-        for y = 1, #building.grid do
-            local yg = y + lume.round(building.coord.y)
-            if yg >= 1 and yg <= #self.grid then
-                for x = 1, #(building.grid[1]) do
-                    local xg = x + lume.round(building.coord.x)
-                    if xg >= 1 and xg <= #(self.grid[1]) then
-                        if building.grid[y][x] then
-                            table.insert(collisions, v(xg, yg))
-                        end
-                    end
-                end
-            end
-        end
-        return collisions
-    end,
-
-    get_active_people = function(self, cells)
-        -- This function can also be used by the AI to evaluate placements
-
-        -- can't use map because of in lua setting to nil is interpreted as 'delete' key
-        -- and arrays are dictionaries. I wish we were using python :((((
-        local arr = {}
-        for _, coord in ipairs(cells) do
-            local person = self.people_grid[coord.y][coord.x]
-            if person then
-                table.insert(arr, self.people_grid[coord.y][coord.x])
-            end
-        end
-        return arr
-    end,
-
-    get_active_types = function(self, cells)
-        -- This function can also be used by the AI to evaluate placements
-        local active_types = lume.set(lume.map(cells, function(coord) return self.grid[coord.y][coord.x] end))
-        lume.remove(active_types, 'empty')
-        return active_types
     end,
 
     draw_cell = function(self, coord, color)
@@ -145,11 +81,11 @@ class "Map" (Object){
         love.graphics.rectangle("fill", (coord.x-1) * Map.scale, (coord.y-1) * Map.scale, Map.scale, Map.scale)
     end,
 
-    place_building = function(self, building)
-        local cells = self:get_cell_collisions(building)
+    place_building = function(self, builder, building)
+        local cells = Plan.static.get_cell_collisions(building)
         for _, coord in ipairs(cells) do
             if self.grid[coord.y][coord.x] ~= building.type then
-                player.built_cells = player.built_cells + 1
+                builder.built_cells = builder.built_cells + 1
             end
             self.grid[coord.y][coord.x] = building.type
         end
@@ -160,26 +96,11 @@ class "Map" (Object){
         for _, person in ipairs(self.people) do
             person.state = "neutral"
         end
-        if player.building ~= nil then
-            self.hovered_cells = self:get_cell_collisions(player.building)
-            self.active_types = lume.set(lume.concat(self:get_active_types(self.hovered_cells),
-                                                          {player.building.type}))
-            self.active_people = self:get_active_people(self.hovered_cells)
-            for _, person in ipairs(self.active_people) do
-                person.state = person:check_state(player.building.type)
+        if player.plan then
+            for _, person in ipairs(player.plan.people) do
+                person.state = person:check_state(player.plan.building.type)
             end
-        else
-            self.hovered_cells = {}
-            self.active_types = {}
-            self.active_people = {}
         end
-
-        -- popularity of the hovered move
-        self.hovered_popularity = self:get_popularity(self.active_people)
-    end,
-
-    get_popularity = function(self, people)
-        return #lume.filter(lume.map(people), function(p) return p.state == 'happy' end)
     end,
 
     draw = function(self)
@@ -191,8 +112,10 @@ class "Map" (Object){
         end
 
         -- draw the hovering building
-        for _, coord in ipairs(self.hovered_cells) do
-            self:draw_cell(coord, lume.concat(player.building.color, {100}))
+        if player.plan then
+            for _, coord in ipairs(player.plan.cells) do
+                self:draw_cell(coord, lume.concat(player.plan.building.color, {100}))
+            end
         end
     end
 }
@@ -211,7 +134,7 @@ class "Person" (Object) {
     end,
 
     update = function(self)
-        if player.building and self.type ~= player.building.type then
+        if player.plan and self.type ~= player.plan.building.type then
             self.color = {self.color[1], self.color[2], self.color[3], 50}
         else
             self.color = {self.color[1], self.color[2], self.color[3]}
@@ -225,23 +148,8 @@ class "Person" (Object) {
     check_state = function(self, building_type)
         if building_type ~= self.type then
             return 'sad'
-        elseif self:get_cell_type() ~= self.type then
-            return 'happy'
         else
-            return 'neutral'
+            return 'happy'
         end
     end,
-
-    draw = function(self, offset)
-        self:super(Person).draw(self, offset)
-
-        local state_text = ''
-        if self.state == 'happy' then
-            state_text = '+'
-        elseif self.state == 'sad' then
-            state_text = '-'
-        end
-        lg.setColor(255, 255, 255)
-        lg.print(state_text, self.pos.x, self.pos.y)
-    end
 }

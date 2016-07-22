@@ -61,15 +61,15 @@ class "HUD" (Object) {
 
         -- draw mouse
         lg.setColor(255, 255, 255)
-        if player.building ~= nil then
-            draw_transparent_rect(player.mousepos.x, player.mousepos.y, 30, 15 * #map.active_types, {10, 10, 10})
-            for com_i, com in ipairs(committee_tray:get_active_committees(map.active_types)) do
+        if player.plan then
+            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 30, 15 * #player.plan.types, {10, 10, 10})
+            for com_i, com in ipairs(player.plan.committees) do
                 lg.setColor(Map.TYPES[com.type])
-                lg.print(com:count_yays(player, map.hovered_popularity) - math.floor(com.n_seats / 2),
-                         player.mousepos.x, player.mousepos.y + (com_i - 1) * 15)
+                lg.print(com:count_yays(player, player.plan.popularity) - math.floor(com.n_seats / 2),
+                         controller.mousepos.x, controller.mousepos.y + (com_i - 1) * 15)
             end
         else
-            lg.draw(self.MOUSE_IMG, player.mousepos.x, player.mousepos.y)
+            lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
     end
 }
@@ -204,7 +204,7 @@ class "BuildingButton" (Button) {
     end,
 
     on_click = function(self)
-        player:hold_building(Building(self.pattern, self.type))
+        player.plan = Plan(player, Building(self.pattern, self.type))
         self.tray:set_active_button(self)
     end
 }
