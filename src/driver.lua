@@ -34,10 +34,14 @@ function love.load()
     controller = Controller()
 
     -- make map side of screen
-    map = Map(12, 12)
+    map = Map(MAP_WIDTH, MAP_HEIGHT, MAP_SCALE)
 
     -- make committee side of screen
-    committee_tray = CommitteeTray(600)
+    local committee_class = Committee
+    if NEUTRAL_FIRST then
+        committee_class = Committee2
+    end
+    committee_tray = CommitteeTray(600, committee_class)
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()

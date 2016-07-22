@@ -170,6 +170,7 @@ class "BuildingButton" (Button) {
     end,
 
     next = function(self)
+        self.clickable = true
         self.state = 'showing'
         self.pattern = lume.randomchoice(Building.PATTERNS)
         self.icon = Building.all_imgs[self.pattern]
@@ -183,6 +184,7 @@ class "BuildingButton" (Button) {
 
     update = function(self, dt)
         if self.refresh_time > 0 then
+            self.clickable = false
             self.refresh_time = self.refresh_time - dt
             if self.refresh_time <= 0 then
                 self:next()

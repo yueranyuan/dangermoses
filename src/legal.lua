@@ -1,9 +1,12 @@
 class "CommitteeTray" (Object) {
-    __init__ = function(self, x)
+    __init__ = function(self, x, committee_class)
         self:super(CommitteeTray).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
+        if committee_class == nil then
+            committee_class = Committee
+        end
         self.committees = {}
         for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local com = Committee(v(self.pos.x, (type_i) * Committee.HEIGHT), type)
+            local com = committee_class(v(self.pos.x, (type_i) * Committee.HEIGHT), type)
             table.insert(self.committees, com)
         end
     end,
@@ -37,6 +40,11 @@ class "Committee" (Object) {
 
         -- fill the initial seats
         self.holder_order = lume.concat({player, 'neutral'}, {TAMMANY}, AIs)
+        self:init_seat_holders()
+        self:reshuffle_seats()
+    end,
+
+    init_seat_holders = function(self)
         self.seat_holders = {neutral=math.floor(self.n_seats / 2) }
         local n_players = #AIs + 1
         self.seat_holders[TAMMANY] = math.ceil(self.n_seats / 2) - n_players
@@ -44,7 +52,6 @@ class "Committee" (Object) {
         for _, AI in ipairs(AIs) do
             self.seat_holders[AI] = 1
         end
-        self:reshuffle_seats()
     end,
 
     update = function(self)
@@ -80,12 +87,21 @@ class "Committee" (Object) {
         self.color = {self.color[1], self.color[2], self.color[3], alpha}
     end,
 
+    can_replace = function(self, incoming)
+        local holders = lume.keys(self.seat_holders)
+        holders = lume.filter(holders, function(h) return self.seat_holders[h] > 0 end)
+        lume.remove(holders, incoming)
+        if self.seat_holders[incoming] + self.seat_holders['neutral'] < self.n_seats then
+            lume.remove(holders, 'neutral')
+        end
+        return holders
+    end,
+
     update_seat = function(self, former, incoming)
         assert(self.seat_holders[former] ~= nil)
         if former == incoming then return end
 
-        -- can't replace neutral if non-neutrals exist
-        if former == 'neutral' and self.seat_holders[incoming] + self.seat_holders['neutral'] < self.n_seats  then
+        if lume.find(self:can_replace(incoming), former) == nil then
             return
         end
 
@@ -121,6 +137,30 @@ class "Committee" (Object) {
     check_pass = function(self, builder, popularity)
         return self:count_yays(builder, popularity) > self.n_seats / 2
     end
+}
+
+class "Committee2" (Committee) {
+    -- Committee where we remove neutral first
+
+    can_replace = function(self, incoming)
+        if self.seat_holders['neutral'] > 0 then
+            return {'neutral'}
+        end
+        local holders = lume.keys(self.seat_holders)
+        holders = lume.filter(holders, function(h) return self.seat_holders[h] > 0 end)
+        lume.remove(holders, incoming)
+        return holders
+    end,
+
+    init_seat_holders = function(self)
+        local n_players = #AIs + 1
+        self.seat_holders = {neutral=self.n_seats - n_players}
+        self.seat_holders[player] = 1
+        self.seat_holders[TAMMANY] = 0
+        for _, AI in ipairs(AIs) do
+            self.seat_holders[AI] = 1
+        end
+    end,
 }
 
 class "Seat" (Object) {

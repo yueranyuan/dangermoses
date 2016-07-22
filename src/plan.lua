@@ -85,7 +85,7 @@ class "Plan" {
     end,
 
     move_world_coord = function(self, pos)
-        local coord_center = pos / Map.scale - self.building:get_grid_shape() / 2
+        local coord_center = pos / MAP_SCALE - self.building:get_grid_shape() / 2
         self:move(v(lume.round(coord_center.x), lume.round(coord_center.y)))
     end,
 

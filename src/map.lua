@@ -20,9 +20,8 @@ end)
 
 class "Map" (Object){
     TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
-    scale = 64,
 
-    __init__ = function(self, w, h)
+    __init__ = function(self, w, h, scale)
         self:super(Map).__init__(self)
 
         -- load grid from map image
@@ -78,7 +77,7 @@ class "Map" (Object){
             color = {0, 0, 0}
         end
         love.graphics.setColor(color)
-        love.graphics.rectangle("fill", (coord.x-1) * Map.scale, (coord.y-1) * Map.scale, Map.scale, Map.scale)
+        love.graphics.rectangle("fill", (coord.x-1) * MAP_SCALE, (coord.y-1) * MAP_SCALE, MAP_SCALE, MAP_SCALE)
     end,
 
     place_building = function(self, builder, building)
@@ -130,7 +129,7 @@ class "Person" (Object) {
         self.color = Map.TYPES[self.type]
         self.img = Person.PERSON_IMG
         self:super(Person).__init__(self)
-        self.pos = (local_pos - 0.5) * Map.scale - self.shape / 2
+        self.pos = (local_pos - 0.5) * MAP_SCALE - self.shape / 2
     end,
 
     update = function(self)
