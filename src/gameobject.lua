@@ -124,7 +124,7 @@ class "Object" {
     check_click = function(self, mousepos)
         if self.on_click == nil then return end
         if self:collide_point(mousepos) then
-            self:on_click(mousepos)
+            return self:on_click(mousepos)
         end
     end,
 

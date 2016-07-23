@@ -54,6 +54,11 @@ class "Government" (Object) {
             if law and room_i == #self.rooms then
                 law:destroy()
             end
+
+            -- remove all powerups
+            if room.pop_powers then
+                room:pop_powers()
+            end
         end
     end,
 
@@ -223,6 +228,9 @@ class "Committee" (Room) {
         self.holder_order = lume.concat({player, 'neutral'}, {TAMMANY}, AIs)
         self:init_seat_holders()
         self:reshuffle_seats()
+
+        -- powers
+        self.powers = {}
     end,
 
     init_seat_holders = function(self)
@@ -299,12 +307,6 @@ class "Committee" (Room) {
             return
         end
 
-        -- subtract big dude from the incoming party
-        if incoming ~= "neutral" then
-            if incoming.big_dudes <= 0 then return end
-            incoming.big_dudes = incoming.big_dudes - 1
-        end
-
         -- update seat holder counts
         self.seat_holders[former] = self.seat_holders[former] - 1
         self.seat_holders[incoming] = self.seat_holders[incoming] + 1
@@ -330,6 +332,38 @@ class "Committee" (Room) {
 
     check_pass = function(self, builder, n_supporters, n_haters)
         return self:count_yays(builder, n_supporters, n_haters) > self.n_seats / 2
+    end,
+
+    push_power = function(self, power)
+        table.insert(self.powers, power)
+        if power == "strongarm" then
+            self:update_seat('neutral', player)
+            self:reshuffle_seats()
+        elseif power == "strongarm2" then
+            self:update_seat('neutral', player)
+            self:update_seat('neutral', player)
+            self:reshuffle_seats()
+        end
+    end,
+
+    pop_powers = function(self, power)
+        for _, power in ipairs(self.powers) do
+            if power == "strongarm" then
+                self.seat_holders[player] = self.seat_holders[player] - 1
+                self:reshuffle_seats()
+            elseif power == "strongarm2" then
+                self.seat_holders[player] = self.seat_holders[player] - 2
+                self:reshuffle_seats()
+            end
+        end
+        self.powers = {}
+    end,
+
+    on_click = function(self)
+        if player.power then
+            player:use_power(player.power, self)
+        end
+        return true
     end
 }
 
@@ -383,10 +417,7 @@ class "Seat" (Object) {
     end,
 
     on_click = function(self)
-        -- we need to be able to click on the seats not just the committee so that the player can choose
-        -- which of the enemies' dudes to replace.
-        -- seat update is done on the committee level so that we can reseat everyone by allegiance
-        self.committee:update_seat(self.holder, player)
+        if player.power then return end
     end,
 
     draw = function(self, offset)

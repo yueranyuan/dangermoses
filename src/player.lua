@@ -7,6 +7,14 @@ class "Agent" (Object) {
         self:super(Agent).__init__(self)
     end,
 
+    use_power = function(self, power, target)
+        self.power = power
+        target:push_power(self.power)
+        self.power = nil
+        powerup_tray:resolve_active_button(true)
+        hud:set_message("powerup used", HUD.SUCCESS)
+    end,
+
     draw = function() end
 }
 
@@ -23,18 +31,21 @@ class "Controller" {
     end,
 
     click = function()
-        if player.plan == nil then
-            return
+        if player.power then
+            player.power = nil
+            powerup_tray:resolve_active_button(false)
+            hud:set_message("powerup use canceled", HUD.NEUTRAL)
+        elseif player.plan then
+            if government:add_law(player.plan) then
+                map:place_building(player, player.plan.building)
+                building_button_tray:resolve_active_button(true)
+                hud:set_message("project going to government", HUD.NEUTRAL)
+            else
+                building_button_tray:resolve_active_button(false)
+                hud:set_message("only 1 project per turn", HUD.FAIL)
+            end
+            player.plan = nil
         end
-        if government:add_law(player.plan) then
-            map:place_building(player, player.plan.building)
-            building_button_tray:resolve_active_button(true)
-            hud:set_message("project going to government", HUD.NEUTRAL)
-        else
-            building_button_tray:resolve_active_button(false)
-            hud:set_message("only 1 project per turn", HUD.FAIL)
-        end
-        player.plan = nil
     end,
 
     back = function()

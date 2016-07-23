@@ -45,6 +45,7 @@ function love.load()
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()
+    powerup_tray = PowerupTray()
     hud = HUD()
 end
 
@@ -61,10 +62,17 @@ end
 function love.mousepressed(x, y)
     local mousepos = v(x, y)
     controller:move_mouse(mousepos)
-    controller:click(mousepos)
 
+    local clicked = false
     for _, obj in ipairs(Object.objects) do
-        obj:check_click(mousepos)
+        if obj:check_click(mousepos) then
+            clicked = true
+            break
+        end
+    end
+
+    if not clicked then
+        controller:click(mousepos)
     end
 end
 

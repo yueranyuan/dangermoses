@@ -55,7 +55,11 @@ class "HUD" (Object) {
 
         -- draw mouse
         lg.setColor(255, 255, 255)
-        if player.plan then
+        if player.power then
+            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 80, 20, {50, 50, 50})
+            lg.setColor(255, 255, 255)
+            lg.print(player.power, controller.mousepos.x, controller.mousepos.y)
+        elseif player.plan then
             draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 30, 15, {10, 10, 10})
             lg.setColor(0, 255, 0)
             lg.print(player.plan.n_supporters, controller.mousepos.x, controller.mousepos.y)
@@ -64,53 +68,6 @@ class "HUD" (Object) {
         else
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
-    end
-}
-
-class "BuildingButtonTray" (Object) {
-    __init__ = function(self)
-        self.active_button = nil
-        local shape = v((#lume.keys(Map.TYPES) + 1) * BuildingButton.BUTTON_SIZE + 20, BuildingButton.BUTTON_SIZE + 20)
-        self:super(BuildingButtonTray).__init__(self, v(190, GAME_HEIGHT - shape.y), shape)
-
-        -- add building buttons
-        self.buttons = {}
-        for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local offset = v((type_i - 1) * BuildingButton.BUTTON_SIZE + 10, 10)
-            local button = BuildingButton(self.pos + offset, type, self)
-            table.insert(self.buttons, button)
-        end
-
-        -- add refresh button
-        local offset = v(#lume.keys(Map.TYPES) * BuildingButton.BUTTON_SIZE + 10, 10)
-        self.refresh_button = RefreshButton(self.pos + offset, self)
-    end,
-
-    refresh_all = function(self)
-        for _, b in ipairs(self.buttons) do
-            if b.state ~= 'refreshing' then b:refresh() end
-        end
-    end,
-
-    resolve_active_button = function(self, success)
-        if success then
-            self.active_button:refresh()
-            self.active_button = nil
-        end
-        for _, button in ipairs(self.buttons) do
-            button.clickable = true
-        end
-    end,
-
-    set_active_button = function(self, button)
-        self.active_button = button
-        for _, button in ipairs(self.buttons) do
-            button.clickable = false
-        end
-    end,
-
-    draw = function(self)
-        draw_transparent_rect(self.pos.x, self.pos.y, self.shape.x, self.shape.y, {50, 50, 50})
     end
 }
 
@@ -124,7 +81,7 @@ class "Button" (Object) {
         if self.on_click == nil then return end
         if not self.clickable then return end
         if self:collide_point(mousepos) then
-            self:on_click(mousepos)
+            return self:on_click(mousepos)
         end
     end
 }
@@ -162,6 +119,56 @@ class "RefreshButton" (Button) {
     end
 }
 
+class "ButtonTray" (Object) {
+    resolve_active_button = function(self, success)
+        if success then
+            self.active_button:finish()
+            self.active_button = nil
+        end
+        for _, button in ipairs(self.buttons) do
+            button.clickable = true
+        end
+    end,
+
+    set_active_button = function(self, button)
+        self.active_button = button
+        for _, button in ipairs(self.buttons) do
+            button.clickable = false
+        end
+    end,
+
+    draw = function(self)
+        draw_transparent_rect(self.pos.x, self.pos.y, self.shape.x, self.shape.y, {50, 50, 50})
+    end
+}
+
+class "BuildingButtonTray" (ButtonTray) {
+    __init__ = function(self)
+        self.active_button = nil
+        local shape = v((#lume.keys(Map.TYPES) + 1) * BuildingButton.BUTTON_SIZE + 20, BuildingButton.BUTTON_SIZE + 20)
+        self:super(BuildingButtonTray).__init__(self, v(190, GAME_HEIGHT - shape.y), shape)
+
+        -- add building buttons
+        self.buttons = {}
+        for type_i, type in ipairs(lume.keys(Map.TYPES)) do
+            local offset = v((type_i - 1) * BuildingButton.BUTTON_SIZE + 10, 10)
+            local button = BuildingButton(self.pos + offset, type, self)
+            table.insert(self.buttons, button)
+        end
+
+        -- add refresh button
+        local offset = v(#lume.keys(Map.TYPES) * BuildingButton.BUTTON_SIZE + 10, 10)
+        self.refresh_button = RefreshButton(self.pos + offset, self)
+    end,
+
+    refresh_all = function(self)
+        for _, b in ipairs(self.buttons) do
+            if b.state ~= 'refreshing' then b:refresh() end
+        end
+    end,
+}
+
+
 class "BuildingButton" (Button) {
     REFRESH_TIME = 10.0,
     BUTTON_SIZE = 60,
@@ -183,6 +190,10 @@ class "BuildingButton" (Button) {
         self.pattern = lume.randomchoice(Building.PATTERNS)
         self.icon = Building.all_imgs[self.pattern]
         self.icon_shape = v(self.icon:getWidth(), self.icon:getHeight())
+    end,
+
+    finish = function(self)
+        self:refresh()
     end,
 
     refresh = function(self)
@@ -214,7 +225,61 @@ class "BuildingButton" (Button) {
     end,
 
     on_click = function(self)
+        if player.power then return end
         player.plan = Plan(player, Building(self.pattern, self.type))
         self.tray:set_active_button(self)
+        return true
+    end
+}
+
+class "PowerupTray" (ButtonTray) {
+    POWERS = {"strongarm", "strongarm2"},
+
+    __init__ = function(self)
+        self.active_button = nil
+        local shape = v(#self.POWERS* PowerupButton.BUTTON_SIZE + 20, PowerupButton.BUTTON_SIZE + 20)
+        self:super(PowerupTray).__init__(self, v(190, 0), shape)
+
+        -- add powerup buttons
+        self.buttons = {}
+        for power_i, power in ipairs(self.POWERS) do
+            local offset = v((power_i - 1) * PowerupButton.BUTTON_SIZE + 10, 10)
+            local button = PowerupButton(self.pos + offset, power, self)
+            table.insert(self.buttons, button)
+        end
+    end,
+}
+
+
+class "PowerupButton" (Button) {
+    BUTTON_SIZE = 80,
+
+    __init__ = function(self, pos, power, tray)
+        self.tray = tray
+        self.power = power
+        self.color = {0, 255, 255 }
+        self.n = 5
+        self:super(PowerupButton).__init__(self, pos, v(self.BUTTON_SIZE - 2, self.BUTTON_SIZE))
+    end,
+
+    finish = function(self)
+        self.n = self.n - 1
+    end,
+
+    draw = function(self)
+        -- TODO: offset doesn't work yet
+        self:super(PowerupButton).draw(self)
+        lg.setColor(0, 0, 0)
+        lg.printf(self.power, self.pos.x, self.pos.y + self.shape.y / 2 - 5, self.shape.x, "center")
+        lg.printf("#"..self.n, self.pos.x, self.pos.y + self.shape.y / 2 + 5, self.shape.x, "center")
+    end,
+
+    on_click = function(self)
+        if player.power then return end
+        if self.n > 0 then
+            player.power = self.power
+            self.tray:set_active_button(self)
+        end
+        return true
     end
 }
