@@ -37,40 +37,6 @@ class "Object" {
         end
     end,
 
-    super__init__ = function(self, pos, shape)  -- LOL I don't have super
-        if pos == nil then
-            pos = v(0, 0)
-        end
-        if shape == nil then
-            shape = v(1, 1)
-        end
-
-        self.pos = pos
-        if self.color == nil then
-            self.color = { 255, 255, 255, 255 }
-        end
-        if self.scale == nil then
-            self.scale = 1
-        end
-        if self.name == nil then
-            self.name = ""
-        end
-        self.dead = false
-        if self.img ~= nil then
-            self.grid = self.get_collision_map(self.img)
-            self.shape = v(self.img:getWidth() * self.scale, self.img:getHeight() * self.scale)
-        else
-            self.shape = shape
-        end
-        if self.children == nil then
-            self.children = {}
-        end
-        table.insert(Object.objects, self)
-        if self.shown == nil then
-            self.shown = true
-        end
-    end,
-
     get_grid_shape = function(self)
         assert(self.grid ~= nil, "object does not have grid")
         return v(#self.grid[1], #self.grid)
@@ -95,10 +61,6 @@ class "Object" {
     end,
 
     draw = function(self, offset)
-        self:superdraw(offset)
-    end,
-
-    superdraw = function(self, offset)
         if not self.shown then
             return
         end

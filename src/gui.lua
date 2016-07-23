@@ -16,6 +16,7 @@ class "HUD" (Object) {
         self.message = ""
         self.message_color = HUD.NEUTRAL
         self.message_timer = 0.0
+        NextButton(v(650, GAME_HEIGHT - 100))
         self:super(HUD).__init__(self)
     end,
 
@@ -40,15 +41,8 @@ class "HUD" (Object) {
 
     draw = function(self)
         -- draw big dudes stock
-        love.graphics.setColor(255, 255, 255, 255)
-        for i = 1,player.big_dudes do
-            love.graphics.rectangle('fill', GAME_WIDTH - i * 17, 10, 15, 25)
-        end
-        if player.big_dudes == 0 then
-            love.graphics.print("you have no big dudes", GAME_WIDTH - 200, 0)
-        else
-            love.graphics.print("big dudes: ", GAME_WIDTH - player.big_dudes * 17 - 80, 0)
-        end
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.print("influence: "..player.influence, GAME_WIDTH - 200, 0)
 
         -- draw messages
         if #self.message > 0 then
@@ -62,12 +56,11 @@ class "HUD" (Object) {
         -- draw mouse
         lg.setColor(255, 255, 255)
         if player.plan then
-            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 30, 15 * #player.plan.types, {10, 10, 10})
-            for com_i, com in ipairs(player.plan.committees) do
-                lg.setColor(Map.TYPES[com.type])
-                lg.print(com:count_yays(player, player.plan.popularity) - math.floor(com.n_seats / 2),
-                         controller.mousepos.x, controller.mousepos.y + (com_i - 1) * 15)
-            end
+            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 30, 15, {10, 10, 10})
+            lg.setColor(0, 255, 0)
+            lg.print(player.plan.n_supporters, controller.mousepos.x, controller.mousepos.y)
+            lg.setColor(255, 0, 0)
+            lg.print(player.plan.n_haters, controller.mousepos.x, controller.mousepos.y + 15)
         else
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
@@ -136,17 +129,32 @@ class "Button" (Object) {
     end
 }
 
+class "NextButton" (Button) {
+    __init__ = function(self, pos)
+        self:super(NextButton).__init__(self, pos, v(100, 50))
+    end,
+
+    on_click = function(self)
+        government:next()
+    end,
+
+    draw = function(self)
+        self:super(NextButton).draw(self)
+        lg.setColor({0, 0, 0})
+        lg.printf("Next", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+    end
+}
+
 class "RefreshButton" (Button) {
     __init__ = function(self, pos, tray)
         self.tray = tray
-        self.color = {150, 150, 150}
         self:super(RefreshButton).__init__(self, pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
     end,
 
     draw = function(self, offset)
         self:super(RefreshButton).draw(self, offset)
-        self.color = {0, 0, 0}
-        lg.print("Refresh", self.pos.x, self.pos.y + self.shape.y / 2 - 10)
+        lg.setColor({0, 0, 0})
+        lg.printf("Refresh", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
     end,
 
     on_click = function(self)

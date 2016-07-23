@@ -2,6 +2,9 @@ love.mouse.setVisible(false)
 love.graphics.setDefaultFilter("nearest", "nearest", 1)
 --love.window.setFullscreen(true)
 lg = love.graphics
+vector = require "extern/vector"
+vec = vector
+v = vec
 lume = require "extern/lume"
 log = require "extern/log"
 class = require "extern/slither"
@@ -13,9 +16,6 @@ require "src/map"
 require "src/gui"
 require "src/player"
 require "src/plan"
-vector = require "extern/vector"
-vec = vector
-v = vec
 
 function love.load()
     -- all non-imported non-const globals should be made here
@@ -25,7 +25,7 @@ function love.load()
 
     -- make players
     TAMMANY = Agent('TAMMANY', {30, 30, 30})
-    AIs = {Agent('AI1', {255, 0, 255}), Agent("AI2", {0, 255, 255})}
+    AIs = {}
     for _, ai in ipairs(AIs) do
         ai:make_ai()
     end
@@ -41,7 +41,7 @@ function love.load()
     if NEUTRAL_FIRST then
         committee_class = Committee2
     end
-    committee_tray = CommitteeTray(600, committee_class)
+    government = Government(600, committee_class)
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()

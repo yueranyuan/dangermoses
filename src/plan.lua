@@ -41,15 +41,21 @@ static.get_active_types = function(building, cells)
     return active_types
 end
 
-static.get_popularity = function(building, people)
+static.get_n_supporters = function(building, people)
     return #lume.filter(lume.map(people), function(p)
         return p:check_state(building.type) == 'happy'
     end)
 end
 
+static.get_n_haters = function(building, people)
+    return #lume.filter(lume.map(people), function(p)
+        return p:check_state(building.type) == 'sad'
+    end)
+end
+
 static.get_active_committees = function(active_types)
     local active_committees = {}
-    for _, com in ipairs(committee_tray.committees) do
+    for _, com in ipairs(government.committees) do
         if lume.find(active_types, com.type) then
             table.insert(active_committees, com)
         end
@@ -59,13 +65,6 @@ end
 
 static.get_n_new_cells = function(cells, building)
     return #lume.filter(cells, function(c) return map.grid[c.y][c.x] ~= building.type end)
-end
-
-static.is_buildable = function(active_committees, builder, popularity)
-    for _, com in ipairs(active_committees) do
-        if not com:check_pass(builder, popularity) then return false end
-    end
-    return true
 end
 
 class "Plan" {
@@ -93,9 +92,9 @@ class "Plan" {
         self.cells = static.get_cell_collisions(self.building)
         self.people = static.get_active_people(self.cells)
         self.types = static.get_active_types(self.building, self.cells)
-        self.popularity = static.get_popularity(self.building, self.people)
+        self.n_supporters = static.get_n_supporters(self.building, self.people)
+        self.n_haters = static.get_n_haters(self.building, self.people)
         self.committees = static.get_active_committees(self.types)
-        self.buildable = static.is_buildable(self.committees, self.builder, self.popularity)
         self.n_new_cells = static.get_n_new_cells(self.cells, self.building)
     end,
 }
