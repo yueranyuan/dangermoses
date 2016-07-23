@@ -113,6 +113,10 @@ class "Agent" (Object) {
         self.ai = AI(self)
     end,
 
+    build = function(self, pattern, type)
+        
+    end,
+
     update = function(self)
         -- get the appropriate number of big dudes
         while self.built_cells >= CELL_PER_BIG_DUDE do
