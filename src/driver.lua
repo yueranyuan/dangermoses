@@ -25,7 +25,7 @@ function love.load()
 
     -- make players
     TAMMANY = Agent('TAMMANY', {30, 30, 30})
-    AIs = {Agent('AI1', {255, 0, 255}), Agent('AI2', {0, 255, 255})}
+    AIs = {Agent('AI1', {255, 0, 255})}
     for _, ai in ipairs(AIs) do
         ai:make_ai()
     end

@@ -1,6 +1,6 @@
 class "AI" (Object) {
     MAX_STEPS_PER_THINK = 4,
-    POOL_REFRESH_RATE = 10.0,
+    POOL_REFRESH_RATE = AI_SPEED,
 
     __init__ = function(self, agent)
         self.agent = agent
