@@ -149,8 +149,24 @@ class "Mislabel" (Powerup) {
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
     end,
 
+    provide_target = function(self, target)
+        if self.target and #self.target == 1 then
+            table.insert(self.target, target)
+            return true
+        else
+            self.target = {target }
+            self.possible_targets = lume.filter(government.committees, 'type')
+            for com_i, com in lume.ripairs(self.possible_targets) do
+                if com.type == self.target[1].building.type then
+                    table.remove(self.possible_targets, com_i)
+                end
+            end
+            return false
+        end
+    end,
+
     _use = function(self, target)
-        target.building:change_type("park")
+        target[1].building:change_type(self.target[2].type)
     end,
 }
 

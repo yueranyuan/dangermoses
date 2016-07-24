@@ -231,10 +231,10 @@ class "Committee" (Room) {
     end,
 
     init_seat_holders = function(self)
-        self.seat_holders = {neutral=math.floor(self.n_seats / 2) }
         local n_players = #AIs + 1
-        self.seat_holders[TAMMANY] = math.ceil(self.n_seats / 2) - n_players
+        self.seat_holders = {neutral=self.n_seats - n_players}
         self.seat_holders[player] = 1
+        self.seat_holders[TAMMANY] = 0
         for _, AI in ipairs(AIs) do
             self.seat_holders[AI] = 1
         end
@@ -358,16 +358,6 @@ class "ProjectCommittee" (Committee) {
         holders = lume.filter(holders, function(h) return self.seat_holders[h] > 0 end)
         lume.remove(holders, incoming)
         return holders
-    end,
-
-    init_seat_holders = function(self)
-        local n_players = #AIs + 1
-        self.seat_holders = {neutral=self.n_seats - n_players}
-        self.seat_holders[player] = 1
-        self.seat_holders[TAMMANY] = 0
-        for _, AI in ipairs(AIs) do
-            self.seat_holders[AI] = 1
-        end
     end,
 }
 
