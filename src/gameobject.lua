@@ -35,6 +35,12 @@ class "Object" {
         if self.shown == nil then
             self.shown = true
         end
+        if self.darken == nil then
+            self.darken = false
+        end
+        if self.z_order == nil then
+            self.z_order = 1
+        end
     end,
 
     get_grid_shape = function(self)
@@ -64,7 +70,7 @@ class "Object" {
         if not self.shown then
             return
         end
-        love.graphics.setColor(self.color)
+        self:lgSetColor(self.color)
         local pos
         if offset ~= nil then
             pos = self.pos + offset
@@ -75,7 +81,7 @@ class "Object" {
             love.graphics.draw(self.img, pos.x, pos.y, 0, self.scale)
         else
             love.graphics.rectangle("fill", pos.x, pos.y, self.shape.x, self.shape.y)
-            love.graphics.setColor({ 255, 255, 255, 255 })
+            self:lgSetColor({ 255, 255, 255})
             love.graphics.print(self.name, pos.x, pos.y + self.shape.y / 2)
         end
     end,
@@ -163,4 +169,34 @@ class "Object" {
         end
         return false
     end,
+
+    lgSetColor = function(self, r, g, b, a)
+        local color
+        if a ~= nil then
+            color = {r, g, b, a}
+        elseif g ~= nil then
+            color = {r, g, b}
+        else
+            if r[4] then
+                color = {r[1], r[2], r[3], r[4] }
+            else
+                color = {r[1], r[2], r[3]}
+            end
+        end
+
+        if self.darken then
+            color[1] = color[1] * 0.1
+            color[2] = color[2] * 0.1
+            color[3] = color[3] * 0.1
+        end
+        lg.setColor(color)
+    end,
+
+    move_with_children = function(self, new_pos)
+        for _, child in ipairs(self.children) do
+            local delta = child.pos - self.pos
+            child.pos = new_pos + delta
+        end
+        self.pos = new_pos
+    end
 }

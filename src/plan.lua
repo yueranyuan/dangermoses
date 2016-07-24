@@ -41,6 +41,11 @@ static.get_active_types = function(building, cells)
     return active_types
 end
 
+static.get_active_districts = function(cells)
+    local active_districts = lume.set(lume.map(cells, function(coord) return map.district_grid[coord.y][coord.x] end))
+    return active_districts
+end
+
 static.get_n_supporters = function(building, people)
     return #lume.filter(lume.map(people), function(p)
         return p:check_state(building.type) == 'happy'
@@ -53,10 +58,13 @@ static.get_n_haters = function(building, people)
     end)
 end
 
-static.get_active_committees = function(active_types)
+static.get_active_committees = function(active_types, active_districts)
     local active_committees = {}
     for _, com in ipairs(government.committees) do
         if lume.find(active_types, com.type) then
+            table.insert(active_committees, com)
+        end
+        if lume.find(active_districts, com.district) then
             table.insert(active_committees, com)
         end
     end
@@ -92,9 +100,10 @@ class "Plan" {
         self.cells = static.get_cell_collisions(self.building)
         self.people = static.get_active_people(self.cells)
         self.types = static.get_active_types(self.building, self.cells)
+        self.districts = static.get_active_districts(self.cells)
         self.n_supporters = static.get_n_supporters(self.building, self.people)
         self.n_haters = static.get_n_haters(self.building, self.people)
-        self.committees = static.get_active_committees(self.types)
+        self.committees = static.get_active_committees(self.types, self.districts)
         self.n_new_cells = static.get_n_new_cells(self.cells, self.building)
     end,
 }

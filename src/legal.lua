@@ -1,22 +1,23 @@
 class "Government" (Object) {
-    __init__ = function(self, x, committee_class)
+    __init__ = function(self, x)
         self:super(Government).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
-        if committee_class == nil then
-            committee_class = Committee
-        end
         self.committees = {}
         for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local com = committee_class(v(self.pos.x, type_i * Committee.HEIGHT), type)
+            local com = ProjectCommittee(v(self.pos.x, (#self.committees) * Committee.HEIGHT), type)
+            table.insert(self.committees, com)
+        end
+        for district_i, district in ipairs(lume.keys(Map.DISTRICTS)) do
+            local com = DistrictCommittee(v(self.pos.x, (#self.committees) * Committee.HEIGHT),
+                                          district)
             table.insert(self.committees, com)
         end
 
-        self.rooms = {}
-        for _, com in ipairs(self.committees) do
-            table.insert(self.rooms, com)
-        end
-        table.insert(self.rooms, MayorOffice(v(self.pos.x, (#self.rooms + 1) * Committee.HEIGHT)))
+        self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees) * Committee.HEIGHT))
+        self.rooms = lume.concat(self.committees, {self.mayor_office})
+    end,
 
-        self.legislations = {}
+    get_laws = function(self)
+        return lume.filter(lume.map(self.rooms, function(r) return r.law end))
     end,
 
     add_law = function(self, plan)
@@ -54,11 +55,6 @@ class "Government" (Object) {
             if law and room_i == #self.rooms then
                 law:destroy()
             end
-
-            -- remove all powerups
-            if room.pop_powers then
-                room:pop_powers()
-            end
         end
     end,
 
@@ -82,6 +78,7 @@ class "Legislation" (Object) {
         self.n_supporters = plan.n_supporters
         self.n_haters = plan.n_haters
         self.n_failures = 0
+        self.powerups = {}
         self:super(Legislation).__init__(self, v(550, 0), v(100, 50))
     end,
 
@@ -93,15 +90,15 @@ class "Legislation" (Object) {
 
     draw = function(self)
         self:super(Legislation).draw(self)
-        draw_transparent_rect(self.pos.x, self.pos.y, 45, GAME_HEIGHT, {50, 50, 50})
-        lg.setColor(0, 255, 0)
+        draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
+        self:lgSetColor(0, 255, 0)
         lg.print(self.n_supporters, self.pos.x, self.pos.y)
-        lg.setColor(255, 0, 0)
+        self:lgSetColor(255, 0, 0)
         lg.print(self.n_haters, self.pos.x + 15, self.pos.y)
         if self.n_failures > 0 then
             lg.print("failed", self.pos.x, self.pos.y + 15)
         end
-        lg.setColor(255, 255, 255)
+        self:lgSetColor(255, 255, 255)
         local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 5,
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
@@ -149,11 +146,13 @@ class "Room" (Object) {
     __init__ = function(self, pos)
         self:super(Room).__init__(self, pos, v(GAME_WIDTH - pos.x, Committee.HEIGHT - 5))
         self.verdict = RoomVerdict(self)
+        self.verdict:set_parent(self)
+        self.closed = false
     end,
 
     is_active = function(self)
-        return (self.__class__ == MayorOffice or
-                lume.find(self.law.committees, self) ~= nil)
+        return (not self.closed and (self.__class__ == MayorOffice or
+                lume.find(self.law.committees, self) ~= nil))
     end,
 
     update_law = function(self, law)
@@ -201,17 +200,14 @@ class "MayorOffice" (Room) {
 
     draw = function(self)
         self:super(MayorOffice).draw(self)
-        lg.setColor(0, 0, 0)
+        self:lgSetColor(0, 0, 0)
         lg.print("#Strikes Remaining: "..self.strikes, self.pos.x + 10, self.pos.y + self.HEIGHT / 2)
     end
 }
 
 class "Committee" (Room) {
-    __init__ = function(self, pos, type)
-        self.type = type
-        self.base_color = Map.TYPES[self.type]
-        self.color = self.base_color
-        self.n_seats = 9
+    __init__ = function(self, pos, n_seats)
+        self.n_seats = n_seats
         self:super(Committee).__init__(self, pos)
 
         -- generate seats
@@ -229,8 +225,9 @@ class "Committee" (Room) {
         self:init_seat_holders()
         self:reshuffle_seats()
 
-        -- powers
-        self.powers = {}
+        -- powerups
+        self.powerups = {}
+        self.extra_votes = 0
     end,
 
     init_seat_holders = function(self)
@@ -255,7 +252,8 @@ class "Committee" (Room) {
     end,
 
     update_law = function(self, law)
-        if lume.find(law.committees, self) == nil then  -- committee not active
+        local extra_votes_remaining = self.extra_votes
+        if lume.find(law.committees, self) == nil or self.closed then  -- committee not active
             self.color = {self.color[1], self.color[2], self.color[3], 50}
             for _, seat in ipairs(self.seats) do
                 seat.state = 'inactive'
@@ -276,10 +274,20 @@ class "Committee" (Room) {
                     if neutral_i <= self.seat_holders['neutral'] * percentage then
                         seat.state = 'yea'
                     else
-                        seat.state = 'nay'
+                        if extra_votes_remaining > 0 then
+                            extra_votes_remaining = extra_votes_remaining - 1
+                            seat.state = 'yea'
+                        else
+                            seat.state = 'nay'
+                        end
                     end
                 else
-                    seat.state = 'nay'
+                    if extra_votes_remaining > 0 then
+                        extra_votes_remaining = extra_votes_remaining - 1
+                        seat.state = 'yea'
+                    else
+                        seat.state = 'nay'
+                    end
                 end
             end
         end
@@ -326,49 +334,21 @@ class "Committee" (Room) {
     end,
 
     count_yays = function(self, builder, n_supporters, n_haters)
-        local neutral_votes = self.seat_holders['neutral'] * n_supporters / (n_haters + n_supporters)
-        return neutral_votes + self.seat_holders[builder]
+        return #lume.filter(self.seats, function(s) return s.state == 'yea' end)
     end,
 
     check_pass = function(self, builder, n_supporters, n_haters)
         return self:count_yays(builder, n_supporters, n_haters) > self.n_seats / 2
     end,
-
-    push_power = function(self, power)
-        table.insert(self.powers, power)
-        if power == "strongarm" then
-            self:update_seat('neutral', player)
-            self:reshuffle_seats()
-        elseif power == "strongarm2" then
-            self:update_seat('neutral', player)
-            self:update_seat('neutral', player)
-            self:reshuffle_seats()
-        end
-    end,
-
-    pop_powers = function(self, power)
-        for _, power in ipairs(self.powers) do
-            if power == "strongarm" then
-                self.seat_holders[player] = self.seat_holders[player] - 1
-                self:reshuffle_seats()
-            elseif power == "strongarm2" then
-                self.seat_holders[player] = self.seat_holders[player] - 2
-                self:reshuffle_seats()
-            end
-        end
-        self.powers = {}
-    end,
-
-    on_click = function(self)
-        if player.power then
-            player:use_power(player.power, self)
-        end
-        return true
-    end
 }
 
-class "Committee2" (Committee) {
+class "ProjectCommittee" (Committee) {
     -- Committee where we remove neutral first
+    __init__ = function(self, pos, type)
+        self.type = type
+        self.color = Map.TYPES[type]
+        self:super(ProjectCommittee).__init__(self, pos, 9)
+    end,
 
     can_replace = function(self, incoming)
         if self.seat_holders['neutral'] > 0 then
@@ -391,12 +371,31 @@ class "Committee2" (Committee) {
     end,
 }
 
+class "DistrictCommittee" (Committee) {
+    __init__ = function(self, pos, district)
+        self.district = district
+        self.district_color = Map.DISTRICTS[district]
+        self.color = {255, 255, 150}
+        self:super(DistrictCommittee).__init__(self, pos, 7)
+    end,
+
+    draw = function(self)
+        self:super(DistrictCommittee).draw(self)
+        self:lgSetColor(self.district_color)
+        lg.rectangle("fill", self.pos.x + 30, self.pos.y, 10, 10)
+        self:lgSetColor({0, 0, 0})
+        lg.print(self.district, self.pos.x + 40, self.pos.y)
+    end
+}
+
 class "Seat" (Object) {
     __init__ = function(self, pos, shape, holder, committee)
         self.committee = committee
         self.approve = false
         self:set_holder(holder)
         self:super(Seat).__init__(self, pos, shape)
+
+        self:set_parent(self.committee)
     end,
 
     set_holder = function(self, holder)
@@ -425,9 +424,9 @@ class "Seat" (Object) {
 
         -- draw vote flag
         if self.state == 'yea' then
-            lg.setColor(0, 255, 0, 200)
+            self:lgSetColor(0, 255, 0, 200)
         elseif self.state == 'nay' then
-            lg.setColor(255, 0, 0, 200)
+            self:lgSetColor(255, 0, 0, 200)
         end
         if self.state == 'yea' or self.state == 'nay' then
             lg.rectangle('fill', self.pos.x, self.pos.y, self.shape.x, self.shape.y * 0.3)

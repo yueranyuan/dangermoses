@@ -16,8 +16,9 @@ class "HUD" (Object) {
         self.message = ""
         self.message_color = HUD.NEUTRAL
         self.message_timer = 0.0
-        NextButton(v(650, GAME_HEIGHT - 100))
+        NextButton(v(government.pos.x + 50, GAME_HEIGHT - 100))
         self:super(HUD).__init__(self)
+        self.z_order = 2
     end,
 
     update = function(self, dt)
@@ -40,17 +41,17 @@ class "HUD" (Object) {
     end,
 
     draw = function(self)
-        -- draw big dudes stock
-        love.graphics.setColor(255, 255, 255)
-        love.graphics.print("influence: "..player.influence, GAME_WIDTH - 200, 0)
+        -- draw influence count
+        self:lgSetColor(255, 255, 255)
+        lg.print("influence: "..player.influence, 0, 100)
 
         -- draw messages
         if #self.message > 0 then
-            love.graphics.setColor(0, 0, 0, 200)
-            love.graphics.rectangle('fill', 0, GAME_HEIGHT / 2, GAME_WIDTH, 20)
-            love.graphics.setColor(self.message_color)
+            lg.setColor(0, 0, 0, 200)
+            lg.rectangle('fill', 0, GAME_HEIGHT / 2, GAME_WIDTH, 20)
+            lg.setColor(self.message_color)
             local text_width = GAME_WIDTH - self.message_timer * 100  -- the running text effect
-            love.graphics.printf(self.message, 0, GAME_HEIGHT / 2, text_width, 'center')
+            lg.printf(self.message, 0, GAME_HEIGHT / 2, text_width, 'center')
         end
 
         -- draw mouse
@@ -58,7 +59,7 @@ class "HUD" (Object) {
         if player.power then
             draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 80, 20, {50, 50, 50})
             lg.setColor(255, 255, 255)
-            lg.print(player.power, controller.mousepos.x, controller.mousepos.y)
+            lg.print(player.power.name, controller.mousepos.x, controller.mousepos.y)
         elseif player.plan then
             draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 30, 15, {10, 10, 10})
             lg.setColor(0, 255, 0)
@@ -93,6 +94,10 @@ class "NextButton" (Button) {
 
     on_click = function(self)
         government:next()
+        for _, powerup in lume.ripairs(Powerup.powerups) do
+            log.trace(powerup.name)
+            powerup:next()
+        end
     end,
 
     draw = function(self)
@@ -177,7 +182,8 @@ class "BuildingButton" (Button) {
     __init__ = function(self, pos, type, tray)
         self.tray = tray
         self.type = type
-        self.color = Map.TYPES[type]
+        local type_color = Map.TYPES[type]
+        self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3}
         self.refresh_time = 0.0
         self:super(BuildingButton).__init__(self, pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
 
@@ -188,8 +194,7 @@ class "BuildingButton" (Button) {
         self.clickable = true
         self.state = 'showing'
         self.pattern = lume.randomchoice(Building.PATTERNS)
-        self.icon = Building.all_imgs[self.pattern]
-        self.icon_shape = v(self.icon:getWidth(), self.icon:getHeight())
+        self.building = Building(self.pattern, self.type)
     end,
 
     finish = function(self)
@@ -214,11 +219,15 @@ class "BuildingButton" (Button) {
     draw = function(self)
         -- TODO: offset doesn't work yet
         self:super(BuildingButton).draw(self)
-        local pos = self.pos + self.shape / 2 - BuildingButton.ICON_SCALE * self.icon_shape / 2  -- center icon
+        local icon = self.building.img
+        local icon_shape = self.building.shape
+        local icon_color = self.building.color
+        local pos = self.pos + self.shape / 2 - BuildingButton.ICON_SCALE * icon_shape / 2  -- center icon
         if self.state == 'showing' then
-            love.graphics.draw(self.icon, pos.x, pos.y, 0, BuildingButton.ICON_SCALE)
+            self:lgSetColor(icon_color)
+            love.graphics.draw(icon, pos.x, pos.y, 0, BuildingButton.ICON_SCALE)
         else
-            love.graphics.setColor({255, 255, 255, 100})
+            self:lgSetColor({255, 255, 255, 100})
             local progress = self.refresh_time / BuildingButton.REFRESH_TIME
             love.graphics.rectangle('fill', self.pos.x, self.pos.y, progress * self.shape.x, self.shape.y)
         end
@@ -226,19 +235,19 @@ class "BuildingButton" (Button) {
 
     on_click = function(self)
         if player.power then return end
-        player.plan = Plan(player, Building(self.pattern, self.type))
+        player.plan = Plan(player, self.building)
         self.tray:set_active_button(self)
         return true
     end
 }
 
 class "PowerupTray" (ButtonTray) {
-    POWERS = {"strongarm", "strongarm2"},
+    POWERS = {StrongArm, Shutdown, GoodPublicity, Swap, Mislabel, Appeal},
 
     __init__ = function(self)
         self.active_button = nil
         local shape = v(#self.POWERS* PowerupButton.BUTTON_SIZE + 20, PowerupButton.BUTTON_SIZE + 20)
-        self:super(PowerupTray).__init__(self, v(190, 0), shape)
+        self:super(PowerupTray).__init__(self, v(0, 0), shape)
 
         -- add powerup buttons
         self.buttons = {}
@@ -249,7 +258,6 @@ class "PowerupTray" (ButtonTray) {
         end
     end,
 }
-
 
 class "PowerupButton" (Button) {
     BUTTON_SIZE = 80,
@@ -270,14 +278,20 @@ class "PowerupButton" (Button) {
         -- TODO: offset doesn't work yet
         self:super(PowerupButton).draw(self)
         lg.setColor(0, 0, 0)
-        lg.printf(self.power, self.pos.x, self.pos.y + self.shape.y / 2 - 5, self.shape.x, "center")
+        lg.printf(self.power.name, self.pos.x, self.pos.y + self.shape.y / 2 - 5, self.shape.x, "center")
         lg.printf("#"..self.n, self.pos.x, self.pos.y + self.shape.y / 2 + 5, self.shape.x, "center")
     end,
 
     on_click = function(self)
         if player.power then return end
         if self.n > 0 then
-            player.power = self.power
+            local powerup = self.power()
+            local usable, msg = powerup.is_usable()
+            if not usable then
+                hud:set_message(msg, HUD.FAIL)
+                return
+            end
+            player.power = self.power()
             self.tray:set_active_button(self)
         end
         return true

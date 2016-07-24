@@ -11,6 +11,11 @@ class "Building" (Object) {
         self:super(Building).__init__(self)
     end,
 
+    change_type = function(self, new_type)
+        self.type = new_type
+        self.color = Map.TYPES[self.type]
+    end,
+
     draw = function() end,
 }
 
@@ -20,6 +25,8 @@ end)
 
 class "Map" (Object){
     TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
+    DISTRICTS = {longisland={255, 0, 0}, queens={0, 255, 0}, brooklyn={0, 0, 255},
+                 manhattan={255, 255, 0}, bronx={0, 0, 0}},
 
     __init__ = function(self, w, h, scale)
         self:super(Map).__init__(self)
@@ -53,6 +60,25 @@ class "Map" (Object){
         self.height = #self.grid
         self.width = #self.grid[1]
 
+        -- load district map
+        pixels = love.graphics.newImage("grafix/map_district.png"):getData()
+        assert(pixels:getHeight() >= h)
+        assert(pixels:getWidth() >= w)
+        self.district_grid = {}
+        for y = 0, h - 1 do
+            local row = {}
+            for x = 0, w - 1 do
+                local r, g, b, _ = pixels:getPixel(x, y)
+                for district, color in pairs(Map.DISTRICTS) do
+                    if r == color[1] and g == color[2] and b == color[3] then
+                        row[x+1] = district
+                    end
+                end
+                assert(row[x+1] ~= nil)
+            end
+            self.district_grid[y+1] = row
+        end
+
         -- make people
         self.people_grid = {}
         self.people = {}
@@ -76,8 +102,8 @@ class "Map" (Object){
         if color == nil then
             color = {0, 0, 0}
         end
-        love.graphics.setColor(color)
-        love.graphics.rectangle("fill", (coord.x-1) * MAP_SCALE, (coord.y-1) * MAP_SCALE, MAP_SCALE, MAP_SCALE)
+        self:lgSetColor(color)
+        lg.rectangle("fill", (coord.x-1) * MAP_SCALE, (coord.y-1) * MAP_SCALE, MAP_SCALE, MAP_SCALE)
     end,
 
     place_building = function(self, builder, building)
@@ -107,6 +133,8 @@ class "Map" (Object){
         for y = 1, #self.grid do
             for x = 1, #self.grid[1] do
                 self:draw_cell(v(x, y))
+                self:lgSetColor(self.DISTRICTS[self.district_grid[y][x]])
+                lg.rectangle("fill", (x-1) * MAP_SCALE, (y-1) * MAP_SCALE, 5, 5)
             end
         end
 

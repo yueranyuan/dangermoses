@@ -8,11 +8,15 @@ class "Agent" (Object) {
     end,
 
     use_power = function(self, power, target)
-        self.power = power
-        target:push_power(self.power)
+        -- redundancy here makes it possible for agents to use powerups without the gui
+        power:use(target)
         self.power = nil
         powerup_tray:resolve_active_button(true)
         hud:set_message("powerup used", HUD.SUCCESS)
+    end,
+
+    build = function(self, type, pattern, coord)
+        -- TODO: building should be possible for agents without the gui
     end,
 
     draw = function() end

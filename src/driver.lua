@@ -11,6 +11,7 @@ class = require "extern/slither"
 utils = require "src/utils"
 require "src/consts"
 require "src/gameobject"
+require "src/powerup"
 require "src/legal"
 require "src/map"
 require "src/gui"
@@ -37,11 +38,7 @@ function love.load()
     map = Map(MAP_WIDTH, MAP_HEIGHT, MAP_SCALE)
 
     -- make committee side of screen
-    local committee_class = Committee
-    if NEUTRAL_FIRST then
-        committee_class = Committee2
-    end
-    government = Government(600, committee_class)
+    government = Government(GAME_WIDTH - 200)
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()
@@ -71,6 +68,18 @@ function love.mousepressed(x, y)
         end
     end
 
+    if player.power then
+        for _, obj in ipairs(player.power.possible_targets) do
+            if obj:collide_point(mousepos) then
+                if player.power:provide_target(obj) then
+                    player:use_power(player.power, player.power.target)
+                end
+                clicked = true
+                break
+            end
+        end
+    end
+
     if not clicked then
         controller:click(mousepos)
     end
@@ -90,7 +99,26 @@ end
 function love.draw()
     love.graphics.setColor(155, 155, 155, 255)
     love.graphics.rectangle('fill', 0, 0, 800, 800)
+
+    local draw_orders = {}
     for _, obj in ipairs(Object.objects) do
-        obj:draw()
+        if obj.parent then
+            obj.darken = obj.parent.darken
+        else
+            obj.darken = player.power and lume.find(player.power.possible_targets, obj) == nil
+        end
+        if draw_orders[obj.z_order] == nil then
+            draw_orders[obj.z_order] = {obj }
+        else
+            table.insert(draw_orders[obj.z_order], obj)
+        end
+    end
+
+    local z_ordering = lume.keys(draw_orders)
+    table.sort(z_ordering)
+    for _, z in ipairs(z_ordering) do
+        for _, obj in ipairs(draw_orders[z]) do
+            obj:draw()
+        end
     end
 end
