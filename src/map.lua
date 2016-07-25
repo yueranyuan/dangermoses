@@ -98,14 +98,14 @@ class "Map" (Object){
         end
 
         -- fill empty grid
-        local f = csv.open("map.csv")
+        local f = csv.open(arg[1].."/map.csv")
         local person_dict = {r="road", p="park", t="house", h="hater"}
         local y = 0
         for fields in f:lines() do
             y = y + 1
             for x, p in ipairs(fields) do
                 if p ~= "" then
-                    local person = Person(v(x, y), person_dict[p])
+                    local person = Person(v(x, y), person_dict[p], math.floor(lume.random(1, 5)))
                     self.people_grid[y][x] = person
                     table.insert(self.people, person)
                 end
@@ -249,8 +249,9 @@ class "Person" (Object) {
     PERSON_IMG = lg.newImage("grafix/person.png"),
     HATER_COLOR = {164, 40, 40},
 
-    __init__ = function(self, local_pos, type)
+    __init__ = function(self, local_pos, type, density)
         self.local_pos = local_pos
+        self.density = density
         self.type = type
         self.state = 'neutral'
         self.base_color = Map.PERSON_TYPES[self.type]
@@ -260,6 +261,27 @@ class "Person" (Object) {
         self.pos = (local_pos - 0.5) * MAP_SCALE
         self.pos.x = self.pos.x - self.shape.x / 2
         self.pos.y = self.pos.y - self.shape.y
+    end,
+
+    draw = function(self)
+        self:lgSetColor(self.color)
+        local offsets
+        if self.density == 1 then
+            offsets = {v(0, 0)}
+        elseif self.density == 2 then
+            offsets = {v(-5, 0), v(5, 0)}
+        elseif self.density == 3 then
+            offsets = {v(0, -5), v(-5, 0), v(5, 0) }
+        elseif self.density == 4 then
+            offsets = {v(-2, -5), v(8, -5), v(-5, 0), v(5, 0) }
+        else
+            assert(false, "too many people on this tile")
+        end
+
+        for _, offset in ipairs(offsets) do
+            local pos = self.pos + offset
+            lg.draw(self.img, pos.x, pos.y)
+        end
     end,
 
     update = function(self)
