@@ -83,7 +83,7 @@ class "Button" (Object) {
 
 class "NextButton" (Button) {
     __init__ = function(self, pos)
-        self:super(NextButton).__init__(self, pos, v(100, 50))
+        self:super(NextButton).__init__(self, pos, v(100, 60))
     end,
 
     on_click = function(self)
@@ -143,19 +143,19 @@ class "ButtonTray" (Object) {
 class "BuildingButtonTray" (ButtonTray) {
     __init__ = function(self)
         self.active_button = nil
-        local shape = v((#lume.keys(Map.TYPES) + 1) * BuildingButton.BUTTON_SIZE + 20, BuildingButton.BUTTON_SIZE + 20)
-        self:super(BuildingButtonTray).__init__(self, v(190, 0), shape)
+        local shape = v((#lume.keys(Map.TYPES) + 1) * (BuildingButton.BUTTON_SIZE + 5) + 20, BuildingButton.BUTTON_SIZE)
+        self:super(BuildingButtonTray).__init__(self, v(750, GAME_HEIGHT - 100), shape)
 
         -- add building buttons
         self.buttons = {}
         for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local offset = v((type_i - 1) * BuildingButton.BUTTON_SIZE + 10, 10)
+            local offset = v((type_i - 1) * (BuildingButton.BUTTON_SIZE + 5) + 10, 0)
             local button = BuildingButton(self.pos + offset, type, self)
             table.insert(self.buttons, button)
         end
 
         -- add refresh button
-        local offset = v(#lume.keys(Map.TYPES) * BuildingButton.BUTTON_SIZE + 10, 10)
+        local offset = v(#lume.keys(Map.TYPES) * (BuildingButton.BUTTON_SIZE + 5) + 10, 0)
         self.refresh_button = RefreshButton(self.pos + offset, self)
     end,
 
@@ -244,6 +244,11 @@ class "PowerupTray" (ButtonTray) {
 
         -- add powerup buttons
         self.buttons = {}
+        for _, powerup in ipairs({StrongArm, Shutdown, Swap}) do
+            local offset = v((#self.buttons) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
+            local button = PowerupButton(self.pos + offset, powerup, self, 1)
+            table.insert(self.buttons, button)
+        end
     end,
 
     add_powerup = function(self, powerup)

@@ -1,6 +1,7 @@
 class "Building" (Object) {
     --PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
-    PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
+    --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
+    PATTERNS = {"rand1", "rand2", "rand3", "rand4", "rand5", "eagle"},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)

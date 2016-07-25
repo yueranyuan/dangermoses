@@ -385,11 +385,13 @@ class "DistrictCommittee" (Committee) {
 }
 
 class "Seat" (Object) {
+    IMG = lg.newImage("grafix/person.png"),
     __init__ = function(self, pos, shape, holder, committee)
         self.committee = committee
         self.approve = false
+        self.img = Seat.IMG
         self:set_holder(holder)
-        self:super(Seat).__init__(self, pos, shape)
+        self:super(Seat).__init__(self, pos)
 
         self:set_parent(self.committee)
     end,
@@ -425,7 +427,7 @@ class "Seat" (Object) {
             self:lgSetColor(255, 0, 0, 200)
         end
         if self.state == 'yea' or self.state == 'nay' then
-            lg.rectangle('fill', self.pos.x, self.pos.y, self.shape.x, self.shape.y * 0.3)
+            lg.rectangle('fill', self.pos.x, self.pos.y - self.shape.y * 0.3, self.shape.x, self.shape.y * 0.3)
         end
     end
 }

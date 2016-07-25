@@ -101,7 +101,7 @@ class "GoodPublicity" (Powerup) {
     end,
 
     _use = function(self, target)
-        target.n_haters = math.max(0, target.n_haters - 1)
+        target.n_haters = math.max(0, target.n_haters - 5)
     end,
 }
 
