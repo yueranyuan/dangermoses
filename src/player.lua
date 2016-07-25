@@ -9,7 +9,7 @@ class "Agent" (Object) {
 
     use_power = function(self, power, target)
         -- redundancy here makes it possible for agents to use powerups without the gui
-        power:use(target)
+        power:use(self, target)
         self.power = nil
         powerup_tray:resolve_active_button(true)
         hud:set_message("powerup used", HUD.SUCCESS)
@@ -41,7 +41,7 @@ class "Controller" {
             hud:set_message("powerup use canceled", HUD.NEUTRAL)
         elseif player.plan then
             if government:add_law(player.plan) then
-                map:place_building(player, player.plan.building)
+                map:try_building(player, player.plan.building)
                 building_button_tray:resolve_active_button(true)
                 hud:set_message("project going to government", HUD.NEUTRAL)
             else

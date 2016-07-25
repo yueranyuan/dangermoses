@@ -56,6 +56,10 @@ class "Government" (Object) {
                 law:destroy()
             end
         end
+
+        while #self:get_laws() > 0 and #lume.filter(self.rooms, function(r) return r:is_active() end) == 0 do
+            self:next()
+        end
     end,
 
     draw = function(self)
@@ -64,7 +68,7 @@ class "Government" (Object) {
 }
 
 class "Legislation" (Object) {
-    ICON_SCALE = 8,
+    ICON_SCALE = 2,
 
     __init__ = function(self, plan)
         self.builder = plan.builder
@@ -79,7 +83,7 @@ class "Legislation" (Object) {
         self.n_haters = plan.n_haters
         self.n_failures = 0
         self.powerups = {}
-        self:super(Legislation).__init__(self, v(550, 0), v(100, 50))
+        self:super(Legislation).__init__(self, v(550, 0), v(200, 50))
     end,
 
     set_room = function(self, room)
@@ -94,7 +98,7 @@ class "Legislation" (Object) {
         self:lgSetColor(0, 255, 0)
         lg.print(self.n_supporters, self.pos.x, self.pos.y)
         self:lgSetColor(255, 0, 0)
-        lg.print(self.n_haters, self.pos.x + 15, self.pos.y)
+        lg.print(self.n_haters, self.pos.x + 20, self.pos.y)
         if self.n_failures > 0 then
             lg.print("failed", self.pos.x, self.pos.y + 15)
         end
@@ -151,7 +155,7 @@ class "Room" (Object) {
     end,
 
     is_active = function(self)
-        return (not self.closed and (self.__class__ == MayorOffice or
+        return (not self.closed and self.law ~= nil and (self.__class__ == MayorOffice or
                 lume.find(self.law.committees, self) ~= nil))
     end,
 
@@ -189,13 +193,14 @@ class "MayorOffice" (Room) {
         hud:set_message("project approved", HUD.SUCCESS)
         player.influence = player.influence + law.n_supporters
         -- TODO: finalize building
-        --map:place_building(law.builder, law.building)
+        map:place_building(law.builder, law.building)
     end,
 
     disapprove = function(self, law)
         self.strikes = self.strikes - 1
         -- TODO: fail building
         hud:set_message("project rejected", HUD.FAIL)
+        map:remove_pending_building(law.building)
     end,
 
     draw = function(self)
@@ -309,6 +314,7 @@ class "Committee" (Room) {
 
     update_seat = function(self, former, incoming)
         assert(self.seat_holders[former] ~= nil)
+        if self.seat_holders[former] <= 0 then return end
         if former == incoming then return end
 
         if lume.find(self:can_replace(incoming), former) == nil then

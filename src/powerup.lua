@@ -29,7 +29,8 @@ class "Powerup" (Object) {
         end
     end,
 
-    use = function(self, target)
+    use = function(self, user, target)
+        self.user = user
         table.insert(Powerup.powerups, self)
         if self.n_turns > 0 then
             table.insert(target.powerups, self)
@@ -60,6 +61,7 @@ class "Powerup" (Object) {
 
 class "StrongArm" (Powerup) {
     name = "strongarm",
+    img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
     end,
@@ -75,6 +77,7 @@ class "StrongArm" (Powerup) {
 
 class "Shutdown" (Powerup) {
     name = "shutdown",
+    img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
     end,
@@ -92,6 +95,7 @@ class "Shutdown" (Powerup) {
 
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
+    img = lg.newImage("grafix/goodpublicity.png"),
     __init__ = function(self)
         self:super(GoodPublicity).__init__(self, government:get_laws(), 0)
     end,
@@ -103,6 +107,7 @@ class "GoodPublicity" (Powerup) {
 
 class "Swap" (Powerup) {
     name = "swap",
+    img = lg.newImage("grafix/swap.png"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
         lume.remove(targets, government.mayor_office)
@@ -145,6 +150,7 @@ class "Swap" (Powerup) {
 
 class "Mislabel" (Powerup) {
     name = "mislabel",
+    img = lg.newImage("grafix/mislabel.png"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
     end,
@@ -172,6 +178,7 @@ class "Mislabel" (Powerup) {
 
 class "Appeal" (Powerup) {
     name = "appeal",
+    img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
     end,
@@ -190,4 +197,16 @@ class "Appeal" (Powerup) {
         target:set_room(government.rooms[1])
         government.rooms[1].law = target
     end,
+}
+
+class "Lackey" (Powerup) {
+    name = "lackey",
+    img = lg.newImage("grafix/lackey.png"),
+    __init__ = function(self)
+        self:super(Lackey).__init__(self, government.committees, 0)
+    end,
+
+    _use = function(self, target)
+        target:update_seat("neutral", self.user)
+    end
 }

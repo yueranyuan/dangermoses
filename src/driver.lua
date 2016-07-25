@@ -97,7 +97,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    love.graphics.setColor(155, 155, 155, 255)
+    love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle('fill', 0, 0, 800, 800)
 
     local draw_orders = {}

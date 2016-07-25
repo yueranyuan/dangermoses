@@ -26,8 +26,22 @@ static.get_active_people = function(cells)
     local arr = {}
     for _, coord in ipairs(cells) do
         local person = map.people_grid[coord.y][coord.x]
-        if person then
+        if person and person ~= "none" then
             table.insert(arr, person)
+        end
+    end
+    return arr
+end
+
+static.get_active_floor_powerups = function(cells)
+    -- can't use map because of in lua setting to nil is interpreted as 'delete' key
+    -- and arrays are dictionaries. I wish we were using python :((((
+    local arr = {}
+    for _, coord in ipairs(cells) do
+        for _, pu in ipairs(map.floor_powerups) do
+            if pu.coord == coord then
+                table.insert(arr, pu)
+            end
         end
     end
     return arr
@@ -99,6 +113,7 @@ class "Plan" {
     refresh = function(self)
         self.cells = static.get_cell_collisions(self.building)
         self.people = static.get_active_people(self.cells)
+        self.floor_powerups = static.get_active_floor_powerups(self.cells)
         self.types = static.get_active_types(self.building, self.cells)
         self.districts = static.get_active_districts(self.cells)
         self.n_supporters = static.get_n_supporters(self.building, self.people)
