@@ -43,7 +43,7 @@ class "HUD" (Object) {
     draw = function(self)
         -- draw influence count
         self:lgSetColor(255, 255, 255)
-        lg.print("influence: "..player.influence, 0, 100)
+        lg.print("influence: "..player.influence, 0, GAME_HEIGHT - 100)
 
         -- draw messages
         if #self.message > 0 then

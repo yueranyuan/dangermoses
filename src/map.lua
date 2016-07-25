@@ -86,26 +86,30 @@ class "Map" (Object){
         end
 
         -- make people
-        pixels = love.graphics.newImage("grafix/map_people.png"):getData()
-        assert(pixels:getHeight() >= h)
-        assert(pixels:getWidth() >= w)
-        self.people_grid = {}
+        -- empty grid first
         self.people = {}
+        self.people_grid = {}
         for y = 0, h - 1 do
             local row = {}
             for x = 0, w - 1 do
-                local r, g, b, _ = pixels:getPixel(x, y)
                 row[x+1] = "none"
-                for person_type, color in pairs(Map.PERSON_TYPES) do
-                    if r == color[1] and g == color[2] and b == color[3] then
-                        local person = Person(v(x+1, y+1), person_type)
-                        row[x+1] = person
-                        table.insert(self.people, person)
-                        break
-                    end
-                end
             end
             self.people_grid[y+1] = row
+        end
+
+        -- fill empty grid
+        local f = csv.open("map.csv")
+        local person_dict = {r="road", p="park", t="house", h="hater"}
+        local y = 0
+        for fields in f:lines() do
+            y = y + 1
+            for x, p in ipairs(fields) do
+                if p ~= "" then
+                    local person = Person(v(x, y), person_dict[p])
+                    self.people_grid[y][x] = person
+                    table.insert(self.people, person)
+                end
+            end
         end
 
         self.floor_powerups = {}

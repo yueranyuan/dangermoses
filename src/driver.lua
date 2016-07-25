@@ -8,6 +8,7 @@ v = vec
 lume = require "extern/lume"
 log = require "extern/log"
 class = require "extern/slither"
+csv = require "extern/csv"
 utils = require "src/utils"
 require "src/consts"
 require "src/gameobject"
