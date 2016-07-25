@@ -61,15 +61,21 @@ static.get_active_districts = function(cells)
 end
 
 static.get_n_supporters = function(building, people)
-    return #lume.filter(lume.map(people), function(p)
-        return p:check_state(building.type) == 'happy'
-    end)
+    return utils.sum(lume.map(people, function(p)
+        if p:check_state(building.type) == 'happy' then
+            return p.density
+        end
+        return 0
+    end))
 end
 
 static.get_n_haters = function(building, people)
-    return #lume.filter(lume.map(people), function(p)
-        return p:check_state(building.type) == 'sad'
-    end)
+    return utils.sum(lume.map(people, function(p)
+        if p:check_state(building.type) == 'sad' then
+            return p.density
+        end
+        return 0
+    end))
 end
 
 static.get_active_committees = function(active_types, active_districts)
