@@ -28,7 +28,7 @@ end)
 class "Map" (Object){
     TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
     PERSON_TYPES = {hater={164, 40, 40}, park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
-    DISTRICTS = {queens={207, 179, 7}, brooklyn={151, 151, 151}, manhattan={191, 123, 199}},
+    DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
 
     FLICKER_FREQUENCY = 5,
     FLICKER_MOD = 3,
