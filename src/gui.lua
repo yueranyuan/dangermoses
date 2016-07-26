@@ -60,6 +60,11 @@ class "HUD" (Object) {
             local power = player.power
             lg.setColor(255, 255, 255)
             lg.draw(power.img, controller.mousepos.x - power.shape.x / 2, controller.mousepos.y - power.shape.y / 2)
+        elseif player.plan then
+            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 20, 20, {50, 50, 50})
+            local percentage = (player.plan.n_supporters / (player.plan.n_haters + player.plan.n_supporters) * 100)
+            lg.setColor(255, 255, 255)
+            lg.print(lume.round(percentage).."%", controller.mousepos.x, controller.mousepos.y)
         else
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
