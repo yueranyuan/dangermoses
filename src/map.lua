@@ -196,7 +196,7 @@ class "Map" (Object){
 
     draw = function(self)
         self:lgSetColor(255, 255, 255)
-        lg.draw(self.bg, 0, 0, 0, MAP_SCALE / 2)
+        lg.draw(self.bg, 0, 0, 0, MAP_SCALE / 4)
 
         -- draw the base map
         for y = 1, #self.grid do
