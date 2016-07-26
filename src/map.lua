@@ -125,6 +125,7 @@ class "Map" (Object){
         end
 
         self.pending_plans = {}
+        self.n_pending_tiles = 0
         self.flicker_time = 0
         self.flicker_idx = 0
     end,
@@ -143,8 +144,15 @@ class "Map" (Object){
         end
     end,
 
+    update_n_pending_tiles = function(self)
+        local pending_cells = utils.set(utils.concat_arr(lume.map(self.pending_plans, "cells")))
+        self.n_pending_tiles = #lume.filter(pending_cells, function(c) return self.grid[c.y][c.x] == 'empty' end)
+    end,
+
     try_building = function(self, builder, building)
+        local plan = Plan(builder, building)
         table.insert(self.pending_plans, Plan(builder, building))
+        self:update_n_pending_tiles()
     end,
 
     place_building = function(self, builder, building)
@@ -181,6 +189,7 @@ class "Map" (Object){
                 table.remove(self.pending_plans, plan_i)
             end
         end
+        self:update_n_pending_tiles()
     end,
 
     update = function(self, dt)

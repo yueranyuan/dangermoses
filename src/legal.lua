@@ -1,19 +1,20 @@
 class "Government" (Object) {
     __init__ = function(self, x)
         self:super(Government).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
+        self.moses_office = MosesOffice(self.pos)
         self.committees = {}
         for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local com = ProjectCommittee(v(self.pos.x, (#self.committees) * Committee.HEIGHT), type)
+            local com = ProjectCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT), type)
             table.insert(self.committees, com)
         end
         for district_i, district in ipairs(lume.keys(Map.DISTRICTS)) do
-            local com = DistrictCommittee(v(self.pos.x, (#self.committees) * Committee.HEIGHT),
+            local com = DistrictCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT),
                                           district)
             table.insert(self.committees, com)
         end
 
-        self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees) * Committee.HEIGHT))
-        self.rooms = lume.concat(self.committees, {self.mayor_office})
+        self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT))
+        self.rooms = lume.concat({self.moses_office}, self.committees, {self.mayor_office})
         self.turn_i = 0
     end,
 
@@ -183,6 +184,49 @@ class "Room" (Object) {
     end,
 }
 
+class "MosesOffice" (Room) {
+    __init__ = function(self, pos)
+        self:super(MosesOffice).__init__(self, pos)
+        local callback = function() return self:cancel_building() end
+        self.cancel_button = CancelButton(pos + v(10, 10), callback)
+    end,
+
+    update = function(self)
+        self.cancel_button.clickable = (self.law ~= nil)
+        building_button_tray:set_hidden(self.law ~= nil)
+    end,
+
+    cancel_building = function(self)
+        if self.law == nil then return false end
+        hud:set_message("project canceled", HUD.FAIL)
+        map:remove_pending_building(self.law.building)
+        self.law:destroy()
+        self.law = nil
+        return true
+    end,
+
+    draw = function(self)
+        self:super(MosesOffice).draw(self)
+        self:lgSetColor(0, 0, 0)
+        lg.print("Moses Office: ", self.pos.x + 10, self.pos.y + 10)
+    end
+}
+
+class "CancelButton" (Button) {
+    __init__ = function(self, pos, callback)
+        self.color = {255, 0, 0 }
+        self:super(CancelButton).__init__(self, pos, v(100, 30), callback)
+    end,
+
+    draw = function(self)
+        if self.clickable then
+            self:super(CancelButton).draw(self)
+            lg.setColor({255, 255, 255})
+            lg.printf("Cancel", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        end
+    end
+}
+
 class "MayorOffice" (Room) {
     __init__ = function(self, pos)
         self.strikes = 3
@@ -209,7 +253,8 @@ class "MayorOffice" (Room) {
     next = function(self, law)
         if government.turn_i - self.past_turns >= self.total_turns then
             self.past_turns = government.turn_i
-            self.past_tiles = player.built_cells
+            local n_tiles = player.built_cells + map.n_pending_tiles
+            self.past_tiles = n_tiles
             self.strikes = 3
         end
     end,
@@ -234,7 +279,8 @@ class "MayorOffice" (Room) {
         lg.print("#Strikes Remaining: "..self.strikes, self.pos.x + 10, self.pos.y + 10)
         lg.print("turns till new mayor: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
                  self.pos.x + 10, self.pos.y + 25)
-        lg.print("new tile quota: "..(player.built_cells - self.past_tiles).."/"..(self.needed_tiles),
+        local n_tiles = player.built_cells + map.n_pending_tiles
+        lg.print("new tile quota: "..(n_tiles - self.past_tiles).."/"..(self.needed_tiles),
                  self.pos.x + 10, self.pos.y + 40)
     end
 }

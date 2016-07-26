@@ -27,4 +27,18 @@ function utils.repeat_v(v, n)
     return arr
 end
 
+function utils.concat_arr(arr)
+    return lume.reduce(arr, lume.concat, {})
+end
+
+function utils.set(arr)
+    local out = {}
+    for _, val in ipairs(arr) do
+        if lume.find(out, val) == nil then
+            table.insert(out, val)
+        end
+    end
+    return out
+end
+
 return utils

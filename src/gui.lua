@@ -61,10 +61,9 @@ class "HUD" (Object) {
             lg.setColor(255, 255, 255)
             lg.draw(power.img, controller.mousepos.x - power.shape.x / 2, controller.mousepos.y - power.shape.y / 2)
         elseif player.plan then
-            draw_transparent_rect(controller.mousepos.x, controller.mousepos.y, 20, 20, {50, 50, 50})
-            local percentage = (player.plan.n_supporters / (player.plan.n_haters + player.plan.n_supporters) * 100)
             lg.setColor(255, 255, 255)
-            lg.print(lume.round(percentage).."%", controller.mousepos.x, controller.mousepos.y)
+            local percentage = (player.plan.n_supporters / (player.plan.n_haters + player.plan.n_supporters) * 100)
+            lg.print(lume.round(percentage).."%", controller.mousepos.x + 20, controller.mousepos.y)
         else
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
@@ -72,9 +71,17 @@ class "HUD" (Object) {
 }
 
 class "Button" (Object) {
-    __init__ = function(self, pos, shape)
+    __init__ = function(self, pos, shape, callback)
         self.clickable = true
+        self.callback = callback
         self:super(Button).__init__(self, pos, shape)
+    end,
+
+    on_click = function(self, mousepos)
+        if self.callback ~= nil then
+            self.callback(mousepos)
+        end
+        return false
     end,
 
     check_click = function(self, mousepos)
@@ -147,9 +154,10 @@ class "ButtonTray" (Object) {
 
 class "BuildingButtonTray" (ButtonTray) {
     __init__ = function(self)
+        self.hidden = false
         self.active_button = nil
-        local shape = v((#lume.keys(Map.TYPES) + 1) * (BuildingButton.BUTTON_SIZE + 5) + 20, BuildingButton.BUTTON_SIZE)
-        self:super(BuildingButtonTray).__init__(self, v(750, GAME_HEIGHT - 100), shape)
+        local shape = v((#lume.keys(Map.TYPES)) * (BuildingButton.BUTTON_SIZE + 5) + 20, BuildingButton.BUTTON_SIZE)
+        self:super(BuildingButtonTray).__init__(self, v(government.pos.x - shape.x, 0), shape)
 
         -- add building buttons
         self.buttons = {}
@@ -158,10 +166,12 @@ class "BuildingButtonTray" (ButtonTray) {
             local button = BuildingButton(self.pos + offset, type, self)
             table.insert(self.buttons, button)
         end
+    end,
 
-        -- add refresh button
-        local offset = v(#lume.keys(Map.TYPES) * (BuildingButton.BUTTON_SIZE + 5) + 10, 0)
-        self.refresh_button = RefreshButton(self.pos + offset, self)
+    set_hidden = function(self, val)
+        self.hidden = val
+        lume.each(self.buttons, function(b) b.hidden = val end)
+        lume.each(self.buttons, function(b) b.clickable = not val end)
     end,
 
     refresh_all = function(self)
@@ -169,6 +179,11 @@ class "BuildingButtonTray" (ButtonTray) {
             if b.state ~= 'refreshing' then b:refresh() end
         end
     end,
+
+    draw = function(self, offset)
+        if self.hidden then return end
+        self:super(self.__class__).draw(self, offset)
+    end
 }
 
 
@@ -183,6 +198,7 @@ class "BuildingButton" (Button) {
         local type_color = Map.TYPES[type]
         self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3}
         self.refresh_time = 0.0
+        self.hidden = false
         self:super(BuildingButton).__init__(self, pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
 
         self:next()
@@ -196,7 +212,6 @@ class "BuildingButton" (Button) {
     end,
 
     finish = function(self)
-        self:refresh()
     end,
 
     refresh = function(self)
@@ -215,6 +230,7 @@ class "BuildingButton" (Button) {
     end,
 
     draw = function(self)
+        if self.hidden then return end
         -- TODO: offset doesn't work yet
         self:super(BuildingButton).draw(self)
         local icon = self.building.img
