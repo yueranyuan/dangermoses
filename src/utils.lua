@@ -1,11 +1,5 @@
---
--- Created by IntelliJ IDEA.
--- User: yueran
--- Date: 6/11/16
--- Time: 1:23 AM
--- To change this template use File | Settings | File Templates.
---
-
+-- these functions aren't used in the current version of the game.
+-- but I figure these might be useful and at any rate a utils file will probably be needed sometime
 local utils = {}
 
 function utils.box_contains(box, x, y)
@@ -14,6 +8,23 @@ end
 
 function utils.sum(arr)
     return lume.reduce(arr, function(a, b) return a + b end, 0)
+end
+
+function utils.range(a, b, c)
+    if c == nil then c = 1 end
+    if b == nil then
+        b = a
+        a = 0
+    end
+    local arr = {}
+    for i=a, b, c do table.insert(arr, i) end
+    return arr
+end
+
+function utils.repeat_v(v, n)
+    local arr = {}
+    for _=1, n do table.insert(arr, v) end
+    return arr
 end
 
 return utils
