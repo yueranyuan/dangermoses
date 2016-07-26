@@ -174,6 +174,7 @@ class "Room" (Object) {
 class "MayorOffice" (Room) {
     __init__ = function(self, pos)
         self.strikes = 3
+        self.tiles = 0
         self:super(MayorOffice).__init__(self, pos)
     end,
 

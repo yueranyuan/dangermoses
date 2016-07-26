@@ -157,9 +157,11 @@ class "Map" (Object){
             self.grid[coord.y][coord.x] = building.type
             -- remove person
             local person = self.people_grid[coord.y][coord.x]
-            lume.remove(self.people, person)
-            person:destroy()
-            self.people_grid[coord.y][coord.x] = 'empty'
+            if person ~= 'none' then
+                lume.remove(self.people, person)
+                person:destroy()
+                self.people_grid[coord.y][coord.x] = 'none'
+            end
         end
         self:remove_pending_building(building)
 
