@@ -12,7 +12,7 @@ class "Building" (Object) {
         self.coord = v(0, 0)  -- why not named pos? because pos is for world coordinates
         self:super(Building).__init__(self)
     end,
-
+--
     change_type = function(self, new_type)
         self.type = new_type
         self.color = Map.TYPES[self.type]
@@ -97,27 +97,29 @@ class "Map" (Object){
             self.people_grid[y+1] = row
         end
 
+        self.floor_powerups = {}
         -- fill empty grid
         local f = csv.open(arg[1].."/map.csv")
-        local person_dict = {r="road", p="park", t="house", h="hater"}
+        local person_dict = {r="road", p="park", t="house", h="hater" }
+        local powerup_dict = {}
+        for _, powerup_class in ipairs(PowerupTray.POWERS) do
+            powerup_dict[powerup_class.name] = powerup_class
+        end
         local y = 0
         for fields in f:lines() do
             y = y + 1
             for x, p in ipairs(fields) do
-                if p ~= "" then
-                    local person = Person(v(x, y), person_dict[p], math.floor(lume.random(1, 5)))
+                if powerup_dict[p] then
+                    local fpu = FloorPowerup(v(x, y), powerup_dict[p])
+                    table.insert(self.floor_powerups, fpu)
+                elseif person_dict[p:sub(1, 1)] then
+                    local density = 1
+                    if #p > 1 then
+                        density = tonumber(p:sub(2, #p))
+                    end
+                    local person = Person(v(x, y), person_dict[p:sub(1, 1)], density)
                     self.people_grid[y][x] = person
                     table.insert(self.people, person)
-                end
-            end
-        end
-
-        self.floor_powerups = {}
-        for y = 1, h do
-            for x = 1, w do
-                if self.district_grid[y][x] ~= "water" and math.random() < 0.03 then
-                    local person = FloorPowerup(v(x, y), lume.randomchoice(PowerupTray.POWERS))
-                    table.insert(self.floor_powerups, person)
                 end
             end
         end
@@ -247,7 +249,6 @@ class "Map" (Object){
 
 class "Person" (Object) {
     PERSON_IMG = lg.newImage("grafix/person.png"),
-    HATER_COLOR = {164, 40, 40},
 
     __init__ = function(self, local_pos, type, density)
         self.local_pos = local_pos
