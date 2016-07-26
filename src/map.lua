@@ -26,8 +26,8 @@ lume.each(Building.PATTERNS, function(v)
 end)
 
 class "Map" (Object){
-    TYPES = {park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
-    PERSON_TYPES = {hater={164, 40, 40}, park={144, 215, 68}, house={207, 119, 41}, road={75, 68, 215}},
+    TYPES = {park={150, 230, 100}, house={250, 180, 130}, road={136, 136, 250}},
+    PERSON_TYPES = {hater={100, 100, 100}, park={150, 230, 100}, house={250, 180, 130}, road={136, 136, 250}},
     DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
 
     FLICKER_FREQUENCY = 5,
@@ -328,10 +328,11 @@ class "FloorPowerup" (Object) {
         self.power_class = power_class
         self.img = power_class.img
         self:super(FloorPowerup).__init__(self)
-        self.pos = (coord - 0.5) * MAP_SCALE
+        self.center_pos = (coord - 0.5) * MAP_SCALE
+        self.pos = self.center_pos:clone()
         self.bottom_corner = v(self.pos.x, self.pos.y)
         self.pos.x = self.pos.x - self.shape.x / 2
-        self.pos.y = self.pos.y - self.shape.y - 16 + 2
+        self.pos.y = self.pos.y - self.shape.y
         self.hovered = false
     end,
 
@@ -344,7 +345,9 @@ class "FloorPowerup" (Object) {
     end,
 
     draw = function(self)
+        self:lgSetColor(0, 100, 100)
+        lg.circle("fill", self.center_pos.x, self.center_pos.y - self.shape.y / 2, self.shape.x * 0.9, 6)
         self:super(FloorPowerup).draw(self)
-        lg.draw(self.pointer_img, self.bottom_corner.x - 8, self.bottom_corner.y - 16)
+        --lg.draw(self.pointer_img, self.bottom_corner.x - 8, self.bottom_corner.y - 16)
     end
 }
