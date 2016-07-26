@@ -270,13 +270,13 @@ class "PowerupTray" (ButtonTray) {
 }
 
 class "PowerupButton" (Button) {
-    BUTTON_SIZE = 64,
+    BUTTON_SIZE = 32,
 
     __init__ = function(self, pos, power, tray, n)
         self.tray = tray
         self.power = power
         self.img = self.power.img
-        self.color = {0, 255, 255 }
+        self.color = {255, 255, 255 }
         self.n = n
         self:super(PowerupButton).__init__(self, pos)
     end,
