@@ -254,7 +254,6 @@ class "PowerupTray" (ButtonTray) {
     add_powerup = function(self, powerup)
         for _, button in ipairs(self.buttons) do
             if button.powerup == powerup then
-                local button = self.buttons[lume.find(self.POWERS, powerup)]
                 button.n = button.n + 1
                 return
             end

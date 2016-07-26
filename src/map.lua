@@ -148,16 +148,21 @@ class "Map" (Object){
     end,
 
     place_building = function(self, builder, building)
+        -- change cells and remove people
         local cells = Plan.static.get_cell_collisions(building)
         for _, coord in ipairs(cells) do
             if self.grid[coord.y][coord.x] ~= building.type then
                 builder.built_cells = builder.built_cells + 1
             end
             self.grid[coord.y][coord.x] = building.type
+            -- remove person
+            local person = self.people_grid[coord.y][coord.x]
+            lume.remove(self.people, person)
+            person:destroy()
+            self.people_grid[coord.y][coord.x] = 'empty'
         end
         self:remove_pending_building(building)
 
-        log.trace(#self.floor_powerups)
         local active_floor_powerups = Plan.static.get_active_floor_powerups(cells)
         for _, fpu in ipairs(active_floor_powerups) do
             powerup_tray:add_powerup(fpu.power_class)
@@ -165,7 +170,6 @@ class "Map" (Object){
             fpu:destroy()
             table.remove(self.floor_powerups, fpu_idx)
         end
-        log.trace(#self.floor_powerups)
     end,
 
     remove_pending_building = function(self, building)
