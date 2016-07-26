@@ -151,7 +151,7 @@ class "Map" (Object){
         -- change cells and remove people
         local cells = Plan.static.get_cell_collisions(building)
         for _, coord in ipairs(cells) do
-            if self.grid[coord.y][coord.x] ~= building.type then
+            if self.grid[coord.y][coord.x] == 'empty' then
                 builder.built_cells = builder.built_cells + 1
             end
             self.grid[coord.y][coord.x] = building.type

@@ -14,6 +14,7 @@ class "Government" (Object) {
 
         self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees) * Committee.HEIGHT))
         self.rooms = lume.concat(self.committees, {self.mayor_office})
+        self.turn_i = 0
     end,
 
     get_laws = function(self)
@@ -31,6 +32,16 @@ class "Government" (Object) {
     end,
 
     next = function(self)
+        self:_next()
+        while #self:get_laws() > 0 and #lume.filter(self.rooms, function(r) return r:is_active() end) == 0 do
+            self:_next()
+        end
+
+        self.turn_i = self.turn_i + 1
+        building_button_tray:refresh_all()
+    end,
+
+    _next = function(self)
         for room_i, room in lume.ripairs(self.rooms) do
             -- decide current law
             local law = room.law
@@ -55,10 +66,8 @@ class "Government" (Object) {
             if law and room_i == #self.rooms then
                 law:destroy()
             end
-        end
 
-        while #self:get_laws() > 0 and #lume.filter(self.rooms, function(r) return r:is_active() end) == 0 do
-            self:next()
+            room:next()
         end
     end,
 
@@ -169,12 +178,19 @@ class "Room" (Object) {
 
     finish = function(self, law)
     end,
+
+    next = function(self)
+    end,
 }
 
 class "MayorOffice" (Room) {
     __init__ = function(self, pos)
         self.strikes = 3
         self.tiles = 0
+        self.needed_tiles = 50
+        self.past_tiles = 0
+        self.past_turns = 0
+        self.total_turns = 12
         self:super(MayorOffice).__init__(self, pos)
     end,
 
@@ -187,6 +203,14 @@ class "MayorOffice" (Room) {
             self:approve(law)
         else
             self:disapprove(law)
+        end
+    end,
+
+    next = function(self, law)
+        if government.turn_i - self.past_turns >= self.total_turns then
+            self.past_turns = government.turn_i
+            self.past_tiles = player.built_cells
+            self.strikes = 3
         end
     end,
 
@@ -207,7 +231,11 @@ class "MayorOffice" (Room) {
     draw = function(self)
         self:super(MayorOffice).draw(self)
         self:lgSetColor(0, 0, 0)
-        lg.print("#Strikes Remaining: "..self.strikes, self.pos.x + 10, self.pos.y + self.HEIGHT / 2)
+        lg.print("#Strikes Remaining: "..self.strikes, self.pos.x + 10, self.pos.y + 10)
+        lg.print("turns till new mayor: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
+                 self.pos.x + 10, self.pos.y + 25)
+        lg.print("new tile quota: "..(player.built_cells - self.past_tiles).."/"..(self.needed_tiles),
+                 self.pos.x + 10, self.pos.y + 40)
     end
 }
 

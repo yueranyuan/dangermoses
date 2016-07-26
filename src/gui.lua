@@ -168,7 +168,7 @@ class "BuildingButtonTray" (ButtonTray) {
 
 
 class "BuildingButton" (Button) {
-    REFRESH_TIME = 10.0,
+    REFRESH_TIME = 0.3,
     BUTTON_SIZE = 60,
     ICON_SCALE = 3,
 
@@ -253,7 +253,7 @@ class "PowerupTray" (ButtonTray) {
 
     add_powerup = function(self, powerup)
         for _, button in ipairs(self.buttons) do
-            if button.powerup == powerup then
+            if button.power == powerup then
                 button.n = button.n + 1
                 return
             end
