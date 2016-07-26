@@ -1,9 +1,16 @@
 class "Building" (Object) {
     --PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
     --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
-    PATTERNS = {park={"rand1", "rand4", "rand5", "eagle"},
-                road={"rand2", "rand3"},
-                house={"rand4", "rand5"}},
+    PATTERNS = {park={"park_L1", "park_L2", "park_L3",
+                      "park_M1", "park_M2", "park_M3", "park_M4",
+                      "park_S1", "park_S2", "park_S3", "park_S4"},
+                road={"road_L1", "road_L2", "road_L3", "road_L4", "road_L5",
+                      "road_L6", "road_L7", "road_L8", "road_L9",
+                      "road_M1", "road_M2", "road_M3", "road_M4", "road_M5",
+                      "road_S1", "road_S2", "road_S3", "road_S4"},
+                house={"tnmt_L1", "tnmt_L2", "tnmt_L3", "tnmt_L4",
+                       "tnmt_M1", "tnmt_M2", "tnmt_M3",
+                       "tnmt_S1", "tnmt_S2"}},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)
