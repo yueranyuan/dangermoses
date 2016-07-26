@@ -259,7 +259,7 @@ class "PowerupTray" (ButtonTray) {
                 return
             end
         end
-        local offset = v((#self.buttons - 1) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
+        local offset = v((#self.buttons) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
         local button = PowerupButton(self.pos + offset, powerup, self, 1)
         table.insert(self.buttons, button)
     end
