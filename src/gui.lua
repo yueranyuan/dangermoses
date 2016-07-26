@@ -207,7 +207,7 @@ class "BuildingButton" (Button) {
     next = function(self)
         self.clickable = true
         self.state = 'showing'
-        self.pattern = lume.randomchoice(Building.PATTERNS)
+        self.pattern = lume.randomchoice(Building.PATTERNS[self.type])
         self.building = Building(self.pattern, self.type)
     end,
 

@@ -1,11 +1,13 @@
 class "Building" (Object) {
     --PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
     --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
-    PATTERNS = {"rand1", "rand2", "rand3", "rand4", "rand5", "eagle"},
+    PATTERNS = {park={"rand1", "rand4", "rand5", "eagle"},
+                road={"rand2", "rand3"},
+                house={"rand4", "rand5"}},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)
-        assert(lume.find(Building.PATTERNS, pattern) ~= nil)
+        assert(lume.find(Building.PATTERNS[type], pattern) ~= nil)
         self.img = Building.all_imgs[pattern]
         self.type = type
         self.color = Map.TYPES[self.type]
@@ -21,13 +23,13 @@ class "Building" (Object) {
     draw = function() end,
 }
 
-lume.each(Building.PATTERNS, function(v)
+lume.each(lume.set(utils.concat_arr(Building.PATTERNS)), function(v)
     Building.all_imgs[v] = love.graphics.newImage("grafix/"..v..".png")
 end)
 
 class "Map" (Object){
-    TYPES = {park={150, 230, 100}, house={250, 180, 130}, road={136, 136, 250}},
-    PERSON_TYPES = {hater={100, 100, 100}, park={150, 230, 100}, house={250, 180, 130}, road={136, 136, 250}},
+    TYPES = {park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130}},
+    PERSON_TYPES = {hater={100, 100, 100}, park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130}},
     DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
 
     FLICKER_FREQUENCY = 5,
