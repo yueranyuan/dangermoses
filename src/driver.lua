@@ -3,6 +3,7 @@ love.graphics.setDefaultFilter("nearest", "nearest", 1)
 --love.window.setFullscreen(true)
 lg = love.graphics
 vector = require "extern/vector"
+Timer = require "extern/timer"
 vec = vector
 v = vec
 lume = require "extern/lume"
@@ -18,6 +19,8 @@ require "src/legal"
 require "src/map"
 require "src/player"
 require "src/plan"
+
+mouseenabled = true
 
 function love.load()
     -- all non-imported non-const globals should be made here
@@ -39,7 +42,7 @@ function love.load()
     map = Map(MAP_WIDTH, MAP_HEIGHT, MAP_SCALE)
 
     -- make committee side of screen
-    government = Government(GAME_WIDTH - 200)
+    government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()
@@ -58,6 +61,8 @@ function love.keypressed(key)
 end
 
 function love.mousepressed(x, y)
+    if not mouseenabled then return end
+
     local mousepos = v(x, y)
     controller:move_mouse(mousepos)
 
@@ -83,10 +88,16 @@ function love.mousepressed(x, y)
 
     if not clicked then
         controller:click(mousepos)
+        log.trace('unclicked')
+        if powerup_tray.buy_mode then
+            powerup_tray:buy_mode_off()
+        end
     end
+
 end
 
 function love.update(dt)
+    Timer.update(dt)
     player:update(dt)
 
     for obj_i, obj in ipairs(Object.objects) do
@@ -119,7 +130,9 @@ function love.draw()
     table.sort(z_ordering)
     for _, z in ipairs(z_ordering) do
         for _, obj in ipairs(draw_orders[z]) do
-            obj:draw()
+            if obj.shown then
+                obj:draw()
+            end
         end
     end
 end

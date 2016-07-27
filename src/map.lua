@@ -161,12 +161,15 @@ class "Map" (Object){
     try_building = function(self, builder, building)
         local plan = Plan(builder, building)
         table.insert(self.pending_plans, Plan(builder, building))
+        -- TEMP
+        local fpu  = self.floor_powerups[1]
         self:update_n_pending_tiles()
     end,
 
     place_building = function(self, builder, building)
         -- change cells and remove people
         local cells = Plan.static.get_cell_collisions(building)
+        local new_supporters = {}
         for _, coord in ipairs(cells) do
             if self.grid[coord.y][coord.x] == 'empty' then
                 builder.built_cells = builder.built_cells + 1
@@ -175,16 +178,19 @@ class "Map" (Object){
             -- remove person
             local person = self.people_grid[coord.y][coord.x]
             if person ~= 'none' then
+                if person:check_state(building.type) == "happy" then
+                    table.insert(new_supporters, person)
+                end
                 lume.remove(self.people, person)
                 person:destroy()
                 self.people_grid[coord.y][coord.x] = 'none'
             end
         end
-        self:remove_pending_building(building)
+        government.moses_office:add_supporters(new_supporters)
 
         local active_floor_powerups = Plan.static.get_active_floor_powerups(cells)
         for _, fpu in ipairs(active_floor_powerups) do
-            powerup_tray:add_powerup(fpu.power_class)
+            powerup_tray:add_powerup_anim(fpu.power_class, fpu.pos)
             local fpu_idx = lume.find(self.floor_powerups, fpu)
             fpu:destroy()
             table.remove(self.floor_powerups, fpu_idx)

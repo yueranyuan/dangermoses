@@ -61,6 +61,7 @@ class "Powerup" (Object) {
 
 class "StrongArm" (Powerup) {
     name = "strongarm",
+    cost = 3,
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 0)
@@ -73,6 +74,7 @@ class "StrongArm" (Powerup) {
 
 class "Shutdown" (Powerup) {
     name = "shutdown",
+    cost = 7,
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
@@ -91,18 +93,20 @@ class "Shutdown" (Powerup) {
 
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
+    cost = 5,
     img = lg.newImage("grafix/goodpublicity.png"),
     __init__ = function(self)
         self:super(GoodPublicity).__init__(self, government:get_laws(), 0)
     end,
 
     _use = function(self, target)
-        target.n_haters = math.max(0, target.n_haters - 3)
+        target:remove_haters(3)
     end,
 }
 
 class "Swap" (Powerup) {
     name = "swap",
+    cost = 2,
     img = lg.newImage("grafix/swap.png"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
@@ -140,6 +144,7 @@ class "Swap" (Powerup) {
 
 class "Mislabel" (Powerup) {
     name = "mislabel",
+    cost = 3,
     img = lg.newImage("grafix/mislabel.png"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
@@ -168,6 +173,7 @@ class "Mislabel" (Powerup) {
 
 class "Appeal" (Powerup) {
     name = "appeal",
+    cost = 2,
     img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
@@ -190,6 +196,7 @@ class "Appeal" (Powerup) {
 
 class "Lackey" (Powerup) {
     name = "lackey",
+    cost = 3,
     img = lg.newImage("grafix/lackey.png"),
     __init__ = function(self)
         self:super(Lackey).__init__(self, government.committees, 0)
