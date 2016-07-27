@@ -43,7 +43,7 @@ function love.load()
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray()
+    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=1, [GoodPublicity]=2})
     hud = HUD()
 end
 

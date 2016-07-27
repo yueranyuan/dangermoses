@@ -258,16 +258,16 @@ class "BuildingButton" (Button) {
 class "PowerupTray" (ButtonTray) {
     POWERS = {StrongArm, Shutdown, GoodPublicity, Swap, Mislabel, Appeal, Lackey},
 
-    __init__ = function(self)
+    __init__ = function(self, starting_powerups)
         self.active_button = nil
         local shape = v(#self.POWERS* (PowerupButton.BUTTON_SIZE + 30) + 20, PowerupButton.BUTTON_SIZE + 20)
         self:super(PowerupTray).__init__(self, v(0, GAME_HEIGHT - shape.y), shape)
 
         -- add powerup buttons
         self.buttons = {}
-        for _, powerup in ipairs({StrongArm, Shutdown, Swap}) do
+        for powerup, n in pairs(starting_powerups) do
             local offset = v((#self.buttons) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
-            local button = PowerupButton(self.pos + offset, powerup, self, 1)
+            local button = PowerupButton(self.pos + offset, powerup, self, n)
             table.insert(self.buttons, button)
         end
     end,

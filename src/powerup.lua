@@ -63,16 +63,12 @@ class "StrongArm" (Powerup) {
     name = "strongarm",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
-        self:super(StrongArm).__init__(self, government.committees, 1)
+        self:super(StrongArm).__init__(self, government.committees, 0)
     end,
 
     _use = function(self, target)
-        target.extra_votes = target.extra_votes + 1
+        target:add_supporter()
     end,
-
-    _unuse = function(self, target)
-        target.extra_votes = target.extra_votes - 1
-    end
 }
 
 class "Shutdown" (Powerup) {
@@ -101,7 +97,7 @@ class "GoodPublicity" (Powerup) {
     end,
 
     _use = function(self, target)
-        target.n_haters = math.max(0, target.n_haters - 5)
+        target.n_haters = math.max(0, target.n_haters - 3)
     end,
 }
 
@@ -126,14 +122,8 @@ class "Swap" (Powerup) {
         target[2]:move_with_children(pos_temp)
         -- swap laws
         local law_temp = target[1].law
-        target[1].law = target[2].law
-        if target[1].law ~= nil then
-            target[1].law:set_room(target[1])
-        end
-        target[2].law = law_temp
-        if target[2].law ~= nil then
-            target[2].law:set_room(target[2])
-        end
+        target[1]:set_law(target[2].law)
+        target[2]:set_law(law_temp)
     end,
 
     provide_target = function(self, target)
@@ -193,9 +183,8 @@ class "Appeal" (Powerup) {
 
     _use = function(self, target)
         target.n_failures = 0
-        target.current_room.law = nil
-        target:set_room(government.rooms[1])
-        government.rooms[1].law = target
+        target.current_room:set_law(nil)
+        government.rooms[1]:set_law(target)
     end,
 }
 
@@ -207,6 +196,6 @@ class "Lackey" (Powerup) {
     end,
 
     _use = function(self, target)
-        target:update_seat("neutral", self.user)
+        target:add_supporter()
     end
 }

@@ -27,8 +27,7 @@ class "Government" (Object) {
             return false
         end
 
-        self.rooms[1].law = Legislation(plan)
-        self.rooms[1].law:set_room(self.rooms[1])
+        self.rooms[1]:set_law(Legislation(plan))
         return true
     end,
 
@@ -55,12 +54,9 @@ class "Government" (Object) {
 
             -- pull previous law up to current room
             if room_i > 1 then
-                room.law = self.rooms[room_i - 1].law
-                if room.law then
-                    room.law:set_room(room)
-                end
+                room:set_law(self.rooms[room_i - 1].law)
             else
-                room.law = nil
+                room:set_law(nil)
             end
 
             -- destroy current law if it is the last
@@ -105,8 +101,6 @@ class "Legislation" (Object) {
     draw = function(self)
         self:super(Legislation).draw(self)
         draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
-        self:lgSetColor(0, 255, 0)
-        lg.print(self.n_supporters, self.pos.x, self.pos.y)
         self:lgSetColor(255, 0, 0)
         lg.print(self.n_haters, self.pos.x + 20, self.pos.y)
         if self.n_failures > 0 then
@@ -116,6 +110,25 @@ class "Legislation" (Object) {
         local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 5,
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
+    end,
+
+    get_remaining_committees = function(self)
+        local my_idx = lume.find(government.rooms, self.current_room)
+        local n_remaining = #lume.filter(self.committees, function(com)
+            return lume.find(government.rooms, com) > my_idx
+        end)
+        return n_remaining
+    end,
+
+    get_attackers = function(self, committee)
+        if not committee:is_active() then return 0 end
+        if self.n_haters <= 0 then return 0 end
+        if committee.n_yeas <= 0 then return 0 end
+
+        local n_remaining = self:get_remaining_committees()
+        local n_attackers = math.floor(self.n_haters / (1 + n_remaining))
+        self.n_haters = self.n_haters - n_attackers
+        return n_attackers
     end
 }
 
@@ -164,6 +177,13 @@ class "Room" (Object) {
         self.closed = false
     end,
 
+    set_law = function(self, law)
+        self.law = law
+        if law ~= nil then
+            law:set_room(self)
+        end
+    end,
+
     is_active = function(self)
         return (not self.closed and self.law ~= nil and (self.__class__ == MayorOffice or
                 lume.find(self.law.committees, self) ~= nil))
@@ -201,7 +221,7 @@ class "MosesOffice" (Room) {
         hud:set_message("project canceled", HUD.FAIL)
         map:remove_pending_building(self.law.building)
         self.law:destroy()
-        self.law = nil
+        self:set_law(nil)
         return true
     end,
 
@@ -286,6 +306,89 @@ class "MayorOffice" (Room) {
 }
 
 class "Committee" (Room) {
+    MEMBER_IMG = lg.newImage('grafix/person.png'),
+
+    __init__ = function(self, pos, n_members)
+        self.n_members = n_members
+        self:super(Committee).__init__(self, pos)
+
+        self.n_yeas = math.ceil(self.n_members / 2)
+        self.member_health = HATER_PER_MEMBER
+    end,
+
+    set_law = function(self, law)
+        self:super(Committee).set_law(self, law)
+        if law ~= nil then
+            local n_attackers = law:get_attackers(self)
+            for i = 1, n_attackers do
+                self:attack()
+            end
+        end
+    end,
+
+    attack = function(self)
+        self.member_health = self.member_health - 1
+        if self.member_health <= 0 then
+            self.n_yeas = math.max(self.n_yeas - 1, 0)
+            self.member_health = HATER_PER_MEMBER
+        end
+    end,
+
+    draw_member_pile = function(self, pos, n, color)
+        if n == 0 then return end
+        -- arrange the spots to stand
+        local spots = {}  -- a heap to be drawn in reverse order
+        local width = math.ceil(math.sqrt(n))
+        local _width = width
+        for i = 0,n - 1 do
+            if i % width == 0 and n - i <= width then -- final line
+                _width = ((n - 1) % width) + 1
+            end
+            local spot = v(i % width - _width / 2, -math.floor(i / width))
+            table.insert(spots, spot)
+        end
+        local mean = utils.sum(spots) / n
+
+        -- draw
+        for _, spot in lume.ripairs(spots) do
+            self:lgSetColor(color)
+            local _pos = pos + (spot - mean) * 10
+            lg.draw(self.MEMBER_IMG, _pos.x, _pos.y)
+        end
+    end,
+
+    check_pass = function(self)
+        return self.n_yeas > self.n_members / 2
+    end,
+
+    add_supporter = function(self)
+        self.n_yeas = math.min(self.n_members, self.n_yeas + 1)
+    end,
+
+    decide = function(self, law)
+        return self:check_pass()
+    end,
+
+    draw = function(self)
+        self:super(Committee).draw(self)
+        self:draw_member_pile(self.pos + v(10, 20), self.n_yeas, {0, 255, 0})
+        self:draw_member_pile(self.pos + v(self.shape.x - 50, 20), self.n_members - self.n_yeas, {255, 0, 0})
+        self:lgSetColor({0, 0, 0})
+        lg.printf(lume.round(self.n_yeas / self.n_members * 100).."%", self.pos.x, self.pos.y + 20, self.shape.x, "center")
+    end
+}
+
+class "Member" (Object) {
+    IMG = lg.newImage('grafix/person.png'),
+
+    __init__ = function(self, party, yea)
+        self.img = Member.IMG
+        self.party = party
+        self:super(Member).__init__(self)
+    end,
+}
+
+class "OldCommittee" (Room) {
     __init__ = function(self, pos, n_seats)
         self.n_seats = n_seats
         self:super(Committee).__init__(self, pos)
@@ -429,16 +532,6 @@ class "ProjectCommittee" (Committee) {
         self.type = type
         self.color = Map.TYPES[type]
         self:super(ProjectCommittee).__init__(self, pos, 9)
-    end,
-
-    can_replace = function(self, incoming)
-        if self.seat_holders['neutral'] > 0 then
-            return {'neutral'}
-        end
-        local holders = lume.keys(self.seat_holders)
-        holders = lume.filter(holders, function(h) return self.seat_holders[h] > 0 end)
-        lume.remove(holders, incoming)
-        return holders
     end,
 }
 
