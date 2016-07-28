@@ -12,6 +12,7 @@ class = require "extern/slither"
 csv = require "extern/csv"
 utils = require "src/utils"
 require "src/consts"
+require "src/sound"
 require "src/gameobject"
 require "src/powerup"
 require "src/gui"
@@ -20,20 +21,22 @@ require "src/map"
 require "src/player"
 require "src/plan"
 
-music = love.audio.newSource("sfx/bg_music_2.ogg")
+SOUND_ON = false
+
+music = Sound("sfx/bg_music_2.ogg")
 music:setLooping(true)
 music:setVolume(1)
 music:play()
 
-ambience = love.audio.newSource("sfx/ambience_road2.ogg")
+ambience = Sound("sfx/ambience_road2.ogg")
 ambience:setLooping(true)
 ambience:setVolume(0.5)
 ambience:play()
 
-sfx_click = love.audio.newSource("sfx/typewriter_hit.wav", "static")
-sfx_jackhammer = love.audio.newSource("sfx/build_jackhammer.wav", "static")
-sfx_mayor_pass = love.audio.newSource("sfx/mayor_approve_stamp.wav", "static")
-sfx_mayor_reject = love.audio.newSource("sfx/mayor_fail_paper_rip.wav", "static")
+sfx_click = Sound("sfx/typewriter_hit.wav", "static")
+sfx_jackhammer = Sound("sfx/build_jackhammer.wav", "static")
+sfx_mayor_pass = Sound("sfx/mayor_approve_stamp.wav", "static")
+sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
 
 mouseenabled = true
 
