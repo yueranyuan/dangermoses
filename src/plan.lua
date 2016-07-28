@@ -112,8 +112,11 @@ class "Plan" {
     end,
 
     move_world_coord = function(self, pos)
-        local coord_center = pos / MAP_SCALE - self.building:get_grid_shape() / 2
-        self:move(v(lume.round(coord_center.x), lume.round(coord_center.y)))
+        local coord = pos / MAP_SCALE
+        coord = v(math.max(0, math.min(#map.grid[1], coord.x)),
+                  math.max(0, math.min(#map.grid, coord.y)))
+        local coord_corner = coord - self.building:get_grid_shape() / 2
+        self:move(v(lume.round(coord_corner.x), lume.round(coord_corner.y)))
     end,
 
     refresh = function(self)

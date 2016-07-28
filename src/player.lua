@@ -28,18 +28,19 @@ class "Controller" {
     end,
 
     move_mouse = function(self, pos)
-        self.mousepos = pos
+        self.mousepos = v(math.max(0, math.min(GAME_WIDTH, pos.x)),
+                          math.max(0, math.min(GAME_HEIGHT, pos.y)))
         if player.plan then
-            player.plan:move_world_coord(pos)
+            player.plan:move_world_coord(self.mousepos)
         end
     end,
 
-    click = function()
+    click = function(self)
         if player.power then
             player.power = nil
             powerup_tray:resolve_active_button(false)
             hud:set_message("powerup use canceled", HUD.NEUTRAL)
-        elseif player.plan then
+        elseif player.plan and self.mousepos.x < #map.grid[1] * MAP_SCALE then
             if government:add_law(player.plan) then
                 map:try_building(player, player.plan.building)
                 building_button_tray:resolve_active_button(true)
@@ -52,7 +53,7 @@ class "Controller" {
         end
     end,
 
-    back = function()
+    back = function(self)
         if player.plan == nil then
             return
         end

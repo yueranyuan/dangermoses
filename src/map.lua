@@ -14,8 +14,8 @@ class "Building" (Object) {
     all_imgs = {},
 
     __init__ = function(self, pattern, type)
-        assert(lume.find(Building.PATTERNS[type], pattern) ~= nil)
         self.img = Building.all_imgs[pattern]
+        assert(self.img ~= nil)
         self.type = type
         self.color = Map.TYPES[self.type]
         self.coord = v(0, 0)  -- why not named pos? because pos is for world coordinates
@@ -35,9 +35,16 @@ lume.each(lume.set(utils.concat_arr(Building.PATTERNS)), function(v)
 end)
 
 class "Map" (Object){
-    TYPES = {park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130}},
-    PERSON_TYPES = {hater={100, 100, 100}, park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130}},
-    DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
+    TYPES = {moses={0, 255, 0}, park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130},
+            washington={255, 252, 157},
+            adams={251, 133, 219},
+            jefferson={123, 255, 253},
+            madison={122, 135, 111}},
+    TYPE_ORDER = {'park', 'house', 'road', 'washington', 'adams', 'jefferson', 'madison'},
+    --PERSON_TYPES = {hater={80, 80, 80}, moses={230, 230, 230}},
+    PERSON_TYPES = {hater={255, 0, 0}, moses={0, 255, 0}},
+    --DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
+    DISTRICTS = {land={0, 0, 0}},
 
     FLICKER_FREQUENCY = 5,
     FLICKER_MOD = 3,
@@ -47,7 +54,7 @@ class "Map" (Object){
 
         self.bg = love.graphics.newImage("grafix/map_bg.png")
         -- load grid from map image
-        local pixels = love.graphics.newImage("grafix/map_blank.png"):getData()
+        local pixels = love.graphics.newImage("grafix/map_type.png"):getData()
         if h == nil then
             h = pixels:getHeight()
         else
@@ -109,7 +116,7 @@ class "Map" (Object){
         self.floor_powerups = {}
         -- fill empty grid
         local f = csv.open(arg[1].."/map.csv")
-        local person_dict = {r="road", p="park", t="house", h="hater" }
+        local person_dict = {r="road", p="park", t="house", h="hater", m="moses"}
         local powerup_dict = {}
         for _, powerup_class in ipairs(PowerupTray.POWERS) do
             powerup_dict[powerup_class.name] = powerup_class
@@ -118,7 +125,12 @@ class "Map" (Object){
         for fields in f:lines() do
             y = y + 1
             for x, p in ipairs(fields) do
-                if powerup_dict[p] then
+                if powerup_dict[p:sub(1, #p-1)] then
+                    local powerup = powerup_dict[p:sub(1, #p-1)]
+                    local n = tonumber(p:sub(#p, #p))
+                    local fpu = FloorPowerup(v(x, y), powerup, n)
+                    table.insert(self.floor_powerups, fpu)
+                elseif powerup_dict[p] then
                     local fpu = FloorPowerup(v(x, y), powerup_dict[p])
                     table.insert(self.floor_powerups, fpu)
                 elseif person_dict[p:sub(1, 1)] then
@@ -145,6 +157,7 @@ class "Map" (Object){
         end
         if color == nil then
             color = Map.TYPES[self.grid[coord.y][coord.x]]
+            color = {color[1], color[2], color[3], 150}
         end
         if color ~= nil then
             self:lgSetColor(color)
@@ -196,10 +209,7 @@ class "Map" (Object){
         -- get floor powerups
         local active_floor_powerups = Plan.static.get_active_floor_powerups(cells)
         for _, fpu in ipairs(active_floor_powerups) do
-            powerup_tray:add_powerup_anim(fpu.power_class, fpu.pos)
-            local fpu_idx = lume.find(self.floor_powerups, fpu)
-            fpu:destroy()
-            table.remove(self.floor_powerups, fpu_idx)
+            fpu:pickup()
         end
     end,
 
@@ -278,7 +288,10 @@ class "Map" (Object){
             -- draw color center
             for _, coord in ipairs(player.plan.cells) do
                 if self.district_grid[coord.y][coord.x] ~= "water" then
-                    self:draw_cell(coord, lume.concat(player.plan.building.color, {200}))
+                    --local color = player.plan.building.color
+                    local color = {255, 255, 255, 50}
+                    self:draw_cell(coord) -- draw original color first
+                    self:draw_cell(coord, color)
                 end
             end
         end
@@ -355,9 +368,14 @@ class "Person" (Object) {
 class "FloorPowerup" (Object) {
     pointer_img = lg.newImage("grafix/powerup_pointer.png"),
 
-    __init__ = function(self, coord, power_class)
+    __init__ = function(self, coord, power_class, n)
+        if n == nil then
+            n = 1
+        end
+
         self.coord = coord
         self.power_class = power_class
+        self.n = n
         self.img = power_class.img
         self:super(FloorPowerup).__init__(self)
         self.center_pos = (coord - 0.5) * MAP_SCALE
@@ -366,20 +384,52 @@ class "FloorPowerup" (Object) {
         self.pos.x = self.pos.x - self.shape.x / 2
         self.pos.y = self.pos.y - self.shape.y
         self.hovered = false
+        self.darker = false
     end,
 
     update = function(self)
-        if player.plan == nil or lume.find(player.plan.floor_powerups, self) then
-            self.color = {255, 255, 255}
-        else
-            self.color = {100, 100, 100, 100}
-        end
+        self.darker = not (player.plan == nil or lume.find(player.plan.floor_powerups, self))
     end,
 
     draw = function(self)
-        self:lgSetColor(0, 100, 100)
+        -- draw hexigon
+        if self.darker then
+            self:lgSetColor(0, 0, 0)
+        else
+            self:lgSetColor(0, 100, 100)
+        end
         lg.circle("fill", self.center_pos.x, self.center_pos.y - self.shape.y / 2, self.shape.x * 0.9, 6)
-        self:super(FloorPowerup).draw(self)
+
+        -- draw logo
+        for t = self.n-1, 0, -1 do
+            if self.darker then
+                self:lgSetColor(150, 150, 150)
+            else
+                self:lgSetColor(255, 255, 255)
+            end
+            if t > 0 then
+                self:lgSetColor(100, 100, 100)
+            end
+            local pos = self.pos:clone() - v(t, t) * 4
+            lg.draw(self.img, pos.x, pos.y)
+        end
+        if self.n > 1 then
+            local num_pos = self.pos + v(self.shape.x - 3, 5)
+            draw_transparent_rect(num_pos.x, num_pos.y, 15, 15, {50, 50, 50})
+            self:lgSetColor(255, 255, 255)
+            lg.print('x'..self.n, num_pos.x, num_pos.y)
+        end
         --lg.draw(self.pointer_img, self.bottom_corner.x - 8, self.bottom_corner.y - 16)
+    end,
+
+    pickup = function(self)
+        for t = 1,self.n do
+            Timer.after(0.3 * (t - 1), function()
+                powerup_tray:add_powerup_anim(self.power_class, self.pos)
+            end)
+        end
+        local fpu_idx = lume.find(map.floor_powerups, fpu)
+        self:destroy()
+        table.remove(map.floor_powerups, fpu_idx)
     end
 }

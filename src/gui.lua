@@ -59,6 +59,9 @@ class "HUD" (Object) {
         elseif player.plan then
             lg.setColor(255, 255, 255)
             local percentage = (player.plan.n_supporters / (player.plan.n_haters + player.plan.n_supporters) * 100)
+            if player.plan.n_haters + player.plan.n_supporters == 0 then
+                percentage = 0
+            end
             lg.print(lume.round(percentage).."%", controller.mousepos.x + 20, controller.mousepos.y)
         else
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
@@ -154,14 +157,14 @@ class "BuildingButtonTray" (ButtonTray) {
     __init__ = function(self)
         self.hidden = false
         self.active_button = nil
-        local shape = v((#lume.keys(Map.TYPES)) * (BuildingButton.BUTTON_SIZE + 5) + 20, BuildingButton.BUTTON_SIZE)
+        local shape = v((#lume.keys(Building.PATTERNS)) * (BuildingButton.BUTTON_SIZE + 5), BuildingButton.BUTTON_SIZE)
         self:super(BuildingButtonTray).__init__(self, v(government.pos.x - shape.x, 0), shape)
 
         -- add building buttons
         self.buttons = {}
-        for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local offset = v((type_i - 1) * (BuildingButton.BUTTON_SIZE + 5) + 10, 0)
-            local button = BuildingButton(self.pos + offset, type, self)
+        for i, shape_family in ipairs(lume.keys(Building.PATTERNS)) do
+            local offset = v((i- 1) * (BuildingButton.BUTTON_SIZE + 5), 0)
+            local button = BuildingButton(self.pos + offset, "moses", shape_family, self)
             table.insert(self.buttons, button)
         end
     end,
@@ -188,11 +191,12 @@ class "BuildingButtonTray" (ButtonTray) {
 class "BuildingButton" (Button) {
     REFRESH_TIME = 0.3,
     BUTTON_SIZE = 60,
-    ICON_SCALE = 3,
+    ICON_SCALE = 6,
 
-    __init__ = function(self, pos, type, tray)
+    __init__ = function(self, pos, type, shape_family, tray)
         self.tray = tray
         self.type = type
+        self.shape_family = shape_family
         local type_color = Map.TYPES[type]
         self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3}
         self.refresh_time = 0.0
@@ -205,7 +209,7 @@ class "BuildingButton" (Button) {
     next = function(self)
         self.clickable = true
         self.state = 'showing'
-        self.pattern = lume.randomchoice(Building.PATTERNS[self.type])
+        self.pattern = lume.randomchoice(Building.PATTERNS[self.shape_family])
         self.building = Building(self.pattern, self.type)
     end,
 

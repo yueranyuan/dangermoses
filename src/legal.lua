@@ -3,14 +3,18 @@ class "Government" (Object) {
         self:super(Government).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
         self.moses_office = MosesOffice(self.pos)
         self.committees = {}
-        for type_i, type in ipairs(lume.keys(Map.TYPES)) do
-            local com = ProjectCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT), type)
-            table.insert(self.committees, com)
+        for type_i, type in ipairs(Map.TYPE_ORDER) do
+            if type ~= "moses" then
+                local com = ProjectCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT), type)
+                table.insert(self.committees, com)
+            end
         end
         for district_i, district in ipairs(lume.keys(Map.DISTRICTS)) do
-            local com = DistrictCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT),
-                                          district)
-            table.insert(self.committees, com)
+            if district ~= "land" then
+                local com = DistrictCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT),
+                                              district)
+                table.insert(self.committees, com)
+            end
         end
 
         self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT))
@@ -534,15 +538,17 @@ class "FreeMember" {
 }
 
 class "Committee" (Room) {
-
-    __init__ = function(self, pos, n_members)
+    __init__ = function(self, pos, n_members, ratio)
         self.n_members = n_members
         self:super(Committee).__init__(self, pos)
 
         self.member_health = HATER_PER_MEMBER
         self.powerups = {}
 
-        local n_yeas = math.ceil(self.n_members * 0.60)
+        if ratio == nil then
+            ratio = 0.50
+        end
+        local n_yeas = math.ceil(self.n_members * ratio)
         self.yea_crowd = Crowd(v(0, 0), n_yeas, {0, 255, 0})
         self.yea_crowd.parent = self
         self.nay_crowd = Crowd(v(0, 0), self.n_members - n_yeas, {255, 0, 0})
@@ -598,11 +604,20 @@ class "Committee" (Room) {
 }
 
 class "ProjectCommittee" (Committee) {
-    -- Committee where we remove neutral first
-    __init__ = function(self, pos, type)
+    DATA = {park={size=7, ratio=0.6},
+        house={size=9, ratio=0.5},
+        road={size=11, ratio=0.4},
+        washington={size=13, ratio=0.3},
+        adams={size=15, ratio=0.2},
+        jefferson={size=17, ratio=0.1},
+        madison={size=19, ratio=0.0},
+    },
+
+    __init__ = function(self, pos, type, size)
         self.type = type
         self.color = Map.TYPES[type]
-        self:super(ProjectCommittee).__init__(self, pos, 15)
+        self.data = ProjectCommittee.DATA[type]
+        self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio)
     end,
 }
 
