@@ -88,7 +88,6 @@ function love.mousepressed(x, y)
 
     if not clicked then
         controller:click(mousepos)
-        log.trace('unclicked')
         if powerup_tray.buy_mode then
             powerup_tray:buy_mode_off()
         end
