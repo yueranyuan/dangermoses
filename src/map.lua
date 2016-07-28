@@ -428,8 +428,7 @@ class "FloorPowerup" (Object) {
                 powerup_tray:add_powerup_anim(self.power_class, self.pos)
             end)
         end
-        local fpu_idx = lume.find(map.floor_powerups, fpu)
+        lume.remove(map.floor_powerups, fpu)
         self:destroy()
-        table.remove(map.floor_powerups, fpu_idx)
     end
 }
