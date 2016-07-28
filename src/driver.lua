@@ -20,6 +20,7 @@ require "src/map"
 require "src/player"
 require "src/plan"
 
+-- Load audio files. Powerup sounds are loaded separately in powerup.lua.
 music = love.audio.newSource("sfx/bg_music_2.ogg")
 music:setLooping(true)
 music:setVolume(1)
