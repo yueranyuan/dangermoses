@@ -95,6 +95,8 @@ class "NextButton" (Button) {
     end,
 
     on_click = function(self)
+        sound = love.audio.newSource("sfx/next_button_typewriter.wav", "static")
+        sound:play()
         government:next()
         for _, powerup in lume.ripairs(Powerup.powerups) do
             powerup:next()

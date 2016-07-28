@@ -20,6 +20,21 @@ require "src/map"
 require "src/player"
 require "src/plan"
 
+music = love.audio.newSource("sfx/bg_music_2.ogg")
+music:setLooping(true)
+music:setVolume(1)
+music:play()
+
+ambience = love.audio.newSource("sfx/ambience_road2.ogg")
+ambience:setLooping(true)
+ambience:setVolume(0.5)
+ambience:play()
+
+sfx_click = love.audio.newSource("sfx/typewriter_hit.wav", "static")
+sfx_jackhammer = love.audio.newSource("sfx/build_jackhammer.wav", "static")
+sfx_mayor_pass = love.audio.newSource("sfx/mayor_approve_stamp.wav", "static")
+sfx_mayor_reject = love.audio.newSource("sfx/mayor_fail_paper_rip.wav", "static")
+
 mouseenabled = true
 
 function love.load()
@@ -62,6 +77,8 @@ end
 
 function love.mousepressed(x, y)
     if not mouseenabled then return end
+
+    sfx_click:play()
 
     local mousepos = v(x, y)
     controller:move_mouse(mousepos)
