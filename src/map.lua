@@ -188,6 +188,8 @@ class "Map" (Object){
         end
         government.moses_office:add_supporters(new_supporters)
 
+        self:remove_pending_building(building)
+        -- get floor powerups
         local active_floor_powerups = Plan.static.get_active_floor_powerups(cells)
         for _, fpu in ipairs(active_floor_powerups) do
             powerup_tray:add_powerup_anim(fpu.power_class, fpu.pos)

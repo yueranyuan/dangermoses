@@ -66,9 +66,6 @@ class "Government" (Object) {
                     table.insert(self.actions, law_action)
                 end
                 self:add_action(function()
-                    if room.law ~= nil then
-                        room:process_law(room.law)
-                    end
                     room:next()
                 end)
             end
@@ -138,8 +135,17 @@ class "Crowd" (Object) {
         if speed == nil then
             speed = 0.3
         end
+        -- pad colors appropriately
+        local target_color = self.color
+        if #color < #self.color then
+            color = {color[1], color[2], color[3], 255 }
+        elseif #self.color < #color then
+            target_color = {target_color[1], target_color[2], target_color[3], 255}
+        end
+
+        -- tween free member
         local free_member = FreeMember(start_pos:clone(), utils.shallow_copy(color))
-        Timer.tween(speed, free_member, {pos={x=self.pos.x, y=self.pos.y}, color=self.color},
+        Timer.tween(speed, free_member, {pos={x=self.pos.x, y=self.pos.y}, color=target_color},
             'in-out-quad', function()
                 self.n = self.n + 1
                 lume.remove(self.free_members, free_member)
@@ -199,6 +205,7 @@ class "Legislation" (Object) {
         self.n_haters = plan.n_haters
         self.n_failures = 0
         self.powerups = {}
+        self.alpha = 255
         self.crowd_offset = v(10, 10)
         self:super(Legislation).__init__(self, v(550, 0), v(200, 50))
 
@@ -226,6 +233,12 @@ class "Legislation" (Object) {
     end,
 
     update = function(self, dt)
+        if player.plan then
+            self.alpha = 50
+        else
+            self.alpha = 255
+        end
+
         if self.n_failures > 0 then
             self.color = {150, 0, 0}
         elseif self.current_room:is_active() then
@@ -241,15 +254,17 @@ class "Legislation" (Object) {
     end,
 
     draw = function(self)
+        self.color = {self.color[1], self.color[2], self.color[3], self.alpha }
+        self.crowd.color = {self.crowd.color[1], self.crowd.color[2], self.crowd.color[3], self.alpha}
         self:super(Legislation).draw(self)
-        draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
-        self:lgSetColor(255, 0, 0)
+        --draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
+        self:lgSetColor(255, 0, 0, self.alpha)
         if self.n_failures > 0 then
             lg.print("failed", self.pos.x, self.pos.y + 10)
             self.crowd.shown = false
         end
         -- self:lgSetColor(255, 255, 255)
-        self:lgSetColor(self.icon_color)
+        self:lgSetColor(self.icon_color[1], self.icon_color[2], self.icon_color[3], self.alpha)
         local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 5,
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
