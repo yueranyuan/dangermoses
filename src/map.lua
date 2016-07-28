@@ -159,6 +159,8 @@ class "Map" (Object){
     end,
 
     try_building = function(self, builder, building)
+        -- Play the jackhammer sound indicating you started a building.
+        sfx_jackhammer:play()
         local plan = Plan(builder, building)
         table.insert(self.pending_plans, Plan(builder, building))
         -- TEMP
@@ -167,6 +169,8 @@ class "Map" (Object){
     end,
 
     place_building = function(self, builder, building)
+        -- Play the sound for the building succeeding.
+        sfx_mayor_pass:play()
         -- change cells and remove people
         local cells = Plan.static.get_cell_collisions(building)
         local new_supporters = {}
@@ -200,6 +204,8 @@ class "Map" (Object){
     end,
 
     remove_pending_building = function(self, building)
+        -- Play the sound for a building failing.
+        sfx_mayor_reject:play()
         -- remove pending plan
         for plan_i, plan in lume.ripairs(self.pending_plans) do
             if plan.building == building then

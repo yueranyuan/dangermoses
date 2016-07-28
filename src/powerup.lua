@@ -40,6 +40,10 @@ class "Powerup" (Object) {
         end
         self.target = target
         self:_use(target)
+        -- Play the sound effect for this particular powerup.
+        if self.sfx_sound ~= nil then
+            self.sfx_sound:play()
+        end
     end,
 
     unuse = function(self, target)
@@ -95,6 +99,7 @@ class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
     cost = 5,
     img = lg.newImage("grafix/goodpublicity.png"),
+    sfx_sound = love.audio.newSource("sfx/publicity_film.wav", "static"),
     __init__ = function(self)
         self:super(GoodPublicity).__init__(self, government:get_laws(), 0)
     end,
@@ -198,6 +203,7 @@ class "Lackey" (Powerup) {
     name = "lackey",
     cost = 3,
     img = lg.newImage("grafix/lackey.png"),
+    sfx_sound = love.audio.newSource("sfx/lackey_cough.wav", "static"),
     __init__ = function(self)
         self:super(Lackey).__init__(self, government.committees, 0)
     end,
