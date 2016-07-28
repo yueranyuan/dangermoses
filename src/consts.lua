@@ -6,3 +6,4 @@ MAP_SCALE = 30 -- Number of pixels per tile.
 AI_SPEED = 15.0
 HATER_PER_MEMBER = 1
 POWERUP_TRAY_WIDTH = 90
+
