@@ -1,4 +1,7 @@
 draw_transparent_rect = function(x, y, w, h, color)
+    if color == nil then
+        color = {50, 50, 50}
+    end
     local old_blend_mode = lg.getBlendMode()
     lg.setBlendMode("multiply")
     lg.setColor(color)
@@ -273,7 +276,7 @@ class "BuyButton" (Button) {
 }
 
 class "PowerupTray" (ButtonTray) {
-    POWERS = {StrongArm, Shutdown, GoodPublicity, Swap, Mislabel, Appeal, Lackey},
+    POWERS = {StrongArm, Shutdown, GoodPublicity, Swap, Mislabel, Appeal, Lackey, Resilience},
 
     __init__ = function(self, starting_powerups)
         self.active_button = nil

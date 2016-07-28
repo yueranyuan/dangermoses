@@ -132,6 +132,7 @@ class "Crowd" (Object) {
         self.n = n
         self.color = color
         self.free_members = {}
+        self.show_n = true
         self:super(Crowd).__init__(self, pos)
     end,
 
@@ -190,6 +191,14 @@ class "Crowd" (Object) {
             local _pos = self.pos + (spot - mean) * scale * 10
             lg.draw(self.img, _pos.x, _pos.y, 0, scale)
         end
+
+        -- draw n
+        if self.show_n then
+            local n_pos = v(self.pos.x + 40, self.pos.y + 10)
+            draw_transparent_rect(n_pos.x, n_pos.y, 15, 15, {50, 50, 50})
+            self:lgSetColor(self.color)
+            lg.print(self.n, n_pos.x, n_pos.y)
+        end
     end,
 }
 
@@ -211,7 +220,7 @@ class "Legislation" (Object) {
         self.powerups = {}
         self.alpha = 255
         self.crowd_offset = v(10, 10)
-        self:super(Legislation).__init__(self, v(550, 0), v(200, 50))
+        self:super(Legislation).__init__(self, v(550, 0), v(100, 50))
 
         room:set_law(self)
         self.crowd = Crowd(self.pos + self.crowd_offset, 0, {255, 0, 0})
@@ -259,19 +268,33 @@ class "Legislation" (Object) {
 
     draw = function(self)
         self.color = {self.color[1], self.color[2], self.color[3], self.alpha }
-        self.crowd.color = {self.crowd.color[1], self.crowd.color[2], self.crowd.color[3], self.alpha}
+        self.crowd.color = {self.crowd.color[1], self.crowd.color[2], self.crowd.color[3], self.alpha }
+
+        -- draw background box
         self:super(Legislation).draw(self)
+
+        -- draw whether we failed
         --draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
         self:lgSetColor(255, 0, 0, self.alpha)
         if self.n_failures > 0 then
             lg.print("failed", self.pos.x, self.pos.y + 10)
             self.crowd.shown = false
         end
-        -- self:lgSetColor(255, 255, 255)
-        self:lgSetColor(self.icon_color[1], self.icon_color[2], self.icon_color[3], self.alpha)
+
+        -- draw building icon
+        self:lgSetColor(255, 255, 255)
+        --self:lgSetColor(self.icon_color[1], self.icon_color[2], self.icon_color[3], self.alpha)
         local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 5,
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
+
+        -- draw committees
+        local r = 5
+        for com_i, com in ipairs(self.committees) do
+            local pos = self.pos + v(40 + com_i * (r * 2 + 2), r)
+            self:lgSetColor(com.color)
+            lg.circle('fill', pos.x, pos.y, r)
+        end
     end,
 
     add_hater = function(self, hater)
@@ -291,7 +314,6 @@ class "Legislation" (Object) {
 
         local n_remaining = #self:get_remaining_committees()
         local n_attackers = math.floor(self.crowd.n / (1 + n_remaining))
-        self:remove_haters(n_attackers)
         return n_attackers
     end,
 
@@ -410,6 +432,10 @@ class "Room" (Object) {
             end
             self:finish(law)
         end
+    end,
+
+    attack = function(self, n, callback)
+        callback()
     end
 }
 
@@ -418,7 +444,7 @@ class "MosesOffice" (Room) {
         self:super(MosesOffice).__init__(self, pos)
         local callback = function() return self:cancel_building() end
         self.cancel_button = CancelButton(pos + v(10, 10), callback)
-        self.crowd = Crowd(pos + v(self.shape.x - 50, 10), 0, {0, 255, 0})
+        self.crowd = Crowd(pos + v(self.shape.x - 70, 10), 0, {0, 255, 0})
     end,
 
     spend = function(self, cost)
@@ -538,29 +564,57 @@ class "FreeMember" {
 }
 
 class "Committee" (Room) {
-    __init__ = function(self, pos, n_members, ratio)
+    __init__ = function(self, pos, n_members, ratio, resilience)
         self.n_members = n_members
         self:super(Committee).__init__(self, pos)
 
         self.member_health = HATER_PER_MEMBER
         self.powerups = {}
 
+        if resilience == nil then
+            resilience = 0
+        end
+        self.resilience = resilience
+
         if ratio == nil then
             ratio = 0.50
         end
         local n_yeas = math.ceil(self.n_members * ratio)
-        self.yea_crowd = Crowd(v(0, 0), n_yeas, {0, 255, 0})
+        self.yea_crowd_offset = v(30, 20)
+        self.yea_crowd = Crowd(self.yea_crowd_offset, n_yeas, {0, 255, 0})
+        self.yea_crowd.show_n = false
         self.yea_crowd.parent = self
-        self.nay_crowd = Crowd(v(0, 0), self.n_members - n_yeas, {255, 0, 0})
+        self.nay_crowd_offset = v(self.shape.x - 35, 20)
+        self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - n_yeas, {255, 0, 0})
+        self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
     end,
 
     update = function(self, dt)
-        self.yea_crowd.pos = self.pos + v(10, 20)
-        self.nay_crowd.pos = self.pos + v(self.shape.x - 50, 20)
+        if self:is_active() then
+            self.yea_crowd.color = {0, 255, 0}
+            self.nay_crowd.color = {255, 0, 0}
+        else
+            self.yea_crowd.color = {100, 100, 100 }
+            self.nay_crowd.color = {100, 100, 100 }
+        end
+        self.yea_crowd.pos = self.pos + self.yea_crowd_offset
+        self.nay_crowd.pos = self.pos + self.nay_crowd_offset
     end,
 
     attack = function(self, n, callback)
+        if n == nil then
+            n = 1
+        end
+        n = lume.round((1 - self.resilience) * n)
+        if callback == nil then
+            callback = function() end
+        end
+
+        self:remove_supporter(n, callback)
+    end,
+
+    remove_supporter = function(self, n, callback)
         if n == nil then
             n = 1
         end
@@ -569,22 +623,34 @@ class "Committee" (Room) {
             return
         end
 
-        self.member_health = self.member_health - 1
-        if self.member_health <= 0 and self.yea_crowd.n > 0 then
+        if self.yea_crowd.n > 0 then
             self.yea_crowd.n = self.yea_crowd.n - 1
-            self.nay_crowd:add_person(self.yea_crowd.pos, self.yea_crowd.color, function()
-                self.member_health = HATER_PER_MEMBER
-                self:attack(n - 1, callback)
-            end, 0.3 / n)
+            self.nay_crowd:add_person(self.yea_crowd.pos, self.yea_crowd.color)
+            Timer.after(0.3 / n, function()
+                self:remove_supporter(n - 1, callback)
+            end)
         else
             if callback then callback() end
         end
     end,
 
-    add_supporter = function(self)
+    add_supporter = function(self, n, callback)
+        if n == nil then
+            n = 1
+        end
+        if n <= 0 then
+            if callback then callback() end
+            return
+        end
+
         if self.nay_crowd.n > 0 then
             self.nay_crowd.n = self.nay_crowd.n - 1
             self.yea_crowd:add_person(self.nay_crowd.pos, self.nay_crowd.color)
+            Timer.after(0.3 / n, function()
+                self:add_supporter(n - 1, callback)
+            end)
+        else
+            if callback then callback() end
         end
     end,
 
@@ -599,7 +665,12 @@ class "Committee" (Room) {
     draw = function(self)
         self:super(Committee).draw(self)
         self:lgSetColor({0, 0, 0})
-        lg.printf(lume.round(self.yea_crowd.n / self.n_members * 100).."%", self.pos.x, self.pos.y + 20, self.shape.x, "center")
+        --local center_pos = self.pos + (self.yea_crowd_offset + self.nay_crowd_offset) / 2
+        --lg.print(lume.round(self.yea_crowd.n / self.n_members * 100).."%", center_pos.x, center_pos.y)
+
+        lg.rectangle("fill", self.pos.x, self.pos.y, 30, self.shape.y)
+        self:lgSetColor({255 * (1 - self.resilience), 255 * self.resilience, 0})
+        lg.print(lume.round((self.resilience) * 100).."%", self.pos.x, self.pos.y + 20)
     end
 }
 
@@ -608,7 +679,7 @@ class "ProjectCommittee" (Committee) {
         self.type = type
         self.color = Map.TYPES[type]
         self.data = COMMITTEES[type]
-        self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio)
+        self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio, self.data.resilience)
     end,
 }
 

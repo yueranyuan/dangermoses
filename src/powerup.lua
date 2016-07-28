@@ -68,12 +68,18 @@ class "StrongArm" (Powerup) {
     cost = 3,
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
-        self:super(StrongArm).__init__(self, government.committees, 0)
+        self:super(StrongArm).__init__(self, government.committees, 1)
     end,
 
     _use = function(self, target)
-        target:add_supporter()
+        self.borrowed_n = math.min(target.nay_crowd.n, 3)
+        target:add_supporter(self.borrowed_n)
     end,
+
+    _unuse = function(self, target)
+        assert(self.borrowed_n ~= nil, "borrowed_n is nil. Was use() called?")
+        target:remove_supporter(self.borrowed_n)
+    end
 }
 
 class "Shutdown" (Powerup) {
@@ -210,5 +216,18 @@ class "Lackey" (Powerup) {
 
     _use = function(self, target)
         target:add_supporter()
+    end
+}
+
+class "Resilience" (Powerup) {
+    name = "resilience",
+    cost = 3,
+    img = lg.newImage("grafix/resilience.png"),
+    __init__ = function(self)
+        self:super(Resilience).__init__(self, government.committees, 0)
+    end,
+
+    _use = function(self, target)
+        target.resilience = 1 - (0.8 * (1 - target.resilience))
     end
 }
