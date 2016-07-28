@@ -532,14 +532,14 @@ class "MayorOffice" (Room) {
     end,
 
     approve = function(self, law)
+        sfx_mayor_pass:play()
         hud:set_message("project approved", HUD.SUCCESS)
-        -- TODO: finalize building
         map:place_building(law.builder, law.building)
     end,
 
     disapprove = function(self, law)
+        sfx_mayor_reject:play()
         self.strikes = self.strikes - 1
-        -- TODO: fail building
         hud:set_message("project rejected", HUD.FAIL)
         map:remove_pending_building(law.building)
     end,
