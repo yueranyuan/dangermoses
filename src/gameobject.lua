@@ -200,3 +200,10 @@ class "Object" {
         self.pos = new_pos
     end
 }
+
+class "Image"(Object) {
+    __init__ = function(self, pos, img)
+        self.img = img
+        self:super(Image).__init__(self, pos)
+    end,
+}

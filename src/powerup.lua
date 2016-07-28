@@ -40,6 +40,10 @@ class "Powerup" (Object) {
         end
         self.target = target
         self:_use(target)
+        -- Play the sound effect for this particular powerup.
+        if self.sfx_sound ~= nil then
+            self.sfx_sound:play()
+        end
     end,
 
     unuse = function(self, target)
@@ -61,22 +65,20 @@ class "Powerup" (Object) {
 
 class "StrongArm" (Powerup) {
     name = "strongarm",
+    cost = 3,
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
-        self:super(StrongArm).__init__(self, government.committees, 1)
+        self:super(StrongArm).__init__(self, government.committees, 0)
     end,
 
     _use = function(self, target)
-        target.extra_votes = target.extra_votes + 1
+        target:add_supporter()
     end,
-
-    _unuse = function(self, target)
-        target.extra_votes = target.extra_votes - 1
-    end
 }
 
 class "Shutdown" (Powerup) {
     name = "shutdown",
+    cost = 7,
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
@@ -95,18 +97,21 @@ class "Shutdown" (Powerup) {
 
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
+    cost = 5,
     img = lg.newImage("grafix/goodpublicity.png"),
+    sfx_sound = love.audio.newSource("sfx/publicity_film.wav", "static"),
     __init__ = function(self)
         self:super(GoodPublicity).__init__(self, government:get_laws(), 0)
     end,
 
     _use = function(self, target)
-        target.n_haters = math.max(0, target.n_haters - 5)
+        target:remove_haters(3)
     end,
 }
 
 class "Swap" (Powerup) {
     name = "swap",
+    cost = 2,
     img = lg.newImage("grafix/swap.png"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
@@ -126,14 +131,8 @@ class "Swap" (Powerup) {
         target[2]:move_with_children(pos_temp)
         -- swap laws
         local law_temp = target[1].law
-        target[1].law = target[2].law
-        if target[1].law ~= nil then
-            target[1].law:set_room(target[1])
-        end
-        target[2].law = law_temp
-        if target[2].law ~= nil then
-            target[2].law:set_room(target[2])
-        end
+        target[1]:set_law(target[2].law)
+        target[2]:set_law(law_temp)
     end,
 
     provide_target = function(self, target)
@@ -150,6 +149,7 @@ class "Swap" (Powerup) {
 
 class "Mislabel" (Powerup) {
     name = "mislabel",
+    cost = 3,
     img = lg.newImage("grafix/mislabel.png"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
@@ -178,6 +178,7 @@ class "Mislabel" (Powerup) {
 
 class "Appeal" (Powerup) {
     name = "appeal",
+    cost = 2,
     img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
@@ -193,20 +194,21 @@ class "Appeal" (Powerup) {
 
     _use = function(self, target)
         target.n_failures = 0
-        target.current_room.law = nil
-        target:set_room(government.rooms[1])
-        government.rooms[1].law = target
+        target.current_room:set_law(nil)
+        government.rooms[1]:set_law(target)
     end,
 }
 
 class "Lackey" (Powerup) {
     name = "lackey",
+    cost = 3,
     img = lg.newImage("grafix/lackey.png"),
+    sfx_sound = love.audio.newSource("sfx/lackey_cough.wav", "static"),
     __init__ = function(self)
         self:super(Lackey).__init__(self, government.committees, 0)
     end,
 
     _use = function(self, target)
-        target:update_seat("neutral", self.user)
+        target:add_supporter()
     end
 }

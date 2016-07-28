@@ -41,10 +41,6 @@ class "HUD" (Object) {
     end,
 
     draw = function(self)
-        -- draw influence count
-        self:lgSetColor(255, 255, 255)
-        lg.print("influence: "..player.influence, 0, GAME_HEIGHT - 100)
-
         -- draw messages
         if #self.message > 0 then
             lg.setColor(0, 0, 0, 200)
@@ -79,7 +75,7 @@ class "Button" (Object) {
 
     on_click = function(self, mousepos)
         if self.callback ~= nil then
-            self.callback(mousepos)
+            return self.callback(mousepos)
         end
         return false
     end,
@@ -99,6 +95,8 @@ class "NextButton" (Button) {
     end,
 
     on_click = function(self)
+        sound = love.audio.newSource("sfx/next_button_typewriter.wav", "static")
+        sound:play()
         government:next()
         for _, powerup in lume.ripairs(Powerup.powerups) do
             powerup:next()
@@ -255,46 +253,89 @@ class "BuildingButton" (Button) {
     end
 }
 
+class "BuyButton" (Button) {
+    __init__ = function(self, pos, callback)
+        self.color = {0, 100, 0 }
+        self:super(BuyButton).__init__(self, pos, v(GAME_WIDTH - pos.x, 40), callback)
+    end,
+
+    draw = function(self)
+        local text = "Buy"
+        if not self.clickable then text = "Back" end
+        self:super(BuyButton).draw(self)
+        lg.setColor({255, 255, 255})
+        lg.printf(text, self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+    end
+}
+
 class "PowerupTray" (ButtonTray) {
     POWERS = {StrongArm, Shutdown, GoodPublicity, Swap, Mislabel, Appeal, Lackey},
 
-    __init__ = function(self)
+    __init__ = function(self, starting_powerups)
         self.active_button = nil
-        local shape = v(#self.POWERS* (PowerupButton.BUTTON_SIZE + 30) + 20, PowerupButton.BUTTON_SIZE + 20)
-        self:super(PowerupTray).__init__(self, v(0, GAME_HEIGHT - shape.y), shape)
+        self.buy_mode = false
+
+        local shape = v(POWERUP_TRAY_WIDTH, #self.POWERS* (PowerupButton.BUTTON_SIZE) + 20)
+        self:super(PowerupTray).__init__(self, v(GAME_WIDTH - POWERUP_TRAY_WIDTH, 40), shape)
+
+        self.buy_button = BuyButton(v(self.pos.x, 0), function()
+            self.buy_mode = true
+            self.buy_button.clickable = false
+            return true
+        end)
 
         -- add powerup buttons
         self.buttons = {}
-        for _, powerup in ipairs({StrongArm, Shutdown, Swap}) do
-            local offset = v((#self.buttons) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
-            local button = PowerupButton(self.pos + offset, powerup, self, 1)
+        for powerup, n in pairs(starting_powerups) do
+            local offset = v(2, (#self.buttons) * (PowerupButton.BUTTON_SIZE) + 10)
+            local button = PowerupButton(self.pos + offset, powerup, self, n)
             table.insert(self.buttons, button)
         end
     end,
 
-    add_powerup = function(self, powerup)
+    buy_mode_off = function(self)
+        self.buy_mode = false
+        self.buy_button.clickable = true
+    end,
+
+    get_powerup_button = function(self, powerup)
         for _, button in ipairs(self.buttons) do
             if button.power == powerup then
-                button.n = button.n + 1
-                return
+                return button
             end
         end
-        local offset = v((#self.buttons) * (PowerupButton.BUTTON_SIZE + 30) + 10, 10)
-        local button = PowerupButton(self.pos + offset, powerup, self, 1)
+        local offset = v(2, (#self.buttons) * (PowerupButton.BUTTON_SIZE) + 10)
+        local button = PowerupButton(self.pos + offset, powerup, self, 0)
         table.insert(self.buttons, button)
+        return button
+    end,
+
+    add_powerup_anim = function(self, powerup, pos)
+        local button = self:get_powerup_button(powerup)
+        local obj = Image(pos:clone(), powerup.img)
+        Timer.tween(0.5, obj.pos, {x=button.pos.x, y=button.pos.y}, "in-out-quad", function()
+            button.n = button.n + 1
+            obj:destroy()
+        end)
+    end,
+
+    add_powerup = function(self, powerup)
+        local button = self:get_powerup_button(powerup)
+        button.n = button.n + 1
     end
 }
 
 class "PowerupButton" (Button) {
-    BUTTON_SIZE = 32,
+    BUTTON_SIZE = 50,
 
     __init__ = function(self, pos, power, tray, n)
         self.tray = tray
         self.power = power
-        self.img = self.power.img
+        self.icon = self.power.img
         self.color = {255, 255, 255 }
+        self.cost = self.power.cost
         self.n = n
-        self:super(PowerupButton).__init__(self, pos)
+        self:super(PowerupButton).__init__(self, pos, v(PowerupButton.BUTTON_SIZE, PowerupButton.BUTTON_SIZE))
     end,
 
     finish = function(self)
@@ -303,12 +344,20 @@ class "PowerupButton" (Button) {
 
     draw = function(self)
         -- TODO: offset doesn't work yet
-        self:super(PowerupButton).draw(self)
-        self:lgSetColor(255, 255, 255)
-        lg.print("X"..self.n, self.pos.x + self.shape.x, self.pos.y)
+        if powerup_tray.buy_mode then
+            self:lgSetColor(150, 150, 150)
+        else
+            self:lgSetColor(255, 255, 255)
+        end
+        lg.draw(self.icon, self.pos.x, self.pos.y, 0, 1.5)
+        lg.print("X"..self.n, GAME_WIDTH - 30, self.pos.y + 10)
+        if powerup_tray.buy_mode then
+            self:lgSetColor(0, 255, 0)
+            lg.print(self.cost, self.pos.x + 10, self.pos.y + 10)
+        end
     end,
 
-    on_click = function(self)
+    try_use = function(self)
         if player.power then return end
         if self.n > 0 then
             local powerup = self.power()
@@ -321,5 +370,20 @@ class "PowerupButton" (Button) {
             self.tray:set_active_button(self)
         end
         return true
+    end,
+
+    buy = function(self)
+        if government.moses_office:spend(self.cost) then
+            powerup_tray:add_powerup(self.power)
+        end
+        return true
+    end,
+
+    on_click = function(self)
+        if powerup_tray.buy_mode then
+            return self:buy()
+        else
+            return self:try_use()
+        end
     end
 }

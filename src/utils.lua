@@ -41,4 +41,12 @@ function utils.set(arr)
     return out
 end
 
+function utils.shallow_copy(arr)
+    return lume.map(arr)
+end
+
+function utils.trace_arr(arr)
+    log.trace('['..lume.reduce(lume.map(arr, tostring), function(a, b) return a..', '..b end, "")..']')
+end
+
 return utils

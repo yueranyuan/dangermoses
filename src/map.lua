@@ -1,9 +1,16 @@
 class "Building" (Object) {
     --PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
     --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
-    PATTERNS = {park={"rand1", "rand4", "rand5", "eagle"},
-                road={"rand2", "rand3"},
-                house={"rand4", "rand5"}},
+    PATTERNS = {park={"park_L1", "park_L2", "park_L3",
+                      "park_M1", "park_M2", "park_M3", "park_M4",
+                      "park_S1", "park_S2", "park_S3", "park_S4"},
+                road={"road_L1", "road_L2", "road_L3", "road_L4", "road_L5",
+                      "road_L6", "road_L7", "road_L8", "road_L9",
+                      "road_M1", "road_M2", "road_M3", "road_M4", "road_M5",
+                      "road_S1", "road_S2", "road_S3", "road_S4"},
+                house={"tnmt_L1", "tnmt_L2", "tnmt_L3", "tnmt_L4",
+                       "tnmt_M1", "tnmt_M2", "tnmt_M3",
+                       "tnmt_S1", "tnmt_S2"}},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)
@@ -152,14 +159,21 @@ class "Map" (Object){
     end,
 
     try_building = function(self, builder, building)
+        -- Play the jackhammer sound indicating you started a building.
+        sfx_jackhammer:play()
         local plan = Plan(builder, building)
         table.insert(self.pending_plans, Plan(builder, building))
+        -- TEMP
+        local fpu  = self.floor_powerups[1]
         self:update_n_pending_tiles()
     end,
 
     place_building = function(self, builder, building)
+        -- Play the sound for the building succeeding.
+        sfx_mayor_pass:play()
         -- change cells and remove people
         local cells = Plan.static.get_cell_collisions(building)
+        local new_supporters = {}
         for _, coord in ipairs(cells) do
             if self.grid[coord.y][coord.x] == 'empty' then
                 builder.built_cells = builder.built_cells + 1
@@ -168,16 +182,21 @@ class "Map" (Object){
             -- remove person
             local person = self.people_grid[coord.y][coord.x]
             if person ~= 'none' then
+                if person:check_state(building.type) == "happy" then
+                    table.insert(new_supporters, person)
+                end
                 lume.remove(self.people, person)
                 person:destroy()
                 self.people_grid[coord.y][coord.x] = 'none'
             end
         end
-        self:remove_pending_building(building)
+        government.moses_office:add_supporters(new_supporters)
 
+        self:remove_pending_building(building)
+        -- get floor powerups
         local active_floor_powerups = Plan.static.get_active_floor_powerups(cells)
         for _, fpu in ipairs(active_floor_powerups) do
-            powerup_tray:add_powerup(fpu.power_class)
+            powerup_tray:add_powerup_anim(fpu.power_class, fpu.pos)
             local fpu_idx = lume.find(self.floor_powerups, fpu)
             fpu:destroy()
             table.remove(self.floor_powerups, fpu_idx)
@@ -185,6 +204,8 @@ class "Map" (Object){
     end,
 
     remove_pending_building = function(self, building)
+        -- Play the sound for a building failing.
+        sfx_mayor_reject:play()
         -- remove pending plan
         for plan_i, plan in lume.ripairs(self.pending_plans) do
             if plan.building == building then

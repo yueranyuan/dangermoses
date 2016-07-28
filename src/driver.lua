@@ -3,6 +3,7 @@ love.graphics.setDefaultFilter("nearest", "nearest", 1)
 --love.window.setFullscreen(true)
 lg = love.graphics
 vector = require "extern/vector"
+Timer = require "extern/timer"
 vec = vector
 v = vec
 lume = require "extern/lume"
@@ -11,6 +12,7 @@ class = require "extern/slither"
 csv = require "extern/csv"
 utils = require "src/utils"
 require "src/consts"
+require "src/sound"
 require "src/gameobject"
 require "src/powerup"
 require "src/gui"
@@ -18,6 +20,25 @@ require "src/legal"
 require "src/map"
 require "src/player"
 require "src/plan"
+
+SOUND_ON = false
+
+music = Sound("sfx/bg_music_2.ogg")
+music:setLooping(true)
+music:setVolume(1)
+music:play()
+
+ambience = Sound("sfx/ambience_road2.ogg")
+ambience:setLooping(true)
+ambience:setVolume(0.5)
+ambience:play()
+
+sfx_click = Sound("sfx/typewriter_hit.wav", "static")
+sfx_jackhammer = Sound("sfx/build_jackhammer.wav", "static")
+sfx_mayor_pass = Sound("sfx/mayor_approve_stamp.wav", "static")
+sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
+
+mouseenabled = true
 
 function love.load()
     -- all non-imported non-const globals should be made here
@@ -39,11 +60,11 @@ function love.load()
     map = Map(MAP_WIDTH, MAP_HEIGHT, MAP_SCALE)
 
     -- make committee side of screen
-    government = Government(GAME_WIDTH - 200)
+    government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
     building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray()
+    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=1, [GoodPublicity]=2})
     hud = HUD()
 end
 
@@ -58,6 +79,10 @@ function love.keypressed(key)
 end
 
 function love.mousepressed(x, y)
+    if not mouseenabled then return end
+
+    sfx_click:play()
+
     local mousepos = v(x, y)
     controller:move_mouse(mousepos)
 
@@ -83,10 +108,15 @@ function love.mousepressed(x, y)
 
     if not clicked then
         controller:click(mousepos)
+        if powerup_tray.buy_mode then
+            powerup_tray:buy_mode_off()
+        end
     end
+
 end
 
 function love.update(dt)
+    Timer.update(dt)
     player:update(dt)
 
     for obj_i, obj in ipairs(Object.objects) do
@@ -119,7 +149,9 @@ function love.draw()
     table.sort(z_ordering)
     for _, z in ipairs(z_ordering) do
         for _, obj in ipairs(draw_orders[z]) do
-            obj:draw()
+            if obj.shown then
+                obj:draw()
+            end
         end
     end
 end
