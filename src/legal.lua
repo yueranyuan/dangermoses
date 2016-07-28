@@ -295,11 +295,13 @@ class "Legislation" (Object) {
         end
 
         if next_committee.law ~= nil then return end
-
         self.current_room:set_law(nil)
+        local start_pos = self.pos:clone()
+        next_committee:set_law(self)
+        self.pos = start_pos  -- undo the position change
+
         return function()
-            Timer.tween(0.3, self.pos, {y = next_committee.pos.y}, 'in-out-quad', function()
-                next_committee:set_law(self)
+            Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
                 local n_attackers = self:get_attackers(next_committee)
                 if n_attackers > 0 then
                     next_committee:attack(n_attackers, callback)
