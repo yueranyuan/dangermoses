@@ -213,7 +213,7 @@ class "Appeal" (Powerup) {
 
 class "Lackey" (Powerup) {
     name = "lackey",
-    cost = "priceless",
+    cost = 5,
     hover_text = "Lackey \nInstall a loyal 'Moses Man' to look after your interests in the longer term.",
     img = lg.newImage("grafix/lackey.png"),
     sfx_sound = Sound("sfx/lackey_cough.wav", "static"),
