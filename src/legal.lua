@@ -312,8 +312,7 @@ class "Legislation" (Object) {
         if self.crowd.n <= 0 then return 0 end
         if self.n_failures > 0 then return 0 end
 
-        local n_remaining = #self:get_remaining_committees()
-        local n_attackers = math.floor(self.crowd.n / (1 + n_remaining))
+        local n_attackers = self.crowd.n
         return n_attackers
     end,
 
@@ -606,7 +605,8 @@ class "Committee" (Room) {
         if n == nil then
             n = 1
         end
-        n = lume.round((1 - self.resilience) * n)
+        n = math.max(n - self.resilience, 0)
+        log.trace(n)
         if callback == nil then
             callback = function() end
         end
@@ -669,8 +669,8 @@ class "Committee" (Room) {
         --lg.print(lume.round(self.yea_crowd.n / self.n_members * 100).."%", center_pos.x, center_pos.y)
 
         lg.rectangle("fill", self.pos.x, self.pos.y, 30, self.shape.y)
-        self:lgSetColor({255 * (1 - self.resilience), 255 * self.resilience, 0})
-        lg.print(lume.round((self.resilience) * 100).."%", self.pos.x, self.pos.y + 20)
+        self:lgSetColor({0, 150 + self.resilience * 30, 0})
+        lg.print(self.resilience, self.pos.x, self.pos.y + 20)
     end
 }
 
