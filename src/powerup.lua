@@ -65,8 +65,8 @@ class "Powerup" (Object) {
 
 class "StrongArm" (Powerup) {
     name = "strongarm",
-    cost = 3,
-    hover_text = "[description goes here]",
+    cost = 5,
+    hover_text = "Strong-Arm \nTemporarily convert three detractors on a committee into supporters for this turn.",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
@@ -85,8 +85,8 @@ class "StrongArm" (Powerup) {
 
 class "Shutdown" (Powerup) {
     name = "shutdown",
-    cost = 7,
-    hover_text = "[description goes here]",
+    cost = 10,
+    hover_text = "Shutdown \nCompletely skip a committee for this turn.",
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
@@ -105,8 +105,8 @@ class "Shutdown" (Powerup) {
 
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
-    cost = 5,
-    hover_text = "[description goes here]",
+    cost = 6,
+    hover_text = "Good Publicity\n Remove three detractors from a project.",
     img = lg.newImage("grafix/goodpublicity.png"),
     sfx_sound = Sound("sfx/publicity_film.wav", "static"),
     __init__ = function(self)
@@ -121,7 +121,7 @@ class "GoodPublicity" (Powerup) {
 class "Swap" (Powerup) {
     name = "swap",
     cost = "free",
-    hover_text = "[description goes here]",
+    hover_text = "Swap Order \nSwitch the ordering of any two committees.",
     img = lg.newImage("grafix/swap.png"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
@@ -160,7 +160,7 @@ class "Swap" (Powerup) {
 class "Mislabel" (Powerup) {
     name = "mislabel",
     cost = "priceless",
-    hover_text = "[description goes here]",
+    hover_text = "Mislabel Building Plan\nMake a building be evaluated as a different color.",
     img = lg.newImage("grafix/mislabel.png"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
@@ -189,8 +189,8 @@ class "Mislabel" (Powerup) {
 
 class "Appeal" (Powerup) {
     name = "appeal",
-    cost = "free",
-    hover_text = "[description goes here]",
+    cost = 3,
+    hover_text = "Appeal\n Revert a project's failure and send it back to the top.",
     img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
@@ -213,8 +213,8 @@ class "Appeal" (Powerup) {
 
 class "Lackey" (Powerup) {
     name = "lackey",
-    cost = "priceless",
-    hover_text = "[description goes here]",
+    cost = 6,
+    hover_text = "Lackey \n Add a 'Moses Man', a longterm supporter, to a committee.",
     img = lg.newImage("grafix/lackey.png"),
     sfx_sound = Sound("sfx/lackey_cough.wav", "static"),
     __init__ = function(self)
@@ -229,7 +229,7 @@ class "Lackey" (Powerup) {
 class "Resilience" (Powerup) {
     name = "resilience",
     cost = "priceless",
-    hover_text = "[description goes here]",
+    hover_text = "Keep the haters at bay.",
     img = lg.newImage("grafix/resilience.png"),
     __init__ = function(self)
         self:super(Resilience).__init__(self, government.committees, 0)

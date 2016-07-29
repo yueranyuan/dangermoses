@@ -27,11 +27,10 @@ SOUND_ON = true
 mouseenabled = true
 
 class "progress" {
-    is_tutorial = false,
     dict = {},
 
     __getattr__ = function(self, key)
-        if not self.is_tutorial then
+        if not IS_TUTORIAL then
             return true
         end
         log.trace(self.dict[key])
@@ -90,7 +89,7 @@ function setup_level(map_name, committee_names)
 
     -- make committee side of screen
     building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=10, [GoodPublicity]=2, [Resilience]=2})
+    powerup_tray = PowerupTray({[StrongArm]=0, [Shutdown]=0, [GoodPublicity]=0, [Resilience]=1, [Lackey]=3, [Mislabel]=2, [Appeal]=1})
     government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
