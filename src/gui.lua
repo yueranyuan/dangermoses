@@ -10,8 +10,8 @@ draw_transparent_rect = function(x, y, w, h, color)
 end
 
 class "HUD" (Object) {
-    SUCCESS = {0, 255, 0},
-    FAIL = {255, 0, 0},
+    SUCCESS = {100, 255, 100},
+    FAIL = {255, 100, 100},
     NEUTRAL = {255, 255, 255},
     MOUSE_IMG = lg.newImage('grafix/mouse.png'),
 
@@ -48,10 +48,10 @@ class "HUD" (Object) {
     draw = function(self)
         -- draw messages
         if #self.message > 0 then
-            lg.setColor(0, 0, 100, 200)
+            lg.setColor(50, 50, 100, 250)
             lg.rectangle('fill', 0, 0, government.pos.x, 50)
             lg.setColor(self.message_color)
-            lg.printf(self.message, 0, 0, government.pos.x, 'center')
+            lg.printf(self.message, 0, 10, government.pos.x, 'center')
         end
 
         -- draw mouse
@@ -268,7 +268,7 @@ class "BuildingButton" (Button) {
 }
 
 class "PowerupTray" (ButtonTray) {
-    POWERS = {GoodPublicity, StrongArm, Shutdown, Appeal, Resilience, Lackey, Mislabel, Swap},
+    POWERS = {GoodPublicity, StrongArm, Shutdown, Appeal, Lackey, Mislabel, Swap},
 
     __init__ = function(self, starting_powerups)
         self.active_button = nil
@@ -471,7 +471,11 @@ class "BuyButton" (Button) {
 }
 
 class "Overlay" (Object) {
-    RESIGN_IMG = lg.newImage("grafix/angry_mayor.png"),
+    RESIGN_IMG = lg.newImage("grafix/resign_mayor.png"),
+    NEW_MAYOR_IMG = lg.newImage("grafix/new_mayor.png"),
+    ANGRY_IMG = lg.newImage("grafix/angry_mayor.png"),
+    SHRUG_IMG = lg.newImage("grafix/shrug.png"),
+
     __init__ = function(self, shape)
         self.z_order = 2
         self.on = false

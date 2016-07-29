@@ -95,6 +95,19 @@ static.get_n_new_cells = function(cells, building)
     return #lume.filter(cells, function(c) return map.grid[c.y][c.x] ~= building.type end)
 end
 
+static.get_is_buildable = function(cells, people)
+    -- see if any new tiles are added
+    local has_real_tiles = false
+    for _, coord in ipairs(cells) do
+        if map.district_grid[coord.y][coord.x] ~= "water" then
+            has_real_tiles = true
+            break
+        end
+    end
+
+    return has_real_tiles and #people > 0
+end
+
 class "Plan" {
     static = static,
 
@@ -129,5 +142,6 @@ class "Plan" {
         self.n_haters = static.get_n_haters(self.building, self.people)
         self.committees = static.get_active_committees(self.types, self.districts)
         self.n_new_cells = static.get_n_new_cells(self.cells, self.building)
+        self.is_buildable, self.unbuildable_reason = static.get_is_buildable(self.cells, self.people)
     end,
 }

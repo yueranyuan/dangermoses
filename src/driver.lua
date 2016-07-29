@@ -26,7 +26,25 @@ SOUND_ON = true
 
 mouseenabled = true
 
-progress = {}
+class "progress" {
+    is_tutorial = false,
+    dict = {},
+
+    __getattr__ = function(self, key)
+        if not self.is_tutorial then
+            return true
+        end
+        log.trace(self.dict[key])
+        if not self.dict[key] then
+            self.dict[key] = true
+            log.trace("1")
+            return false
+        else
+            log.trace("2")
+            return true
+        end
+    end
+}
 
 function love.load()
     -- all non-imported non-const globals should be made here

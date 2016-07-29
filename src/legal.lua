@@ -230,6 +230,9 @@ class "Legislation" (Object) {
             if self.current_room:decide(self) then
                 self.color = {30, 50, 30}
             else
+                if not progress.first_failing_legislation then
+                    overlay:set("when legislations are flashing it means they're going to fail")
+                end
                 self.flashing = true
             end
         else
@@ -350,8 +353,11 @@ class "Room" (Object) {
     HEIGHT = 64,
     MARGIN = 15,
 
-    __init__ = function(self, pos)
-        self:super(Room).__init__(self, pos, v(GAME_WIDTH - POWERUP_TRAY_WIDTH - pos.x, Committee.HEIGHT - 5))
+    __init__ = function(self, pos, shape)
+        if shape == nil then
+            shape = v(GAME_WIDTH - POWERUP_TRAY_WIDTH - pos.x, Committee.HEIGHT - 5)
+        end
+        self:super(Room).__init__(self, pos, shape)
         self.closed = false
     end,
 
@@ -436,6 +442,13 @@ class "MosesOffice" (Room) {
     end,
 
     on_next = function(self)
+        if not progress.first_try_building then
+            Timer.after(0.8, function()
+                overlay:set("now build another thing")
+            end)
+            progress.first_try_building = true
+        end
+
         sfx_next:play()
         building_button_tray:refresh_all()
         government:next()
@@ -448,6 +461,7 @@ class "MosesOffice" (Room) {
     add_supporters = function(self, people)
         lume.each(people, function(p)
             Timer.after(math.random() * 0.3, function()
+                government.mayor_office.n_supporters = government.mayor_office.n_supporters + 1
                 self.crowd:add_person(p.pos, p.color)
             end)
         end)
@@ -502,6 +516,8 @@ class "NextButton" (Button) {
 }
 
 class "MayorOffice" (Room) {
+    PERSON_IMG = lg.newImage("grafix/person.png"),
+
     __init__ = function(self, pos)
         self.strikes = 3
         self.tiles = 0
@@ -509,7 +525,9 @@ class "MayorOffice" (Room) {
         self.past_tiles = 0
         self.past_turns = 0
         self.total_turns = 12
-        self:super(MayorOffice).__init__(self, pos)
+        self.n_supporters = 0
+        self.needed_supporters = 30
+        self:super(MayorOffice).__init__(self, pos, v(230, 140))
 
         self.resign_button = ResignButton(self.pos + v(40, 40), function()
             self:resign()
@@ -517,7 +535,7 @@ class "MayorOffice" (Room) {
     end,
 
     resign = function(self)
-        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.",
+        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.\n You've lost all your strikes. One more failure and you'll be fired!",
                     Overlay.RESIGN_IMG)
         self.law.n_failures = 0
         self.strikes = 0
@@ -541,10 +559,12 @@ class "MayorOffice" (Room) {
 
     next = function(self, law)
         if government.turn_i - self.past_turns >= self.total_turns then
+            overlay:set("A new mayor has been elected! He is confident in your skills.\nYou now have 3 more strikes", Overlay.NEW_MAYOR_IMG)
             self.past_turns = government.turn_i
             local n_tiles = player.built_cells + map.n_pending_tiles
             self.past_tiles = n_tiles
             self.strikes = 3
+
         end
     end,
 
@@ -557,6 +577,12 @@ class "MayorOffice" (Room) {
     disapprove = function(self, law)
         sfx_mayor_reject:play()
         self.strikes = self.strikes - 1
+        log.trace(self.strikes)
+        if self.strikes == 1 then
+            overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
+        elseif self.strikes == 0 then
+            overlay:set("Well, technically this is game over. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
+        end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
     end,
@@ -568,6 +594,16 @@ class "MayorOffice" (Room) {
         lg.print("turns remaining: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
                  self.pos.x + 10, self.pos.y + 25)
         local n_tiles = player.built_cells + map.n_pending_tiles
+
+        -- draw needed supporters
+        --[[for i = 1, self.needed_supporters do
+            if i <= self.n_supporters then
+                self:lgSetColor(0, 255, 0)
+            else
+                self:lgSetColor(255, 0, 0)
+            end
+            lg.draw(self.PERSON_IMG, self.pos.x + i * 6, self.pos.y + 50)
+        end]]--
         --lg.print("new tile quota: "..(n_tiles - self.past_tiles).."/"..(self.needed_tiles),
         --         self.pos.x + 10, self.pos.y + 40)
     end
@@ -687,6 +723,9 @@ class "Committee" (Room) {
 
     finish = function(self, law, passed)
         if passed then
+            if not progress.first_resilience then
+                overlay:set("good work! you got a legislation pass a committee. \nYour reputation with the committee is increasing. Every reputation point you get cancels out one hater")
+            end
             self.resilience = self.resilience + 1
         end
     end,
