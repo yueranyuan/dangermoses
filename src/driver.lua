@@ -92,7 +92,7 @@ function love.mousepressed(x, y)
 
     -- clicking overlays
     if overlay.on then
-        overlay:check_click(mousepos)
+        overlay.okay_button:check_click(mousepos)
         return
     end
 

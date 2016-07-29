@@ -471,6 +471,7 @@ class "BuyButton" (Button) {
 }
 
 class "Overlay" (Object) {
+    RESIGN_IMG = lg.newImage("grafix/angry_mayor.png"),
     __init__ = function(self, shape)
         self.z_order = 2
         self.on = false
@@ -492,7 +493,7 @@ class "Overlay" (Object) {
             local data = img:getData()
             local img_shape = v(data:getWidth(), data:getHeight())
             self.img_pos = v(self.pos.x + self.shape.x / 2 - img_shape.x / 2,
-                             self.pos.y - 120 + self.shape.y / 2 - img_shape.y / 2)
+                             self.pos.y + (self.shape.y - 100) / 2 - img_shape.y / 2)
         end
     end,
 

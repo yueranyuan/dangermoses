@@ -517,7 +517,8 @@ class "MayorOffice" (Room) {
     end,
 
     resign = function(self)
-        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.")
+        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.",
+                    Overlay.RESIGN_IMG)
         self.law.n_failures = 0
         self.strikes = 0
     end,
