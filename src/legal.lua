@@ -292,9 +292,15 @@ class "Legislation" (Object) {
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
 
-        -- draw powerups
+        -- draw floor powerups
+        local floor_powerup_imgs = {}
         for pu_i, pu in ipairs(self.plan.floor_powerups) do
-            lg.draw(pu.img, self.pos.x + 40 * (pu_i - 1) / (#self.plan.floor_powerups - 1), self.pos.y + 20)
+            for i = 1, pu.n do
+                table.insert(floor_powerup_imgs, pu.img)
+            end
+        end
+        for img_i, img in ipairs(floor_powerup_imgs) do
+            lg.draw(img, self.pos.x + 40 * (img_i / #floor_powerup_imgs), self.pos.y + 20)
         end
 
         -- draw dude
