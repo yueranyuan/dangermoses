@@ -160,15 +160,21 @@ class "BuildingButtonTray" (ButtonTray) {
     __init__ = function(self)
         self.hidden = false
         self.active_button = nil
-        local shape = v((#Map.TYPE_ORDER) * (BuildingButton.BUTTON_SIZE + 5), BuildingButton.BUTTON_SIZE)
-        self:super(BuildingButtonTray).__init__(self, v(government.pos.x - shape.x, 0), shape)
+        local w = 3
+        local h = 2
+        local shape  = v(w * (BuildingButton.BUTTON_SIZE + 5), h * (BuildingButton.BUTTON_SIZE + 5))
+        self:super(BuildingButtonTray).__init__(self, v(government.pos.x - 35, 0), shape)
 
         -- add building buttons
         self.buttons = {}
-        for i, type in ipairs(Map.TYPE_ORDER) do
-            local offset = v((i- 1) * (BuildingButton.BUTTON_SIZE + 5), 0)
-            local button = BuildingButton(self.pos + offset, type, type, self)
-            table.insert(self.buttons, button)
+        local type_i = 0
+        for y_i = 1, h do
+            for x_i = 1, w do
+                type_i = type_i + 1
+                local offset = v((x_i - 1) * (BuildingButton.BUTTON_SIZE + 5), (y_i - 1) * (BuildingButton.BUTTON_SIZE + 5))
+                local button = BuildingButton(self.pos + offset, Map.TYPE_ORDER[type_i], self)
+                table.insert(self.buttons, button)
+            end
         end
     end,
 
@@ -196,11 +202,13 @@ class "BuildingButton" (Button) {
     BUTTON_SIZE = 60,
     ICON_SCALE = 6,
 
-    __init__ = function(self, pos, type, shape_family, tray)
+    __init__ = function(self, pos, type, tray)
         self.tray = tray
         self.type = type
-        self.shape_family = shape_family
         local type_color = Map.TYPES[type]
+        if type == 'random' then
+            type_color = {255, 255, 255}
+        end
         self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3 }
         self.refresh_time = 0.0
         self.hidden = false
@@ -212,8 +220,12 @@ class "BuildingButton" (Button) {
     next = function(self)
         self.clickable = true
         self.state = 'showing'
-        self.pattern = lume.randomchoice(Building.PATTERNS[self.shape_family])
-        self.building = Building(self.pattern, self.type)
+        local type = self.type
+        if type == "random" then
+            type = lume.randomchoice(lume.keys(Map.TYPES))
+        end
+        self.pattern = lume.randomchoice(Building.PATTERNS[type])
+        self.building = Building(self.pattern, type)
     end,
 
     finish = function(self)

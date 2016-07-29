@@ -1,23 +1,23 @@
 class "Government" (Object) {
     __init__ = function(self, x)
-        self:super(Government).__init__(self, v(x, 0), v(GAME_WIDTH - x, GAME_HEIGHT))
+        self:super(Government).__init__(self, v(x, 150), v(GAME_WIDTH - x, GAME_HEIGHT))
         self.moses_office = MosesOffice(self.pos)
         self.committees = {}
         for type_i, type in ipairs(Map.TYPE_ORDER) do
             if type ~= "moses" then
-                local com = ProjectCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT), type)
+                local com = ProjectCommittee(self.pos + v(0, (#self.committees+1) * Committee.HEIGHT), type)
                 table.insert(self.committees, com)
             end
         end
         for district_i, district in ipairs(lume.keys(Map.DISTRICTS)) do
             if district ~= "land" then
-                local com = DistrictCommittee(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT),
+                local com = DistrictCommittee(self.pos + v(0, (#self.committees+1) * Committee.HEIGHT),
                                               district)
                 table.insert(self.committees, com)
             end
         end
 
-        self.mayor_office = MayorOffice(v(self.pos.x, (#self.committees+1) * Committee.HEIGHT))
+        self.mayor_office = MayorOffice(self.pos + v(0, (#self.committees+1) * Committee.HEIGHT))
         self.rooms = lume.concat({self.moses_office}, self.committees, {self.mayor_office})
         self.turn_i = 0
         self.actions = {}
@@ -606,7 +606,6 @@ class "Committee" (Room) {
             n = 1
         end
         n = math.max(n - self.resilience, 0)
-        log.trace(n)
         if callback == nil then
             callback = function() end
         end
