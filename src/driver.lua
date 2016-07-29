@@ -26,6 +26,8 @@ SOUND_ON = true
 
 mouseenabled = true
 
+progress = {}
+
 function love.load()
     -- all non-imported non-const globals should be made here
 

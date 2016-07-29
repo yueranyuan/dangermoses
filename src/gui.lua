@@ -257,6 +257,10 @@ class "BuildingButton" (Button) {
 
     on_click = function(self)
         if player.power then return end
+        if not progress.first_building then
+            overlay:set("you are building your first building!")
+            progress.first_building = true
+        end
         player.plan = Plan(player, self.building)
         self.tray:set_active_button(self)
         return true
@@ -277,6 +281,10 @@ class "PowerupTray" (ButtonTray) {
 
         self.buy_mode = false
         self.buy_button = BuyButton(self.pos, v(self.shape.x, 40), function()
+            if not progress.buy_button_used then
+                overlay:set("this is the buy button dawg")
+                progress.buy_button_used = true
+            end
             self.buy_mode = not self.buy_mode
             return true
         end)
@@ -423,7 +431,10 @@ class "PowerupButton" (Button) {
         if powerup_tray.buy_mode then
             return self:buy()
         else
-            overlay:set("hahaha", self.icon)
+            if not progress.first_powerup then
+                overlay:set("using powerup for the first time? bold sir!", self.icon)
+                progress.first_powerup = true
+            end
             return self:try_use()
         end
     end,
