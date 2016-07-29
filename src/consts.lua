@@ -6,8 +6,13 @@ MAP_SCALE = 25 -- Number of pixels per tile.
 AI_SPEED = 15.0
 HATER_PER_MEMBER = 1
 POWERUP_TRAY_WIDTH = 80
-MAP_CSV = nil
 IS_TUTORIAL = true
+MAP_DATA = {
+    bg="grafix/map_bg.png",
+    type="grafix/map_type.png",
+    district="grafix/map_district.png",
+    csv=nil --"map.csv"
+}
 
 SHITTINESS_BASE = 10  -- the shittiness of the first committee
 SHITTINESS_SLOPE = 10  -- how much the shittiness increase with each committee level

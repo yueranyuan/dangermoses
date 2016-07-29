@@ -75,6 +75,12 @@ function love.load()
     sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
     sfx_next = Sound("sfx/next_button_typewriter.wav", "static")
 
+    setup_level()
+end
+
+function setup_level(map_name, committee_names)
+    Object.objects = {}
+
     -- make players
     TAMMANY = Agent('TAMMANY', {30, 30, 30})
     AIs = {}
@@ -105,6 +111,9 @@ end
 function love.keypressed(key)
     if key == "escape" then
         controller:back()
+    elseif key == 'r' then
+        -- TODO: remove
+        setup_level()
     end
 end
 
