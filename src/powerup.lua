@@ -66,7 +66,7 @@ class "Powerup" (Object) {
 class "StrongArm" (Powerup) {
     name = "strongarm",
     cost = 3,
-    hover_text = "Converts three detractors on a committee into supporters for this turn.",
+    hover_text = "Strong Arm \nCoerce some of the opposition in a committee to see things your way for one turn.",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
@@ -86,7 +86,7 @@ class "StrongArm" (Powerup) {
 class "Shutdown" (Powerup) {
     name = "shutdown",
     cost = 7,
-    hover_text = "Completely skips a committee for this turn.",
+    hover_text = "Shutdown \nClose down a committee for a turn- they won't get to vote on their building plans. Oh well!",
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
@@ -106,7 +106,7 @@ class "Shutdown" (Powerup) {
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
     cost = 5,
-    hover_text = "Removes three detractors from a project.",
+    hover_text = "Good Publicity \nA media push to reduce the amount of local opposition to a project. Reduces the dissidents on your building plan by three.",
     img = lg.newImage("grafix/goodpublicity.png"),
     sfx_sound = Sound("sfx/publicity_film.wav", "static"),
     __init__ = function(self)
@@ -121,7 +121,7 @@ class "GoodPublicity" (Powerup) {
 class "Swap" (Powerup) {
     name = "swap",
     cost = "free",
-    hover_text = "Switches the position of any two committees.",
+    hover_text = "Swap Order \nA rule change that adjusts when committees convene. Sometimes committee approvals can get lost in the shuffle.",
     img = lg.newImage("grafix/swap.png"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
@@ -160,7 +160,7 @@ class "Swap" (Powerup) {
 class "Mislabel" (Powerup) {
     name = "mislabel",
     cost = "priceless",
-    hover_text = "Lets you make a building be evaluated as a different color.",
+    hover_text = "Mislabel \nChanging what we call something can change who needs to approve it. Changes the color of a building option.",
     img = lg.newImage("grafix/mislabel.png"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
@@ -190,7 +190,7 @@ class "Mislabel" (Powerup) {
 class "Appeal" (Powerup) {
     name = "appeal",
     cost = "free",
-    hover_text = "Reverts any failures on a project and sends it back to the top.",
+    hover_text = "Appeal \nSet a building plan back to the start of the approvals process. Can be used to stall for time. Can only be used if there is nothing else at the starting space.",
     img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
@@ -213,8 +213,8 @@ class "Appeal" (Powerup) {
 
 class "Lackey" (Powerup) {
     name = "lackey",
-    cost = 5,
-    hover_text = "Adds a supporter to a committee.",
+    cost = "priceless",
+    hover_text = "Lackey \nInstall a loyal 'Moses Man' to look after your interests in the longer term.",
     img = lg.newImage("grafix/lackey.png"),
     sfx_sound = Sound("sfx/lackey_cough.wav", "static"),
     __init__ = function(self)
@@ -229,7 +229,7 @@ class "Lackey" (Powerup) {
 class "Resilience" (Powerup) {
     name = "resilience",
     cost = "priceless",
-    hover_text = "Keeps the haters at bay.",
+    hover_text = "[description goes here]",
     img = lg.newImage("grafix/resilience.png"),
     __init__ = function(self)
         self:super(Resilience).__init__(self, government.committees, 0)
