@@ -8,7 +8,17 @@ class "Building" (Object) {
                       "road_L6", "road_L7", "road_L8", "road_L9",
                       "road_M1", "road_M2", "road_M3", "road_M4", "road_M5",
                       "road_S1", "road_S2", "road_S3", "road_S4"},
-                house={"tnmt_L1", "tnmt_L2", "tnmt_L3", "tnmt_L4",
+                tenament={"tnmt_L1", "tnmt_L2", "tnmt_L3", "tnmt_L4",
+                       "tnmt_M1", "tnmt_M2", "tnmt_M3",
+                       "tnmt_S1", "tnmt_S2"},
+                washington={"park_L1", "park_L2", "park_L3",
+                      "park_M1", "park_M2", "park_M3", "park_M4",
+                      "park_S1", "park_S2", "park_S3", "park_S4"},
+                adams={"road_L1", "road_L2", "road_L3", "road_L4", "road_L5",
+                      "road_L6", "road_L7", "road_L8", "road_L9",
+                      "road_M1", "road_M2", "road_M3", "road_M4", "road_M5",
+                      "road_S1", "road_S2", "road_S3", "road_S4"},
+                jefferson={"tnmt_L1", "tnmt_L2", "tnmt_L3", "tnmt_L4",
                        "tnmt_M1", "tnmt_M2", "tnmt_M3",
                        "tnmt_S1", "tnmt_S2"}},
     all_imgs = {},
@@ -35,14 +45,18 @@ lume.each(lume.set(utils.concat_arr(Building.PATTERNS)), function(v)
 end)
 
 class "Map" (Object){
-    TYPES = {moses={0, 255, 0}, park={150, 230, 100}, house={136, 136, 250}, road={250, 180, 130},
+    TYPES = {park={150, 230, 100}, tenament={136, 136, 250}, road={250, 180, 130},
             washington={255, 252, 157},
             adams={251, 133, 219},
             jefferson={123, 255, 253},
             madison={122, 135, 111}},
-    TYPE_ORDER = {'park', 'house', 'road', 'washington', 'adams', 'jefferson', 'madison'},
+    TYPE_ORDER = {'park', 'tenament', 'road', 'washington', 'adams', 'jefferson'},
     --PERSON_TYPES = {hater={80, 80, 80}, moses={230, 230, 230}},
-    PERSON_TYPES = {hater={255, 0, 0}, moses={0, 255, 0}},
+    PERSON_TYPES = {hater={80, 80, 80}, park={150, 230, 100}, tenament={136, 136, 250}, road={250, 180, 130},
+            washington={255, 252, 157},
+            adams={251, 133, 219},
+            jefferson={123, 255, 253},
+            madison={122, 135, 111}},
     --DISTRICTS = {queens={255, 253, 56}, brooklyn={176, 176, 176}, manhattan={147, 39, 144}},
     DISTRICTS = {land={0, 0, 0}},
 
@@ -81,6 +95,7 @@ class "Map" (Object){
         end
         self.height = #self.grid
         self.width = #self.grid[1]
+        log.trace(self.width, self.height)
 
         -- load district map
         pixels = love.graphics.newImage("grafix/map_district.png"):getData()
@@ -101,8 +116,53 @@ class "Map" (Object){
             self.district_grid[y+1] = row
         end
 
+        -- auto-gen map.csv
+        local txt = "\n"
+        for row_i, row in ipairs(self.grid) do
+            for cell_i, cell in ipairs(row) do
+                local val = ' '
+                if cell ~= "empty" and self.district_grid[row_i][cell_i] ~= "water" then
+                    -- generate a person
+                    local rando = math.random()
+                    local type_idx = lume.find(Map.TYPE_ORDER, cell)
+                    local shittiness = 0.3 + type_idx * 0.05
+                    local neighbors = lume.map({-2, -1, 1, 2}, function(idx)
+                        return Map.TYPE_ORDER[math.min(math.max(1, type_idx - idx), #Map.TYPE_ORDER)]
+                    end)
+                    neighbors = lume.filter(neighbors, function(ne) return ne ~= cell end)
+                    if rando < shittiness then
+                        if rando < shittiness / 3 then
+                            val = 'h'  -- it's randomly hater
+                        else
+                            val = lume.randomchoice(neighbors):sub(1, 1)
+                            log.trace(cell, val)
+                        end
+                    else
+                        val = cell:sub(1, 1)
+                    end
+
+                    -- generate a powerup
+                    if math.random() < 0.1 then
+                        val = lume.randomchoice(PowerupTray.POWERS).name
+                    end
+                end
+                txt = txt..val
+                if cell_i < #row then
+                    txt = txt..','
+                end
+            end
+            txt = txt..'\n'
+        end
+        log.trace(txt)
+
+
         -- make people
         -- empty grid first
+        local f = csv.open(arg[1].."/map.csv")
+        local people_grid_data = {}
+        for line in f:lines() do
+            table.insert(people_grid_data, line)
+        end
         self.people = {}
         self.people_grid = {}
         for y = 0, h - 1 do
@@ -115,15 +175,13 @@ class "Map" (Object){
 
         self.floor_powerups = {}
         -- fill empty grid
-        local f = csv.open(arg[1].."/map.csv")
-        local person_dict = {r="road", p="park", t="house", h="hater", m="moses"}
+        local person_dict = {r="road", p="park", t="tenament", h="hater", m="jefferson",
+                             w="washington", a="adams", j="jefferson", d="madison"}
         local powerup_dict = {}
         for _, powerup_class in ipairs(PowerupTray.POWERS) do
             powerup_dict[powerup_class.name] = powerup_class
         end
-        local y = 0
-        for fields in f:lines() do
-            y = y + 1
+        for y, fields in ipairs(people_grid_data) do
             for x, p in ipairs(fields) do
                 if powerup_dict[p:sub(1, #p-1)] then
                     local powerup = powerup_dict[p:sub(1, #p-1)]
@@ -157,6 +215,7 @@ class "Map" (Object){
         end
         if color == nil then
             color = Map.TYPES[self.grid[coord.y][coord.x]]
+            if color == nil then return end
             color = {color[1], color[2], color[3], 150}
         end
         if color ~= nil then

@@ -228,6 +228,6 @@ class "Resilience" (Powerup) {
     end,
 
     _use = function(self, target)
-        target.resilience = 1 - (0.8 * (1 - target.resilience))
+        target.resilience = target.resilience + 1
     end
 }

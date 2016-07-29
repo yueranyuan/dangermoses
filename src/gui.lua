@@ -160,14 +160,14 @@ class "BuildingButtonTray" (ButtonTray) {
     __init__ = function(self)
         self.hidden = false
         self.active_button = nil
-        local shape = v((#lume.keys(Building.PATTERNS)) * (BuildingButton.BUTTON_SIZE + 5), BuildingButton.BUTTON_SIZE)
+        local shape = v((#Map.TYPE_ORDER) * (BuildingButton.BUTTON_SIZE + 5), BuildingButton.BUTTON_SIZE)
         self:super(BuildingButtonTray).__init__(self, v(government.pos.x - shape.x, 0), shape)
 
         -- add building buttons
         self.buttons = {}
-        for i, shape_family in ipairs(lume.keys(Building.PATTERNS)) do
+        for i, type in ipairs(Map.TYPE_ORDER) do
             local offset = v((i- 1) * (BuildingButton.BUTTON_SIZE + 5), 0)
-            local button = BuildingButton(self.pos + offset, "moses", shape_family, self)
+            local button = BuildingButton(self.pos + offset, type, type, self)
             table.insert(self.buttons, button)
         end
     end,
@@ -201,7 +201,7 @@ class "BuildingButton" (Button) {
         self.type = type
         self.shape_family = shape_family
         local type_color = Map.TYPES[type]
-        self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3}
+        self.color = {type_color[1] * 0.3, type_color[2] * 0.3, type_color[3] * 0.3 }
         self.refresh_time = 0.0
         self.hidden = false
         self:super(BuildingButton).__init__(self, pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
