@@ -22,22 +22,7 @@ require "src/map"
 require "src/player"
 require "src/plan"
 
-SOUND_ON = false
-
-music = Sound("sfx/bg_music_2.ogg")
-music:setLooping(true)
-music:setVolume(1)
-music:play()
-
-ambience = Sound("sfx/ambience_road2.ogg")
-ambience:setLooping(true)
-ambience:setVolume(0.5)
-ambience:play()
-
-sfx_click = Sound("sfx/typewriter_hit.wav", "static")
-sfx_jackhammer = Sound("sfx/build_jackhammer.wav", "static")
-sfx_mayor_pass = Sound("sfx/mayor_approve_stamp.wav", "static")
-sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
+SOUND_ON = true
 
 mouseenabled = true
 
@@ -46,6 +31,22 @@ function love.load()
 
     -- the order we make things is important because I haven't implemented z-ordering in the
     -- gameobject class so things are drawn in the order they are added
+
+    music = Sound("sfx/bg_music_2.ogg")
+    music:setLooping(true)
+    music:setVolume(0.7)
+    music:play()
+
+    ambience = Sound("sfx/ambience_road.ogg")
+    ambience:setLooping(true)
+    ambience:setVolume(0.4)
+    ambience:play()
+    ambience:setLooping(true)
+
+    sfx_click = Sound("sfx/typewriter_hit.wav", "static")
+    sfx_jackhammer = Sound("sfx/build_jackhammer.wav", "static")
+    sfx_mayor_pass = Sound("sfx/mayor_approve_stamp.wav", "static")
+    sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
 
     -- make players
     TAMMANY = Agent('TAMMANY', {30, 30, 30})
