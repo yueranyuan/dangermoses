@@ -1,6 +1,6 @@
 class "Government" (Object) {
     __init__ = function(self, x)
-        self:super(Government).__init__(self, v(x, 150), v(GAME_WIDTH - x, GAME_HEIGHT))
+        self:super(Government).__init__(self, v(x, powerup_tray.pos.y + powerup_tray.shape.y), v(GAME_WIDTH - x, GAME_HEIGHT))
         self.moses_office = MosesOffice(self.pos)
         self.committees = {}
         for type_i, type in ipairs(Map.TYPE_ORDER) do
@@ -74,50 +74,19 @@ class "Government" (Object) {
                 end)
             end
         end
-        self:add_action(function() building_button_tray:refresh_all() end)
+        self:add_action(function()  end)
 
         self.run_next_action()
     end,
 
-    next_old = function(self)
-        self:_next()
-        while #self:get_laws() > 0 and #lume.filter(self.rooms, function(r) return r:is_active() end) == 0 do
-            self:_next()
-        end
-
-        self.turn_i = self.turn_i + 1
-        building_button_tray:refresh_all()
-    end,
-
-    _next = function(self)
-        for room_i, room in lume.ripairs(self.rooms) do
-            -- decide current law
-            local law = room.law
-            if law and room:is_active() then
-                if not room:decide(law) then
-                    law.n_failures = law.n_failures + 1
-                end
-                room:finish(law)
-            end
-
-            -- pull previous law up to current room
-            if room_i > 1 then
-                room:set_law(self.rooms[room_i - 1].law)
-            else
-                room:set_law(nil)
-            end
-
-            -- destroy current law if it is the last
-            if law and room_i == #self.rooms then
-                law:destroy()
-            end
-
-            room:next()
-        end
-    end,
-
     draw = function(self)
-        draw_transparent_rect(self.pos.x, 0, GAME_WIDTH, GAME_HEIGHT, {50, 50, 50})
+    end
+}
+
+class "FreeMember" {
+    __init__ = function(self, pos, color)
+        self.pos = pos
+        self.color = color
     end
 }
 
@@ -232,6 +201,8 @@ class "Legislation" (Object) {
                 end)
             end
         end)
+
+        self.flash_handle = nil
     end,
 
     set_room = function(self, room)
@@ -252,26 +223,48 @@ class "Legislation" (Object) {
             self.alpha = 255
         end
 
+        self.flashing = false
         if self.n_failures > 0 then
             self.color = {150, 0, 0}
         elseif self.current_room:is_active() then
             if self.current_room:decide(self) then
                 self.color = {30, 50, 30}
             else
-                self.color = {50, 30, 30}
+                self.flashing = true
             end
         else
             self.color = {30, 30, 30}
         end
         self.crowd.pos = self.pos + self.crowd_offset
+
+        self:update_flash()
+    end,
+
+    update_flash = function(self, dt)
+        if self.flashing then  -- should be flashing
+            if not self.flash_handle then
+                self.flash_handle = Timer.every(0.6, function()
+                    Timer.tween(0.3, self, {color={255, 30, 30}}, 'linear', function()
+                        Timer.tween(0.3, self, {color={50, 30, 30}}, 'linear', function()
+                        end)
+                    end)
+                end)
+            end
+        else  -- should not be flashing
+            if self.flash_handle then
+                Timer.cancel(self.flash_handle)
+                self.flash_handle = nil
+            end
+        end
     end,
 
     draw = function(self)
-        self.color = {self.color[1], self.color[2], self.color[3], self.alpha }
+        local color = {self.color[1], self.color[2], self.color[3], self.alpha }
         self.crowd.color = {self.crowd.color[1], self.crowd.color[2], self.crowd.color[3], self.alpha }
 
         -- draw background box
-        self:super(Legislation).draw(self)
+        self:lgSetColor(color)
+        lg.rectangle('fill', self.pos.x, self.pos.y, self.shape.x, self.shape.y)
 
         -- draw whether we failed
         --draw_transparent_rect(self.pos.x, self.pos.y, 45, self.shape.y, {50, 50, 50})
@@ -288,7 +281,7 @@ class "Legislation" (Object) {
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
 
-        -- draw committees
+        -- draw committees icons
         local r = 5
         for com_i, com in ipairs(self.committees) do
             local pos = self.pos + v(40 + com_i * (r * 2 + 2), r)
@@ -353,48 +346,12 @@ class "Legislation" (Object) {
     end,
 }
 
-class "RoomVerdict" (Object) {
-    __init__ = function(self, room)
-        self.shown = false
-        self.room = room
-        self:super(RoomVerdict).__init__(self, room.pos, v(10, 10))
-    end,
-
-    update = function(self)
-        if self.room.law and self.room:is_active() then
-            if self.room:decide(self.room.law) then
-                self:set_success()
-            else
-                self:set_fail()
-            end
-        else
-            self:hide()
-        end
-    end,
-
-    hide = function(self)
-        self.shown = false
-    end,
-
-    set_fail = function(self)
-        self.shown = true
-        self.color = {255, 0, 0}
-    end,
-
-    set_success = function(self)
-        self.shown = true
-        self.color = {0, 255, 0}
-    end,
-}
-
 class "Room" (Object) {
     HEIGHT = 64,
     MARGIN = 15,
 
     __init__ = function(self, pos)
         self:super(Room).__init__(self, pos, v(GAME_WIDTH - POWERUP_TRAY_WIDTH - pos.x, Committee.HEIGHT - 5))
-        self.verdict = RoomVerdict(self)
-        self.verdict:set_parent(self)
         self.closed = false
     end,
 
@@ -426,10 +383,11 @@ class "Room" (Object) {
 
     process_law = function(self, law)
         if law and self:is_active() then
-            if not self:decide(law) then
+            local passed = self:decide(law)
+            if not passed then
                 law.n_failures = law.n_failures + 1
             end
-            self:finish(law)
+            self:finish(law, passed)
         end
     end,
 
@@ -441,8 +399,12 @@ class "Room" (Object) {
 class "MosesOffice" (Room) {
     __init__ = function(self, pos)
         self:super(MosesOffice).__init__(self, pos)
-        local callback = function() return self:cancel_building() end
-        self.cancel_button = CancelButton(pos + v(10, 10), callback)
+        self.cancel_button = CancelButton(self.pos + v(10, 10), function()
+             return self:cancel_building()
+        end)
+        self.next_button = NextButton(v(self.pos.x + self.shape.x, self.pos.y), function()
+            return self:on_next()
+        end)
         self.crowd = Crowd(pos + v(self.shape.x - 70, 10), 0, {0, 255, 0})
     end,
 
@@ -454,17 +416,32 @@ class "MosesOffice" (Room) {
         return false
     end,
 
+    can_spend = function(self, cost)
+        return self.crowd.n >= cost
+    end,
+
     update = function(self)
         self.cancel_button.clickable = (self.law ~= nil)
-        building_button_tray:set_hidden(self.law ~= nil)
+        self.next_button.clickable = (self.law ~= nil)
+        building_button_tray.clickable = (self.law == nil)
     end,
 
     cancel_building = function(self)
         if self.law == nil then return false end
-        hud:set_message("project canceled", HUD.FAIL)
+        hud:set_message("project canceled", HUD.FAIL, 2)
         map:remove_pending_building(self.law.building)
         self.law:destroy()
         self:set_law(nil)
+        return true
+    end,
+
+    on_next = function(self)
+        sfx_next:play()
+        building_button_tray:refresh_all()
+        government:next()
+        for _, powerup in lume.ripairs(Powerup.powerups) do
+            powerup:next()
+        end
         return true
     end,
 
@@ -486,7 +463,7 @@ class "MosesOffice" (Room) {
 class "CancelButton" (Button) {
     __init__ = function(self, pos, callback)
         self.color = {255, 0, 0 }
-        self:super(CancelButton).__init__(self, pos, v(100, 30), callback)
+        self:super(CancelButton).__init__(self, pos, v(80, 30), callback)
     end,
 
     draw = function(self)
@@ -498,6 +475,32 @@ class "CancelButton" (Button) {
     end
 }
 
+class "NextButton" (Button) {
+    __init__ = function(self, pos, callback)
+        self.color = {50, 180, 50 }
+        self:super(NextButton).__init__(self, pos, v(70, 60), callback)
+    end,
+
+    update = function(self, dt)
+        if self.clickable then
+            self.color = {50, 180, 50 }
+        else
+            self.color = {0, 0, 0 }
+        end
+    end,
+
+    draw = function(self)
+        self:super(NextButton).draw(self)
+        if self.clickable then
+            lg.setColor({255, 255, 255})
+            lg.printf("Next", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        else
+            lg.setColor({255, 255, 255})
+            lg.printf("select a building", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        end
+    end,
+}
+
 class "MayorOffice" (Room) {
     __init__ = function(self, pos)
         self.strikes = 3
@@ -507,6 +510,15 @@ class "MayorOffice" (Room) {
         self.past_turns = 0
         self.total_turns = 12
         self:super(MayorOffice).__init__(self, pos)
+
+        self.resign_button = ResignButton(self.pos + v(40, 40), function()
+            self:resign()
+        end)
+    end,
+
+    resign = function(self)
+        self.law.n_failures = 0
+        self.strikes = 0
     end,
 
     decide = function(self, law)
@@ -521,6 +533,10 @@ class "MayorOffice" (Room) {
         end
     end,
 
+    update = function(self)
+        self.resign_button.clickable = (self.law ~= nil and not self:decide(self.law) and self.strikes > 0)
+    end,
+
     next = function(self, law)
         if government.turn_i - self.past_turns >= self.total_turns then
             self.past_turns = government.turn_i
@@ -532,37 +548,47 @@ class "MayorOffice" (Room) {
 
     approve = function(self, law)
         sfx_mayor_pass:play()
-        hud:set_message("project approved", HUD.SUCCESS)
+        hud:set_message("project approved", HUD.SUCCESS, 2)
         map:place_building(law.builder, law.building)
     end,
 
     disapprove = function(self, law)
         sfx_mayor_reject:play()
         self.strikes = self.strikes - 1
-        hud:set_message("project rejected", HUD.FAIL)
+        hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
     end,
 
     draw = function(self)
         self:super(MayorOffice).draw(self)
         self:lgSetColor(0, 0, 0)
-        lg.print("#Strikes Remaining: "..self.strikes, self.pos.x + 10, self.pos.y + 10)
-        lg.print("turns till new mayor: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
+        lg.print("#Strikes: "..self.strikes, self.pos.x + 10, self.pos.y + 10)
+        lg.print("turns remaining: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
                  self.pos.x + 10, self.pos.y + 25)
         local n_tiles = player.built_cells + map.n_pending_tiles
-        lg.print("new tile quota: "..(n_tiles - self.past_tiles).."/"..(self.needed_tiles),
-                 self.pos.x + 10, self.pos.y + 40)
+        --lg.print("new tile quota: "..(n_tiles - self.past_tiles).."/"..(self.needed_tiles),
+        --         self.pos.x + 10, self.pos.y + 40)
     end
 }
 
-class "FreeMember" {
-    __init__ = function(self, pos, color)
-        self.pos = pos
-        self.color = color
+class "ResignButton" (Button) {
+    __init__ = function(self, pos, callback)
+        self.color = {255, 0, 0 }
+        self:super(ResignButton).__init__(self, pos, v(80, 30), callback)
+    end,
+
+    draw = function(self)
+        if self.clickable then
+            self:super(ResignButton).draw(self)
+            lg.setColor({255, 255, 255})
+            lg.printf("Resign", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        end
     end
 }
 
 class "Committee" (Room) {
+    REPUTATION_IMG = lg.newImage("grafix/shield.png"),
+
     __init__ = function(self, pos, n_members, ratio, resilience)
         self.n_members = n_members
         self:super(Committee).__init__(self, pos)
@@ -657,19 +683,31 @@ class "Committee" (Room) {
         return self.yea_crowd.n > self.n_members / 2
     end,
 
+    finish = function(self, law, passed)
+        if passed then
+            self.resilience = self.resilience + 1
+        end
+    end,
+
     decide = function(self, law)
         return self:check_pass()
     end,
 
     draw = function(self)
         self:super(Committee).draw(self)
-        self:lgSetColor({0, 0, 0})
         --local center_pos = self.pos + (self.yea_crowd_offset + self.nay_crowd_offset) / 2
         --lg.print(lume.round(self.yea_crowd.n / self.n_members * 100).."%", center_pos.x, center_pos.y)
 
+        self:lgSetColor({0, 0, 0})
         lg.rectangle("fill", self.pos.x, self.pos.y, 30, self.shape.y)
-        self:lgSetColor({0, 150 + self.resilience * 30, 0})
-        lg.print(self.resilience, self.pos.x, self.pos.y + 20)
+        if self.resilience > 0 then
+            self:lgSetColor({0, 150 + 100 * (self.resilience / 5), 0})
+        else
+            self.resilience = 0
+        end
+        lg.draw(self.REPUTATION_IMG, self.pos.x - 10, self.pos.y + 5, 0, 2)
+        self:lgSetColor({0, 0, 0})
+        lg.print(self.resilience, self.pos.x + 7, self.pos.y + 20)
     end
 }
 
@@ -679,7 +717,14 @@ class "ProjectCommittee" (Committee) {
         self.color = Map.TYPES[type]
         self.data = COMMITTEES[type]
         self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio, self.data.resilience)
+        self.button_offset = v(self.shape.x, 0)
+        self.button = building_button_tray:add_button(self.pos + self.button_offset, self.type)
     end,
+
+    update = function(self, dt)
+        self:super(ProjectCommittee).update(self, dt)
+        self.button.pos = self.pos + self.button_offset
+    end
 }
 
 class "DistrictCommittee" (Committee) {

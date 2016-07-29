@@ -6,3 +6,11 @@ MAP_SCALE = 26 -- Number of pixels per tile.
 AI_SPEED = 15.0
 HATER_PER_MEMBER = 1
 POWERUP_TRAY_WIDTH = 90
+MAP_CSV = nil
+
+SHITTINESS_BASE = 30  -- the shittiness of the first committee
+SHITTINESS_SLOPE = 5  -- how much the shittiness increase with each committee level
+SUPPORTER_CHANCE = 0.35  -- percentage of people who are supporters
+PURE_HATER_PERCENTAGE = 0.33  -- percentage of haters who are pure haters
+FLOOR_POWERUP_DISTRIBUTION = {goodpublcty3=2, strongarm3=2, shutdown2=2,
+    resilience2=3, lackey2=5, resilience=15, lackey=30 }

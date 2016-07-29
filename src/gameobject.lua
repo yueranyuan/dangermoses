@@ -134,6 +134,13 @@ class "Object" {
         end
     end,
 
+    check_hover = function(self, mousepos)
+        if self.on_hover == nil then return end
+        if self:collide_point(mousepos) then
+            return self:on_hover(mousepos)
+        end
+    end,
+
     --- method functions
     collide_imgs = function(a, b)
         return Object.collide_maps(a.grid, b.grid, b.pos - a.pos)

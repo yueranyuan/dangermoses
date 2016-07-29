@@ -27,8 +27,23 @@ class "Building" (Object) {
 }
 
 lume.each(lume.set(utils.concat_arr(Building.PATTERNS)), function(v)
-    Building.all_imgs[v] = love.graphics.newImage("grafix/"..v..".png")
+    Building.all_imgs[v] = love.graphics.newImage("grafix/buildings/"..v..".png")
 end)
+
+function load_grid(inp_grid, cell_func)
+    local grid = {}
+    for y = 1, #inp_grid do
+        local row = {}
+        for x = 1, #inp_grid[y] do
+            local val = inp_grid[y][x]
+            local out = cell_func(val, x, y)
+            row[x] = out
+        end
+        grid[y] = row
+    end
+    return grid
+end
+
 
 class "Map" (Object){
     TYPES = {park={150, 230, 100}, tenament={136, 136, 250}, road={250, 180, 130},
@@ -53,101 +68,94 @@ class "Map" (Object){
 
         self.bg = love.graphics.newImage("grafix/map_bg.png")
         -- load grid from map image
-        local pixels = love.graphics.newImage("grafix/map_type.png"):getData()
-        if h == nil then
-            h = pixels:getHeight()
-        else
-            h = math.min(h, pixels:getHeight())
-        end
-        if w == nil then
-            w = pixels:getWidth()
-        else
-            w = math.min(w, pixels:getWidth())
-        end
-        self.grid = {}
-        for y = 0, h - 1 do
-            local row = {}
-            for x = 0, w - 1 do
-                local r, g, b, _ = pixels:getPixel(x, y)
-                row[x+1] = "empty"
-                for type, color in pairs(Map.TYPES) do
-                    if r == color[1] and g == color[2] and b == color[3] then
-                        row[x+1] = type
-                    end
+        local map_type_img = love.graphics.newImage("grafix/map_type.png")
+
+        self.grid = load_grid(utils.img_to_grid(map_type_img), function(val)
+            for type, color in pairs(Map.TYPES) do
+                if val[1] == color[1] and val[2] == color[2] and val[3] == color[3] then
+                    return type
                 end
             end
-            self.grid[y+1] = row
-        end
+            return "empty"
+        end)
         self.height = #self.grid
         self.width = #self.grid[1]
-        log.trace(self.width, self.height)
 
         -- load district map
-        pixels = love.graphics.newImage("grafix/map_district.png"):getData()
-        assert(pixels:getHeight() >= h)
-        assert(pixels:getWidth() >= w)
-        self.district_grid = {}
-        for y = 0, h - 1 do
-            local row = {}
-            for x = 0, w - 1 do
-                local r, g, b, _ = pixels:getPixel(x, y)
-                row[x+1] = "water"
-                for district, color in pairs(Map.DISTRICTS) do
-                    if r == color[1] and g == color[2] and b == color[3] then
-                        row[x+1] = district
-                    end
+        local map_district_img = love.graphics.newImage("grafix/map_district.png")
+        self.district_grid = load_grid(utils.img_to_grid(map_district_img), function(val)
+            for district, color in pairs(Map.DISTRICTS) do
+                if val[1] == color[1] and val[2] == color[2] and val[3] == color[3] then
+                    return district
                 end
             end
-            self.district_grid[y+1] = row
-        end
+            return "water"
+        end)
+        assert(#self.district_grid == #self.grid and #self.district_grid[1] == #self.grid[1])
 
         -- auto-gen map.csv
-        local txt = "\n"
-        for row_i, row in ipairs(self.grid) do
-            for cell_i, cell in ipairs(row) do
-                local val = ' '
-                if cell ~= "empty" and self.district_grid[row_i][cell_i] ~= "water" then
-                    -- generate a person
-                    local rando = math.random()
-                    local type_idx = lume.find(Map.TYPE_ORDER, cell)
-                    local shittiness = 0.3 + type_idx * 0.05
-                    local neighbors = lume.map({-2, -1, 1, 2}, function(idx)
-                        return Map.TYPE_ORDER[math.min(math.max(1, type_idx - idx), #Map.TYPE_ORDER)]
-                    end)
-                    neighbors = lume.filter(neighbors, function(ne) return ne ~= cell end)
-                    if rando < shittiness then
-                        if rando < shittiness / 3 then
-                            val = 'h'  -- it's randomly hater
-                        else
-                            val = lume.randomchoice(neighbors):sub(1, 1)
-                            log.trace(cell, val)
-                        end
-                    else
-                        val = cell:sub(1, 1)
-                    end
-
-                    -- generate a powerup
-                    if math.random() < 0.1 then
-                        val = lume.randomchoice(PowerupTray.POWERS).name
-                    end
-                end
-                txt = txt..val
-                if cell_i < #row then
-                    txt = txt..','
+        local map_gen_img = love.graphics.newImage("grafix/map_gen.png")
+        local full_committee_grid = load_grid(utils.img_to_grid(map_gen_img), function(val)
+            for type, color in pairs(Map.TYPES) do
+                if val[1] == color[1] and val[2] == color[2] and val[3] == color[3] then
+                    return type
                 end
             end
-            txt = txt..'\n'
-        end
-        log.trace(txt)
+            return "empty"
+        end)
+        local map_csv_grid = load_grid(full_committee_grid, function(cell, x, y)
+            if cell == "empty" or self.district_grid[y][x] == "water" then
+                return " "
+            end
 
+            -- fill the tile
+            local rando = math.random()
+            local type_idx = lume.find(Map.TYPE_ORDER, cell)
+            local shittiness = (SHITTINESS_BASE + SHITTINESS_SLOPE * type_idx) / 100
+            local pure_hater_thresh = SUPPORTER_CHANCE + (1 - SUPPORTER_CHANCE) * shittiness * PURE_HATER_PERCENTAGE
+            local other_hater_thresh = SUPPORTER_CHANCE + (1 - SUPPORTER_CHANCE) * shittiness
+            if rando < SUPPORTER_CHANCE then  -- supporter
+                return cell:sub(1, 1)
+            elseif rando < pure_hater_thresh then  -- pure hater
+                return 'h'
+            elseif rando < other_hater_thresh then -- hater of another color
+                -- choose haters of neighboring committees
+                local neighbors = lume.map({-2, -1, 1, 2}, function(idx)
+                    return Map.TYPE_ORDER[math.min(math.max(1, type_idx - idx), #Map.TYPE_ORDER)]
+                end)
+                neighbors = lume.filter(neighbors, function(ne) return ne ~= cell end)
+                return lume.randomchoice(neighbors):sub(1, 1)
+            else
+                return " "
+            end
+        end)
+        -- add the powerups
+        local used_coords = {}
+        for name, n in pairs(FLOOR_POWERUP_DISTRIBUTION) do
+            for _ = 1, n do
+                local coord
+                for try_i = 1,1000 do  -- find a place that is unique
+                    coord = v(math.ceil(math.random() * #map_csv_grid[1]),
+                              math.ceil(math.random() * #map_csv_grid))
+                    if lume.find(used_coords, coord) == nil and self.district_grid[coord.y][coord.x] ~= "water" then
+                        break
+                    end
+                end
+                map_csv_grid[coord.y][coord.x] = name
+                table.insert(used_coords, coord)
+            end
+        end
 
         -- make people
         -- empty grid first
-        local f = csv.open(arg[1].."/map.csv")
-        local people_grid_data = {}
-        for line in f:lines() do
-            table.insert(people_grid_data, line)
+        if MAP_CSV then
+            local f = csv.open(arg[1].."/"..MAP_CSV)
+            local map_csv_grid = {}
+            for line in f:lines() do
+                table.insert(map_csv_grid, line)
+            end
         end
+        -- initialize empty people grid
         self.people = {}
         self.people_grid = {}
         for y = 0, h - 1 do
@@ -157,7 +165,6 @@ class "Map" (Object){
             end
             self.people_grid[y+1] = row
         end
-
         self.floor_powerups = {}
         -- fill empty grid
         local person_dict = {r="road", p="park", t="tenament", h="hater", m="jefferson",
@@ -166,8 +173,9 @@ class "Map" (Object){
         for _, powerup_class in ipairs(PowerupTray.POWERS) do
             powerup_dict[powerup_class.name] = powerup_class
         end
-        for y, fields in ipairs(people_grid_data) do
+        for y, fields in ipairs(map_csv_grid) do
             for x, p in ipairs(fields) do
+                self.people_grid[y][x] = "none"
                 if powerup_dict[p:sub(1, #p-1)] then
                     local powerup = powerup_dict[p:sub(1, #p-1)]
                     local n = tonumber(p:sub(#p, #p))
@@ -200,7 +208,7 @@ class "Map" (Object){
         end
         if color == nil then
             color = Map.TYPES[self.grid[coord.y][coord.x]]
-            if color == nil then return end
+            if color == nil then color = {255, 255, 255, 150} end
             color = {color[1], color[2], color[3], 150}
         end
         if color ~= nil then

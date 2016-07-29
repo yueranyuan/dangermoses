@@ -41,12 +41,34 @@ function utils.set(arr)
     return out
 end
 
+function utils.find(arr, val)
+    for i, val2 in ipairs(arr) do
+        if val == val2 then
+            return i
+        end
+    end
+end
+
 function utils.shallow_copy(arr)
     return lume.map(arr)
 end
 
 function utils.trace_arr(arr)
     log.trace('['..lume.reduce(lume.map(arr, tostring), function(a, b) return a..', '..b end, "")..']')
+end
+
+function utils.img_to_grid(img)
+    local pixels = img:getData()
+    local grid = {}
+    for y = 0, pixels:getHeight() - 1 do
+        local row = {}
+        for x = 0, pixels:getWidth() - 1 do
+            local r, g, b, a = pixels:getPixel(x, y)
+            row[x+1] = {r, g, b, a}
+        end
+        grid[y+1] = row
+    end
+    return grid
 end
 
 return utils

@@ -47,6 +47,7 @@ function love.load()
     sfx_jackhammer = Sound("sfx/build_jackhammer.wav", "static")
     sfx_mayor_pass = Sound("sfx/mayor_approve_stamp.wav", "static")
     sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
+    sfx_next = Sound("sfx/next_button_typewriter.wav", "static")
 
     -- make players
     TAMMANY = Agent('TAMMANY', {30, 30, 30})
@@ -62,11 +63,11 @@ function love.load()
     map = Map(MAP_WIDTH, MAP_HEIGHT, MAP_SCALE)
 
     -- make committee side of screen
+    building_button_tray = BuildingButtonTray()
+    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=10, [GoodPublicity]=2, [Resilience]=2})
     government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
-    building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=10, [GoodPublicity]=2, [Resilience]=2})
     hud = HUD()
 end
 
@@ -111,7 +112,7 @@ function love.mousepressed(x, y)
     if not clicked then
         controller:click(mousepos)
         if powerup_tray.buy_mode then
-            powerup_tray:buy_mode_off()
+            powerup_tray.buy_mode = false
         end
     end
 
@@ -125,6 +126,12 @@ function love.update(dt)
         obj:update(dt)
         if obj.dead then
             table.remove(Object.objects, obj_i)
+        end
+    end
+
+    for _, obj in ipairs(Object.objects) do
+        if obj:check_hover(controller.mousepos) then
+            break
         end
     end
 end

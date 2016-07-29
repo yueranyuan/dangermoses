@@ -12,7 +12,7 @@ class "Agent" (Object) {
         power:use(self, target)
         self.power = nil
         powerup_tray:resolve_active_button(true)
-        hud:set_message("powerup used", HUD.SUCCESS)
+        hud:set_message("powerup used", HUD.SUCCESS, 2)
     end,
 
     build = function(self, type, pattern, coord)
@@ -39,15 +39,15 @@ class "Controller" {
         if player.power then
             player.power = nil
             powerup_tray:resolve_active_button(false)
-            hud:set_message("powerup use canceled", HUD.NEUTRAL)
+            hud:set_message("powerup use canceled", HUD.NEUTRAL, 2)
         elseif player.plan and self.mousepos.x < #map.grid[1] * MAP_SCALE then
             if government:add_law(player.plan) then
                 map:try_building(player, player.plan.building)
                 building_button_tray:resolve_active_button(true)
-                hud:set_message("project going to government", HUD.NEUTRAL)
+                hud:set_message("project going to government", HUD.NEUTRAL, 2)
             else
                 building_button_tray:resolve_active_button(false)
-                hud:set_message("only 1 project per turn", HUD.FAIL)
+                hud:set_message("only 1 project per turn", HUD.FAIL, 2)
             end
             player.plan = nil
         end
@@ -58,7 +58,7 @@ class "Controller" {
             return
         end
         building_button_tray:resolve_active_button(false)
-        hud:set_message("building canceled", HUD.FAIL)
+        hud:set_message("building canceled", HUD.FAIL, 2)
         player.plan = nil
     end,
 }
