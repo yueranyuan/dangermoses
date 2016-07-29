@@ -65,7 +65,7 @@ class "Powerup" (Object) {
 
 class "StrongArm" (Powerup) {
     name = "strongarm",
-    cost = 3,
+    cost = 5,
     hover_text = "Converts three detractors on a committee into supporters for this turn.",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
@@ -85,7 +85,7 @@ class "StrongArm" (Powerup) {
 
 class "Shutdown" (Powerup) {
     name = "shutdown",
-    cost = 7,
+    cost = 10,
     hover_text = "Completely skips a committee for this turn.",
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
@@ -105,7 +105,7 @@ class "Shutdown" (Powerup) {
 
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
-    cost = 5,
+    cost = 6,
     hover_text = "Removes three detractors from a project.",
     img = lg.newImage("grafix/goodpublicity.png"),
     sfx_sound = Sound("sfx/publicity_film.wav", "static"),
@@ -189,7 +189,7 @@ class "Mislabel" (Powerup) {
 
 class "Appeal" (Powerup) {
     name = "appeal",
-    cost = "free",
+    cost = 3,
     hover_text = "Reverts any failures on a project and sends it back to the top.",
     img = lg.newImage("grafix/appeal.png"),
     __init__ = function(self)
@@ -213,7 +213,7 @@ class "Appeal" (Powerup) {
 
 class "Lackey" (Powerup) {
     name = "lackey",
-    cost = 5,
+    cost = 6,
     hover_text = "Adds a supporter to a committee.",
     img = lg.newImage("grafix/lackey.png"),
     sfx_sound = Sound("sfx/lackey_cough.wav", "static"),
