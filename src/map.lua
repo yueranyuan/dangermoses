@@ -66,9 +66,9 @@ class "Map" (Object){
     __init__ = function(self, w, h)
         self:super(Map).__init__(self)
 
-        self.bg = love.graphics.newImage("grafix/map_bg.png")
+        self.bg = love.graphics.newImage(MAP_DATA.bg)
         -- load grid from map image
-        local map_type_img = love.graphics.newImage("grafix/map_type.png")
+        local map_type_img = love.graphics.newImage(MAP_DATA.type)
 
         self.grid = load_grid(utils.img_to_grid(map_type_img), function(val)
             for type, color in pairs(Map.TYPES) do
@@ -82,7 +82,7 @@ class "Map" (Object){
         self.width = #self.grid[1]
 
         -- load district map
-        local map_district_img = love.graphics.newImage("grafix/map_district.png")
+        local map_district_img = love.graphics.newImage(MAP_DATA.district)
         self.district_grid = load_grid(utils.img_to_grid(map_district_img), function(val)
             for district, color in pairs(Map.DISTRICTS) do
                 if val[1] == color[1] and val[2] == color[2] and val[3] == color[3] then
@@ -164,7 +164,7 @@ class "Map" (Object){
 
         -- make people
         -- empty grid first
-        if MAP_CSV then
+        if MAP_DATA.csv then
             local f = csv.open(arg[1].."/"..MAP_CSV)
             local map_csv_grid = {}
             for line in f:lines() do
