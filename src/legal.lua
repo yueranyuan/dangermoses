@@ -44,6 +44,13 @@ class "Government" (Object) {
 
     update = function(self, dt)
         mouseenabled = #self.actions <= 0
+
+        if 0 == #lume.filter(self.committees, function(com) return not com:is_commissioner() end) then
+            if not win then
+                win = true
+                overlay:set("You win! But since this is a debug build you get nothing", Overlay.SHRUG_IMG)
+            end
+        end
     end,
 
     add_action = function(self, func)
@@ -564,7 +571,6 @@ class "MayorOffice" (Room) {
             local n_tiles = player.built_cells + map.n_pending_tiles
             self.past_tiles = n_tiles
             self.strikes = 3
-
         end
     end,
 
@@ -626,6 +632,7 @@ class "ResignButton" (Button) {
 
 class "Committee" (Room) {
     REPUTATION_IMG = lg.newImage("grafix/shield.png"),
+    COMMISSIONER_IMG = lg.newImage("grafix/commissioner.png"),
 
     __init__ = function(self, pos, n_members, ratio, resilience)
         self.n_members = n_members
@@ -651,6 +658,10 @@ class "Committee" (Room) {
         self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - n_yeas, {255, 0, 0})
         self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
+    end,
+
+    is_commissioner = function(self)
+        return self.resilience >= 5
     end,
 
     update = function(self, dt)
@@ -746,7 +757,14 @@ class "Committee" (Room) {
         else
             self.resilience = 0
         end
-        lg.draw(self.REPUTATION_IMG, self.pos.x - 10, self.pos.y + 5, 0, 2)
+        local reputation_img = self.REPUTATION_IMG
+        if self:is_commissioner() then
+            if not progress.first_commissioner then
+                overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.COMMISSIONER_IMG)
+            end
+            reputation_img = self.COMMISSIONER_IMG
+        end
+        lg.draw(reputation_img, self.pos.x - 10, self.pos.y + 5, 0, 2)
         self:lgSetColor({0, 0, 0})
         lg.print(self.resilience, self.pos.x + 7, self.pos.y + 20)
     end
