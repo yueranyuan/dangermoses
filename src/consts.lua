@@ -8,13 +8,15 @@ HATER_PER_MEMBER = 1
 POWERUP_TRAY_WIDTH = 80
 MAP_CSV = nil
 
-SHITTINESS_BASE = 30  -- the shittiness of the first committee
-SHITTINESS_SLOPE = 5  -- how much the shittiness increase with each committee level
-SUPPORTER_CHANCE = 0.25  -- percentage of people who are supporters
-PURE_HATER_PERCENTAGE = 0.5  -- percentage of haters who are pure haters
+SHITTINESS_BASE = 10  -- the shittiness of the first committee
+SHITTINESS_SLOPE = 10  -- how much the shittiness increase with each committee level
+SUPPORTER_CHANCE = 0.2  -- percentage of people who are supporters
+PURE_HATER_PERCENTAGE = 0  -- percentage of haters who are pure haters
 FLOOR_POWERUP_DISTRIBUTION = {
     goodpublcty3=1, goodpublcty2=2,
     strongarm2=2, strongarm3=1,
-    shutdown3=1, shutdown2=2, lackey3=2, lackey2=3, lackey=0,
-    mislabel3=1, appeal=3
+    shutdown3=1, shutdown2=2,
+    lackey3=2, lackey2=3, lackey=0,
+    mislabel3=1, mislabel2=1,
+    appeal=3
   }
