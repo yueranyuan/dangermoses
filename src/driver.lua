@@ -69,6 +69,7 @@ function love.load()
 
     -- draw gui elements
     hud = HUD()
+    overlay = Overlay(v(500, 300))
 end
 
 function love.mousemoved(x, y)
@@ -83,11 +84,15 @@ end
 
 function love.mousepressed(x, y)
     if not mouseenabled then return end
-
-    sfx_click:play()
-
     local mousepos = v(x, y)
     controller:move_mouse(mousepos)
+    sfx_click:play()
+
+    -- clicking overlays
+    if overlay.on then
+        overlay:check_click(mousepos)
+        return
+    end
 
     local clicked = false
     for _, obj in ipairs(Object.objects) do
@@ -115,7 +120,6 @@ function love.mousepressed(x, y)
             powerup_tray.buy_mode = false
         end
     end
-
 end
 
 function love.update(dt)
@@ -163,4 +167,6 @@ function love.draw()
             end
         end
     end
+
+    hud:draw_mouse(overlay.on)
 end

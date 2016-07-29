@@ -56,6 +56,7 @@ class "HUD" (Object) {
 
         -- draw mouse
         lg.setColor(255, 255, 255)
+        self.show_mouse = false
         if player.power then
             -- draw powerup icon
             local power = player.power
@@ -81,6 +82,13 @@ class "HUD" (Object) {
             --end
             --lg.print(lume.round(percentage).."%", controller.mousepos.x + 20, controller.mousepos.y)
         else
+            self.show_mouse = true
+        end
+    end,
+
+    draw_mouse = function(self, force)
+        if self.show_mouse or force then
+            lg.setColor(255, 255, 255)
             lg.draw(self.MOUSE_IMG, controller.mousepos.x, controller.mousepos.y)
         end
     end
@@ -415,6 +423,7 @@ class "PowerupButton" (Button) {
         if powerup_tray.buy_mode then
             return self:buy()
         else
+            overlay:set("hahaha", self.icon)
             return self:try_use()
         end
     end,
@@ -450,3 +459,60 @@ class "BuyButton" (Button) {
     end
 }
 
+class "Overlay" (Object) {
+    __init__ = function(self, shape)
+        self.z_order = 2
+        self.on = false
+        local pos = v(GAME_WIDTH, GAME_HEIGHT) / 2 - shape / 2
+        self:super(Overlay).__init__(self, pos, shape)
+
+        local button_shape = v(100, 30)
+        self.okay_button = OkayButton(self.pos + self.shape - button_shape, button_shape, function()
+            self.on = false
+        end)
+        self.okay_button.z_order = self.z_order
+    end,
+
+    set = function(self, words, img)
+        self.on = true
+        self.words = words
+        self.img = img
+        if img ~= nil then
+            local data = img:getData()
+            local img_shape = v(data:getWidth(), data:getHeight())
+            self.img_pos = v(self.pos.x + self.shape.x / 2 - img_shape.x / 2,
+                             self.pos.y - 120 + self.shape.y / 2 - img_shape.y / 2)
+        end
+    end,
+
+    update = function(self)
+        self.okay_button.show = self.on
+    end,
+
+    draw = function(self)
+        if not self.on then return end
+        draw_transparent_rect(0, 0, GAME_WIDTH, GAME_HEIGHT, {80, 80, 80})
+        lg.setColor(255, 255, 255)
+        lg.rectangle("fill", self.pos.x, self.pos.y, self.shape.x, self.shape.y)
+
+        if self.img then
+            lg.draw(self.img, self.img_pos.x, self.img_pos.y)
+        end
+        lg.setColor(0, 0, 0)
+        lg.printf(self.words, self.pos.x, self.pos.y + self.shape.y - 80, self.shape.x, "center")
+    end,
+
+    on_click = function(self)
+        self.on = false
+    end
+}
+
+class "OkayButton" (Button) {
+    draw = function(self)
+        if not self.show then return end
+        lg.setColor(230, 100, 100)
+        lg.rectangle("fill", self.pos.x, self.pos.y, self.shape.x, self.shape.y)
+        lg.setColor(255, 255, 255)
+        lg.printf("Okay", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, "center")
+    end
+}
