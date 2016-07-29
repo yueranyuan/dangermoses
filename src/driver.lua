@@ -51,9 +51,16 @@ function love.load()
     -- the order we make things is important because I haven't implemented z-ordering in the
     -- gameobject class so things are drawn in the order they are added
 
-    music = Sound("sfx/bg_music_2.ogg")
+    -- "Dirty" version of the music has the 1930s effects on it.
+    music = Sound("sfx/bg_music_2_dirty.ogg")
     music:setLooping(true)
-    music:setVolume(0.7)
+    music:setVolume(0.7) -- Dirty music is what plays normally.
+
+    -- "Clean" version is the original unprocessed recording.
+    music_clean = Sound("sfx/bg_music_2_clean.ogg")
+    music_clean:setLooping(true)
+    music_clean:setVolume(0) -- Set volume to zero. We'll crossfade them on win.
+    music_clean:play()
     music:play()
 
     ambience = Sound("sfx/ambience_road.ogg")

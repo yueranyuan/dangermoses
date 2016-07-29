@@ -68,6 +68,7 @@ class "StrongArm" (Powerup) {
     cost = 5,
     hover_text = "Strong-Arm \nTemporarily convert three detractors on a committee into supporters for this turn.",
     img = lg.newImage("grafix/strongarm.png"),
+    sfx_sound = Sound("sfx/strongarm_grunt.wav", "static"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
     end,
@@ -88,6 +89,7 @@ class "Shutdown" (Powerup) {
     cost = 10,
     hover_text = "Shutdown \nCompletely skip a committee for this turn.",
     img = lg.newImage("grafix/shutdown.png"),
+    sfx_sound = Sound("sfx/shutdown_slam.wav", "static"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
     end,
@@ -123,6 +125,7 @@ class "Swap" (Powerup) {
     cost = "free",
     hover_text = "Swap Order \nSwitch the ordering of any two committees.",
     img = lg.newImage("grafix/swap.png"),
+    sfx_sound = Sound("sfx/swap_swoop.wav", "static"),
     __init__ = function(self)
         local targets = lume.map(government.rooms)
         lume.remove(targets, government.mayor_office)
@@ -162,6 +165,7 @@ class "Mislabel" (Powerup) {
     cost = "priceless",
     hover_text = "Mislabel Building Plan\nMake a building be evaluated as a different color.",
     img = lg.newImage("grafix/mislabel.png"),
+    sfx_sound = Sound("sfx/mislabel_pen.wav", "static"),
     __init__ = function(self)
         self:super(Mislabel).__init__(self, building_button_tray.buttons, 0)
     end,
@@ -192,6 +196,7 @@ class "Appeal" (Powerup) {
     cost = 3,
     hover_text = "Appeal\n Revert a project's failure and send it back to the top.",
     img = lg.newImage("grafix/appeal.png"),
+    sfx_sound = Sound("sfx/appeal_judge.wav", "static"),
     __init__ = function(self)
         self:super(Appeal).__init__(self, government:get_laws(), 0)
     end,
