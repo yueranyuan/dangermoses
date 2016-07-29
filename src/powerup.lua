@@ -66,7 +66,7 @@ class "Powerup" (Object) {
 class "StrongArm" (Powerup) {
     name = "strongarm",
     cost = 5,
-    hover_text = "Strong-Arm \n temporarily convert three detractors on a committee into supporters for this turn.",
+    hover_text = "Strong-Arm \nTemporarily convert three detractors on a committee into supporters for this turn.",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
