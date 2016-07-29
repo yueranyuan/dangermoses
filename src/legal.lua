@@ -170,7 +170,7 @@ class "Crowd" (Object) {
 
         -- draw n
         if self.show_n then
-            local n_pos = v(self.pos.x + 40, self.pos.y + 10)
+            local n_pos = v(self.pos.x, self.pos.y + 10)
             draw_transparent_rect(n_pos.x, n_pos.y, 15, 15, {50, 50, 50})
             self:lgSetColor(self.color)
             lg.print(self.n, n_pos.x, n_pos.y)
@@ -192,11 +192,12 @@ class "Legislation" (Object) {
         self.committees = plan.committees
         self.n_supporters = plan.n_supporters
         self.n_haters = plan.n_haters
+        self.plan = plan
         self.n_failures = 0
         self.powerups = {}
         self.alpha = 255
-        self.crowd_offset = v(10, 10)
-        self:super(Legislation).__init__(self, v(550, 0), v(100, 50))
+        self:super(Legislation).__init__(self, v(550, 0), v(150, 50))
+        self.crowd_offset = v(self.shape.x, 10)
 
         room:set_law(self)
         self.crowd = Crowd(self.pos + self.crowd_offset, 0, {255, 0, 0})
@@ -215,7 +216,7 @@ class "Legislation" (Object) {
     set_room = function(self, room)
         self.current_room = room
         self.pos.y = room.pos.y
-        self.pos.x = room.pos.x - self.shape.x - 10
+        self.pos.x = room.pos.x - self.shape.x - 30
     end,
 
     destroy = function(self)
@@ -287,9 +288,22 @@ class "Legislation" (Object) {
         -- draw building icon
         self:lgSetColor(255, 255, 255)
         --self:lgSetColor(self.icon_color[1], self.icon_color[2], self.icon_color[3], self.alpha)
-        local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 5,
+        local pos = v(self.pos.x + self.shape.x - self.ICON_SCALE * self.icon_shape.x - 15,
                       self.pos.y + self.shape.y / 2 - self.ICON_SCALE * self.icon_shape.y / 2)
         lg.draw(self.icon, pos.x, pos.y, 0, self.ICON_SCALE)
+
+        -- draw powerups
+        for pu_i, pu in ipairs(self.plan.floor_powerups) do
+            lg.draw(pu.img, self.pos.x + 40 * (pu_i - 1) / (#self.plan.floor_powerups - 1), self.pos.y + 20)
+        end
+
+        -- draw dude
+        if self.n_supporters > 0 then
+            self:lgSetColor(0, 255, 0)
+            lg.draw(Person.PERSON_IMG, self.pos.x + 60, self.pos.y + 20)
+            self:lgSetColor(255, 255, 255)
+            lg.print("x"..self.n_supporters, self.pos.x + 80, self.pos.y + 25)
+        end
 
         -- draw committees icons
         local r = 5

@@ -145,6 +145,22 @@ class "Map" (Object){
                 table.insert(used_coords, coord)
             end
         end
+        -- write to file so we have a version we can edit
+        local file = io.open("map_rand.csv", "w")
+        io.output(file)
+        for y = 1, #map_csv_grid do
+            if y > 1 then
+                io.write('\n')
+            end
+            for x = 1, #map_csv_grid[y] do
+                if x > 1 then
+                    io.write(',')
+                end
+                io.write(map_csv_grid[y][x])
+            end
+        end
+        io.close(file)
+        io.output(io.stdout)
 
         -- make people
         -- empty grid first
