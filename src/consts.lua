@@ -7,6 +7,7 @@ AI_SPEED = 15.0
 HATER_PER_MEMBER = 1
 POWERUP_TRAY_WIDTH = 80
 MAP_CSV = nil
+IS_TUTORIAL = true
 
 SHITTINESS_BASE = 10  -- the shittiness of the first committee
 SHITTINESS_SLOPE = 10  -- how much the shittiness increase with each committee level

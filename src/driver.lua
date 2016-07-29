@@ -27,11 +27,10 @@ SOUND_ON = true
 mouseenabled = true
 
 class "progress" {
-    is_tutorial = false,
     dict = {},
 
     __getattr__ = function(self, key)
-        if not self.is_tutorial then
+        if not IS_TUTORIAL then
             return true
         end
         log.trace(self.dict[key])
