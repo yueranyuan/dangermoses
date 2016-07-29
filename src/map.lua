@@ -4,9 +4,9 @@ class "Building" (Object) {
     PATTERNS = {park={"6s", "6m", "6l", "6xl"},
                 road={"2s", "2m", "2l", "2xl"},
                 tenament={"1s", "1m", "1l", "1xl"},
-                washington={"3s", "3m", "3l", "3xl"},
-                adams={"4s", "4m", "4l", "4xl"},
-                jefferson={"5s", "5m", "5l", "5xl"}},
+                washington={"3s", "3m", "3l"},
+                adams={"4s", "4m", "4l"},
+                jefferson={"5s", "5m", "5l"}},
     all_imgs = {},
 
     __init__ = function(self, pattern, type)

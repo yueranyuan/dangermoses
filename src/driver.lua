@@ -84,7 +84,7 @@ function love.load()
 
     -- make committee side of screen
     building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray({[StrongArm]=3, [Shutdown]=10, [GoodPublicity]=2, [Resilience]=2})
+    powerup_tray = PowerupTray({[StrongArm]=2, [Shutdown]=0, [GoodPublicity]=0, [Resilience]=2, [Lackey]=4, [Mislabel]=5})
     government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
