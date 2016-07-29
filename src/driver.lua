@@ -54,7 +54,7 @@ function love.load()
     -- "Dirty" version of the music has the 1930s effects on it.
     music = Sound("sfx/bg_music_2_dirty.ogg")
     music:setLooping(true)
-    music:setVolume(0.7) -- Dirty music is what plays normally.
+    music:setVolume(0.8) -- Dirty music is what plays normally.
 
     -- "Clean" version is the original unprocessed recording.
     music_clean = Sound("sfx/bg_music_2_clean.ogg")
@@ -65,7 +65,7 @@ function love.load()
 
     ambience = Sound("sfx/ambience_road.ogg")
     ambience:setLooping(true)
-    ambience:setVolume(0.4)
+    ambience:setVolume(0.3)
     ambience:play()
     ambience:setLooping(true)
 
