@@ -66,7 +66,7 @@ class "Powerup" (Object) {
 class "StrongArm" (Powerup) {
     name = "strongarm",
     cost = 3,
-    hover_text = "Strong Arm \nCoerce some of the opposition in a committee to see things your way for one turn.",
+    hover_text = "Strong Arm \nCoerce three opposing members in a committee to see things your way for one turn.",
     img = lg.newImage("grafix/strongarm.png"),
     __init__ = function(self)
         self:super(StrongArm).__init__(self, government.committees, 1)
@@ -86,7 +86,7 @@ class "StrongArm" (Powerup) {
 class "Shutdown" (Powerup) {
     name = "shutdown",
     cost = 7,
-    hover_text = "Shutdown \nClose down a committee for a turn- they won't get to vote on their building plans. Oh well!",
+    hover_text = "Shutdown \nClose down a committee for a turn- they won't get to vote on their building plans.",
     img = lg.newImage("grafix/shutdown.png"),
     __init__ = function(self)
         self:super(Shutdown).__init__(self, government.committees, 1)
@@ -106,7 +106,7 @@ class "Shutdown" (Powerup) {
 class "GoodPublicity" (Powerup) {
     name = "goodpublcty",
     cost = 5,
-    hover_text = "Good Publicity \nA media push to reduce the amount of local opposition to a project. Reduces the dissidents on your building plan by three.",
+    hover_text = "Good Publicity \nA media push to reduce the amount of local opposition to a project. -3 dissidents on your building plan.",
     img = lg.newImage("grafix/goodpublicity.png"),
     sfx_sound = Sound("sfx/publicity_film.wav", "static"),
     __init__ = function(self)
