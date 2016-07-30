@@ -41,9 +41,9 @@ class "Controller" {
             powerup_tray:resolve_active_button(false)
             hud:set_message("powerup use canceled", HUD.NEUTRAL, 2)
         elseif player.plan and self.mousepos.x < #map.grid[1] * MAP_SCALE then
-            if #player.plan.people <= 0 and #player.plan.floor_powerups <= 0 then  -- must cover person or powerup
+            if #player.plan.people <= 2 and #player.plan.floor_powerups <= 0 then  -- must cover person or powerup
                 building_button_tray:resolve_active_button(false)
-                hud:set_message("building must contain at least one person or powerup", HUD.FAIL, 3)
+                hud:set_message("building must contain at least 3 people or 1 powerup", HUD.FAIL, 3)
             elseif government:add_law(player.plan) then  -- add the legislation
                 map:try_building(player, player.plan.building)
                 if not progress.first_try_building then
