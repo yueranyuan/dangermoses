@@ -27,9 +27,9 @@ TUTORIAL_MAP_DATA = {
 MAP_DATA = REGULAR_MAP_DATA
 
 SHITTINESS_BASE = 1  -- the shittiness of the first committee
-SHITTINESS_SLOPE = 16  -- how much the shittiness increase with each committee level
-SUPPORTER_CHANCE = 0.3  -- percentage of people who are supporters
-PURE_HATER_PERCENTAGE = 0.15  -- percentage of haters who are pure haters
+SHITTINESS_SLOPE = 21 -- how much the shittiness increase with each committee level
+SUPPORTER_CHANCE = 0.2  -- percentage of people who are supporters
+PURE_HATER_PERCENTAGE = 0.6  -- percentage of haters who are pure haters
 FLOOR_POWERUP_DISTRIBUTION = {
     goodpublcty3=1, goodpublcty2=2,
     strongarm2=2, strongarm3=1,
@@ -39,10 +39,10 @@ FLOOR_POWERUP_DISTRIBUTION = {
     appeal=3
   }
 
-COMMITTEES = {park={size=7, ratio=0.6, resilience=4, img="grafix/luxury.png", name="park"},
+COMMITTEES = {park={size=7, ratio=0.6, resilience=2, img="grafix/luxury.png", name="park"},
     tenement={size=9, ratio=0.4, resilience=1, img="grafix/luxury.png", name="tenement"},
     road={size=9, ratio=0.4, resilience=0, img="grafix/luxury.png", name="road"},
     washington={size=13, ratio=0.4, resilience=0, img="grafix/luxury.png", name="bridge"},
-    adams={size=15, ratio=0.2, resilience=0, img="grafix/luxury.png", name="playgrounds"},
-    jefferson={size=17, ratio=0.2, resilience=0, img="grafix/luxury.png", name="civic improvements"},
+    adams={size=15, ratio=0.2, resilience=0, img="grafix/luxury.png", name="playground"},
+    jefferson={size=17, ratio=0.2, resilience=0, img="grafix/luxury.png", name="civic improvement"},
 }
