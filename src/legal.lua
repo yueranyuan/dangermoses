@@ -48,7 +48,9 @@ class "Government" (Object) {
         if 0 == #lume.filter(self.committees, function(com) return not com:is_commissioner() end) then
             if not win then
                 win = true
-                overlay:set("You win! But since this is a debug build you get nothing", Overlay.WIN_IMG)
+                overlay:set("Congratulations! \nYou've shaped New York into your " ..
+                    "own vision, little people be damned. \nThose who can, build.",
+                    Overlay.WIN_IMG)
             end
         end
     end,
@@ -238,9 +240,9 @@ class "Legislation" (Object) {
             if self.current_room:decide(self) then
                 self.color = {30, 50, 30}
             else
-                if not progress.first_failing_legislation then
-                    overlay:set("when legislations are flashing it means they're going to fail")
-                end
+                overlay:set_once("When projects are flashing it means they'll " ..
+                    "be rejected \nby their committee when you hit next. " ..
+                    "\nTry to use your legal machinations to save it!")
                 self.flashing = true
             end
         else
@@ -569,8 +571,10 @@ class "MayorOffice" (Room) {
     end,
 
     resign = function(self)
-        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.\n You've lost all your strikes. One more failure and you'll be fired!",
-                    Overlay.RESIGN_IMG)
+        overlay:set("You just threatened to resign! The Mayor is not pleased "..
+            "but he'll do what you want this time.\n You've lost all your strikes."..
+            " One more failure and you'll be fired!",
+            Overlay.RESIGN_IMG)
         self.law.n_failures = 0
         self.strikes = 0
     end,
@@ -612,9 +616,10 @@ class "MayorOffice" (Room) {
         self.strikes = self.strikes - 1
         log.trace(self.strikes)
         if self.strikes == 1 then
-            overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
+            overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll lose the game!", Overlay.ANGRY_IMG)
         elseif self.strikes == 0 then
-            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.LOSE_IMG)
+            overlay:set("You've gotten on the mayor's bad side and he's decided\n" ..
+                "to fire you. You lose.", Overlay.LOSE_IMG)
         end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
@@ -770,9 +775,10 @@ class "Committee" (Room) {
 
     finish = function(self, law, passed)
         if passed then
-            if not progress.first_resilience then
-                overlay:set("good work! you got a legislation pass a committee. \nYour reputation with the committee is increasing. Every reputation point you get cancels out one hater")
-            end
+            overlay:set_once("Good work! You got a committee to approve your project.\n" ..
+              "Your reputation with the committee is increasing.\n" ..
+              "Every time a committee approves one of your projects they\n" ..
+              "can block one additional detractor from joining the committee.")
             if self.resilience < 5 then
                 self.resilience = self.resilience + 1
                 self:become_commissioner()
@@ -805,9 +811,9 @@ class "Committee" (Room) {
             local color = 255 + 100 * (self.resilience / 5)
             self:lgSetColor({color, color, color})
             if self:is_commissioner() then
-                if not progress.first_commissioner then
-                    overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.icon)
-                end
+                overlay:set_once("Congratulations! You are now the commissioner.\n" ..
+                "Become the commissioner of every committee and you win the game.",,
+                self.icon)
                 lg.draw(self.COMMISSIONER_IMG, self.pos.x + 5, self.pos.y + 5)
                 else
                 local offsets = {v(0, 5), v(20, 5), v(0, 30), v(20, 30) }
