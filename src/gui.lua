@@ -499,6 +499,8 @@ class "Overlay" (Object) {
                 Timer.after(delay, function()
                     self:set(words, img)
                 end)
+            else
+                self:set(words, img)
             end
         else
             return
