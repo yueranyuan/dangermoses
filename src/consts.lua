@@ -24,10 +24,10 @@ TUTORIAL_MAP_DATA = {
 }
 MAP_DATA = REGULAR_MAP_DATA
 
-SHITTINESS_BASE = 10  -- the shittiness of the first committee
-SHITTINESS_SLOPE = 10  -- how much the shittiness increase with each committee level
-SUPPORTER_CHANCE = 0.2  -- percentage of people who are supporters
-PURE_HATER_PERCENTAGE = 0  -- percentage of haters who are pure haters
+SHITTINESS_BASE = 1  -- the shittiness of the first committee
+SHITTINESS_SLOPE = 16  -- how much the shittiness increase with each committee level
+SUPPORTER_CHANCE = 0.3  -- percentage of people who are supporters
+PURE_HATER_PERCENTAGE = 0.15  -- percentage of haters who are pure haters
 FLOOR_POWERUP_DISTRIBUTION = {
     goodpublcty3=1, goodpublcty2=2,
     strongarm2=2, strongarm3=1,
