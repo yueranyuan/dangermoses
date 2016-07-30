@@ -552,7 +552,7 @@ class "MayorOffice" (Room) {
     STRIKE_POS = {v(15, 42), v(13, 56), v(17, 70)},
 
     __init__ = function(self, pos)
-        self.strikes = 1
+        self.strikes = 3
         self.tiles = 0
         self.needed_tiles = 50
         self.img = MayorOffice.OFFICE_IMG
