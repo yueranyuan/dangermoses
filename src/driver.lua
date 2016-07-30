@@ -40,12 +40,7 @@ class "progress" {
     end
 }
 
-function love.load()
-    -- all non-imported non-const globals should be made here
-
-    -- the order we make things is important because I haven't implemented z-ordering in the
-    -- gameobject class so things are drawn in the order they are added
-
+function load_sounds()
     -- "Dirty" version of the music has the 1930s effects on it.
     music = Sound("sfx/bg_music_2_dirty.ogg")
     music:setLooping(true)
@@ -70,10 +65,14 @@ function love.load()
     sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
     sfx_next = Sound("sfx/next_button_typewriter.wav", "static")
 
+end
+
+function love.load()
+    load_sounds()
     setup_level()
 end
 
-function setup_level(map_name, committee_names)
+function setup_level()
     Object.objects = {}
 
     -- make players

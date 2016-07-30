@@ -12,17 +12,19 @@ REGULAR_MAP_DATA = {
     bg="grafix/map_bg.png",
     type="grafix/map_type.png",
     district="grafix/map_district.png",
+    gen="grafix/map_gen.png",
     committees={"park", "tenament", "road", "washington", "adams", "jefferson"},
     csv=nil --"map.csv"
 }
 TUTORIAL_MAP_DATA = {
-    bg="grafix/map_bg.png",
-    type="grafix/map_type.png",
-    district="grafix/map_district.png",
+    bg="grafix/map_tutorial_bg.png",
+    type="grafix/map_tutorial_type.png",
+    district="grafix/map_tutorial_district.png",
+    gen="grafix/map_tutorial_gen.png",
     committees={"park", "tenament", "road"},
     csv=nil --"map.csv"
 }
-MAP_DATA = REGULAR_MAP_DATA
+MAP_DATA = TUTORIAL_MAP_DATA
 
 SHITTINESS_BASE = 1  -- the shittiness of the first committee
 SHITTINESS_SLOPE = 16  -- how much the shittiness increase with each committee level
