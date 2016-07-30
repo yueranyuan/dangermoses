@@ -480,6 +480,9 @@ class "Overlay" (Object) {
     LOSE_IMG = lg.newImage("grafix/losescreen.png"),
 
     __init__ = function(self, shape)
+        HelpButton(v(GAME_WIDTH - 100, GAME_HEIGHT - 50), v(100, 50), function()
+            overlay:set("", "grafix/tutorial/objectives.png", 0.6)
+        end)
         self.z_order = 2
         self.on = false
         local pos = v(GAME_WIDTH, GAME_HEIGHT) / 2 - shape / 2
@@ -492,22 +495,22 @@ class "Overlay" (Object) {
         self.okay_button.z_order = self.z_order
     end,
 
-    set_once = function(self, words, img, delay)
+    set_once = function(self, words, img, delay, scale)
         if not progress.dict[words] and IS_TUTORIAL then
             progress.dict[words] = true
             if delay ~= nil then
                 Timer.after(delay, function()
-                    self:set(words, img)
+                    self:set(words, img, scale)
                 end)
             else
-                self:set(words, img)
+                self:set(words, img, scale)
             end
         else
             return
         end
     end,
 
-    set = function(self, words, img)
+    set = function(self, words, img, scale)
         if type(img) == "string" then
             img = lg.newImage(img)
         end
@@ -520,6 +523,7 @@ class "Overlay" (Object) {
             local x_scale = self.shape.x / self.img_shape.x
             local y_scale = self.shape.y / self.img_shape.y
             self.img_scale = math.min(math.min(x_scale, y_scale), 1)
+            if scale ~= nil then self.img_scale = scale end
             self.img_pos = v(self.pos.x + self.shape.x / 2 - self.img_scale * self.img_shape.x / 2,
                              self.pos.y + (self.shape.y - 200) / 2 - self.img_scale * self.img_shape.y / 2)
         end
@@ -548,6 +552,16 @@ class "Overlay" (Object) {
     end
 }
 
+
+class "HelpButton" (Button) {
+    draw = function(self)
+        lg.setColor(255, 0, 0)
+        self:super(HelpButton).draw(self)
+        lg.setColor(255, 255, 255)
+        lg.printf("Help", self.pos.x, self.pos.y, self.shape.x, "center")
+    end
+}
+
 class "OkayButton" (Button) {
     draw = function(self)
         if not self.show then return end
@@ -558,15 +572,6 @@ class "OkayButton" (Button) {
         lg.printf("Okay", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, "center")
     end
 }
-
-class "HelpButton" (Button) {
-    draw = function(self)
-        self:super(HelpButton).draw(self)
-        lg.setColor(255, 255, 255)
-        lg.printf("Help", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, "center")
-    end
-}
-HelpButton(v(GAME_WIDTH - 100, GAME_HEIGHT - 50), function() overlay:set("helpful tips", "grafix/tutorial/objectives.png") end)
 
 function make_grid(topleft, size, entries)
     for i,row in ipairs(entries) do
