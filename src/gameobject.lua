@@ -11,6 +11,7 @@ class "Object" {
             shape = v(1, 1)
         end
 
+        self.anchor = v(0, 0)
         self.pos = pos
         if self.color == nil then
             self.color = { 255, 255, 255, 255 }
@@ -51,9 +52,15 @@ class "Object" {
     __properties__ = {
         --- these functions are like functions decorated with @property() in Python
         --- they are used to implement properties
+        topleft = function(self)
+            return self.pos - self.anchor:permul(self.shape*self.scale)
+        end,
+        bottomright = function(self)
+            return self.topleft + self.shape*self.scale
+        end,
         center = function(self)
-            return self.pos - self.shape / 2
-        end
+            return self.topleft + .5*self.shape*self.scale
+        end,
     },
     __getattr__ = function(self, key)
         if self.__properties__[key] == nil then
@@ -66,23 +73,18 @@ class "Object" {
         --- to be overridden
     end,
 
-    draw = function(self, offset)
+    draw = function(self)
         if not self.shown then
             return
         end
         self:lgSetColor(self.color)
-        local pos
-        if offset ~= nil then
-            pos = self.pos + offset
-        else
-            pos = self.pos
-        end
+        local topleft = self.topleft
         if self.img ~= nil then
-            love.graphics.draw(self.img, pos.x, pos.y, 0, self.scale)
+            love.graphics.draw(self.img, topleft.x, topleft.y, 0, self.scale)
         else
-            love.graphics.rectangle("fill", pos.x, pos.y, self.shape.x, self.shape.y)
+            love.graphics.rectangle("fill", topleft.x, topleft.y, self.shape.x, self.shape.y)
             self:lgSetColor({ 255, 255, 255})
-            love.graphics.print(self.name, pos.x, pos.y + self.shape.y / 2)
+            love.graphics.print(self.name, topleft.x, topleft.y + self.shape.y / 2)
         end
     end,
 
@@ -93,13 +95,20 @@ class "Object" {
     end,
 
     collide_point = function(self, target)
-        return (self.pos.x <= target.x and self.pos.x + self.shape.x >= target.x
-                and self.pos.y <= target.y and self.pos.y + self.shape.y >= target.y)
+        local topleft = self.topleft
+        local bottomright = self.bottomright
+        return (topleft.x <= target.x and target.x <= bottomright.x
+                and topleft.y <= target.y and target.y <= bottomright.y)
     end,
 
+    -- Unused function
     collide_boxes = function(self, b)
-        return (self.pos.x <= b.pos.x + b.pos.shape.x and self.pos.x + self.pos.shape.x >= b.pos.x and
-                self.pos.y <= b.pos.y + b.pos.shape.y and self.pos.y + self.pos.shape.y >= b.pos.y)
+        local self_topleft = self.topleft
+        local self_bottomright = self.bottomright
+        local b_topleft = b.topleft
+        local b_bottomright = b.bottomright
+        return (self_topleft.x <= b_topleft.x + b.shape.x and self_topleft.x + self.shape.x >= b_topleft.x and
+                self_topleft.y <= b_topleft.y + b.shape.y and self_topleft.y + self.shape.y >= b_topleft.y)
     end,
 
     collide = function(self, b)

@@ -4,34 +4,46 @@ class "MenuButton" (Button) {
     __init__ = function(self, pos, color, text, callback)
         self.color = color
         self.text = text
-        self:super(MenuButton).__init__(self, pos, v(80, 30), callback)
+        self:super(MenuButton).__init__(self, pos, v(180, 90), callback)
     end,
 
     draw = function(self)
         if self.clickable then
             self:super(MenuButton).draw(self)
             lg.setColor({255, 255, 255})
-            lg.printf(self.text, self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+            local topleft = self.topleft
+            local padding = v(5,(self.shape.y-lg:getFont():getHeight())/4)
+            topleft = topleft + padding
+            lg.printf(self.text, topleft.x + padding.x, topleft.y + padding.y,
+                self.shape.x - 2*padding.x, 'center')
         end
     end
 }
 
 function setup_menu()
-    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2), {0, 255, 0}, "Tutorial", function()
-        IS_TUTORIAL = true
-        MAP_DATA = TUTORIAL_MAP_DATA
-        require "src/game"
-    end)
-
-    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80), {0, 255, 0}, "Game", function()
-        IS_TUTORIAL = false
-        MAP_DATA = REGULAR_MAP_DATA
-        require "src/game"
-    end)
-
-    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 160), {255, 0, 0}, "Quit", function()
-        love.event.quit()
-    end)
+    local buttons = {
+        {
+            MenuButton(v(0,0), {0, 255, 0}, "Tutorial", function()
+                IS_TUTORIAL = true
+                MAP_DATA = TUTORIAL_MAP_DATA
+                require "src/game"
+            end),
+        },
+        {
+            MenuButton(v(0,0), {0, 255, 0}, "Game", function()
+                IS_TUTORIAL = false
+                MAP_DATA = REGULAR_MAP_DATA
+                require "src/game"
+            end),
+        },
+        {
+            MenuButton(v(0,0), {255, 0, 0}, "Quit", function()
+                love.event.quit()
+            end),
+        },
+    }
+    local W,H = lg.getDimensions()
+    make_grid(v(W/4,H/4), v(W/2,H/2), buttons)
 end
 setup_menu()
 
