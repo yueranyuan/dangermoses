@@ -75,8 +75,8 @@ class "Map" (Object){
         end)
         self.bg = lg.newImage(img_data)
         local w,h = self.bg:getDimensions()
-        w = w + 20
-        h = h + 20
+        w = w + 30
+        h = h + 30
         self.water_img = lg.newCanvas(w,h)
         self.water_img:renderTo(function()
             lg.clear(50,50,255)

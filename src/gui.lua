@@ -492,10 +492,14 @@ class "Overlay" (Object) {
         self.okay_button.z_order = self.z_order
     end,
 
-    set_once = function(self, words, img)
-        if not progress.dict[words] then
+    set_once = function(self, words, img, delay)
+        if not progress.dict[words] and IS_TUTORIAL then
             progress.dict[words] = true
-            self:set(words, img)
+            if delay ~= nil then
+                Timer.after(delay, function()
+                    self:set(words, img)
+                end)
+            end
         else
             return
         end
