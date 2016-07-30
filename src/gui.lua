@@ -559,6 +559,15 @@ class "OkayButton" (Button) {
     end
 }
 
+class "HelpButton" (Button) {
+    draw = function(self)
+        self:super(HelpButton).draw(self)
+        lg.setColor(255, 255, 255)
+        lg.printf("Help", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, "center")
+    end
+}
+HelpButton(v(GAME_WIDTH - 100, GAME_HEIGHT - 50), function() overlay:set("helpful tips", "grafix/tutorial/objectives.png") end)
+
 function make_grid(topleft, size, entries)
     for i,row in ipairs(entries) do
         for j,entry in ipairs(row) do
