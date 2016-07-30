@@ -48,7 +48,7 @@ class "Government" (Object) {
         if 0 == #lume.filter(self.committees, function(com) return not com:is_commissioner() end) then
             if not win then
                 win = true
-                overlay:set("You win! But since this is a debug build you get nothing", Overlay.SHRUG_IMG)
+                overlay:set("You win! But since this is a debug build you get nothing", Overlay.WIN_IMG)
             end
         end
     end,
@@ -552,7 +552,7 @@ class "MayorOffice" (Room) {
     STRIKE_POS = {v(15, 42), v(13, 56), v(17, 70)},
 
     __init__ = function(self, pos)
-        self.strikes = 1
+        self.strikes = 3
         self.tiles = 0
         self.needed_tiles = 50
         self.img = MayorOffice.OFFICE_IMG
@@ -614,7 +614,7 @@ class "MayorOffice" (Room) {
         if self.strikes == 1 then
             overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
         elseif self.strikes == 0 then
-            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
+            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.LOSE_IMG)
         end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
@@ -783,7 +783,7 @@ class "Committee" (Room) {
     become_commissioner = function(self)
         if self:is_commissioner() then
             sfx_commissioner:play()
-            overlay:set("good work you just became the commissioner of "..self.name.."!", self.icon)
+            overlay:set("Good work! You just became the commissioner of "..self.name.."s!", self.icon)
         end
     end,
 

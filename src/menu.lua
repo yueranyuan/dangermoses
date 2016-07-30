@@ -3,8 +3,9 @@ love.mouse.setVisible(true)
 class "MenuButton" (Button) {
     __init__ = function(self, pos, color, text, callback)
         self.color = color
+        local shape = v(140, 50)
         self.text = text
-        self:super(MenuButton).__init__(self, pos, v(180, 90), callback)
+        self:super(MenuButton).__init__(self, pos - shape / 2, shape, callback)
     end,
 
     draw = function(self)
@@ -21,6 +22,7 @@ class "MenuButton" (Button) {
 }
 
 function setup_menu()
+    local bg = Image(v(0, 0), lg.newImage("grafix/menubg.png"))
     local buttons = {
         {
             MenuButton(v(0,0), {0, 255, 0}, "Tutorial", function()
@@ -28,22 +30,20 @@ function setup_menu()
                 MAP_DATA = TUTORIAL_MAP_DATA
                 require "src/game"
             end),
-        },
-        {
             MenuButton(v(0,0), {0, 255, 0}, "Game", function()
                 IS_TUTORIAL = false
                 MAP_DATA = REGULAR_MAP_DATA
                 require "src/game"
             end),
-        },
-        {
             MenuButton(v(0,0), {255, 0, 0}, "Quit", function()
                 love.event.quit()
             end),
         },
     }
     local W,H = lg.getDimensions()
-    make_grid(v(W/4,H/4), v(W/2,H/2), buttons)
+    local pos = v(0,H-100)
+    local size = v(W,100)
+    make_grid(pos, size, buttons)
 end
 setup_menu()
 

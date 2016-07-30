@@ -474,6 +474,8 @@ class "Overlay" (Object) {
     NEW_MAYOR_IMG = lg.newImage("grafix/new_mayor.png"),
     ANGRY_IMG = lg.newImage("grafix/angry_mayor.png"),
     SHRUG_IMG = lg.newImage("grafix/shrug.png"),
+    WIN_IMG = lg.newImage("grafix/winscreen.png"),
+    LOSE_IMG = lg.newImage("grafix/losescreen.png"),
 
     __init__ = function(self, shape)
         self.z_order = 2
