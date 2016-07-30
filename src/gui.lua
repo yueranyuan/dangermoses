@@ -285,7 +285,6 @@ class "PowerupTray" (ButtonTray) {
                 "influence the legal process in your favor.\n"..
                 "These machinations are bought with your collected supporters.")
                 progress.buy_button_used = true
-            end
             self.buy_mode = not self.buy_mode
             return true
         end)

@@ -812,7 +812,7 @@ class "Committee" (Room) {
             self:lgSetColor({color, color, color})
             if self:is_commissioner() then
                 overlay:set_once("Congratulations! You are now the commissioner.\n" ..
-                "Become the commissioner of every committee and you win the game.",,
+                "Become the commissioner of every committee and you win the game.",
                 self.icon)
                 lg.draw(self.COMMISSIONER_IMG, self.pos.x + 5, self.pos.y + 5)
                 else
