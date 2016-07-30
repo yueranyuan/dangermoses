@@ -51,7 +51,8 @@ class "Controller" {
                         overlay:set("Good, you've successfully placed the " ..
                             "foundation for a new project.\nTo get your project "..
                             "built you'll need to get it through the relevant\n"..
-                            "legal committees on the right.")
+                            "legal committees on the right.",
+                            "graphix/building_placed.png")
                     end)
                     progress.first_try_building = true
                 end
