@@ -256,10 +256,7 @@ class "BuildingButton" (Button) {
 
     on_click = function(self)
         if player.power then return end
-        if not progress.first_building then
-            overlay:set("you are building your first building!")
-            progress.first_building = true
-        end
+        overlay:set_once("you are building your first building!", "grafix/tutorial/first_building.png")
         player.plan = Plan(player, self.building)
         self.tray:set_active_button(self)
         return true
@@ -490,15 +487,30 @@ class "Overlay" (Object) {
         self.okay_button.z_order = self.z_order
     end,
 
+    set_once = function(self, words, img)
+        if not progress.dict[words] then
+            progress.dict[words] = true
+            self:set(words, img)
+        else
+            return
+        end
+    end,
+
     set = function(self, words, img)
+        if type(img) == "string" then
+            img = lg.newImage(img)
+        end
         self.on = true
         self.words = words
         self.img = img
         if img ~= nil then
             local data = img:getData()
-            local img_shape = v(data:getWidth(), data:getHeight())
-            self.img_pos = v(self.pos.x + self.shape.x / 2 - img_shape.x / 2,
-                             self.pos.y + (self.shape.y - 100) / 2 - img_shape.y / 2)
+            self.img_shape = v(data:getWidth(), data:getHeight())
+            local x_scale = self.shape.x / self.img_shape.x
+            local y_scale = self.shape.y / self.img_shape.y
+            self.img_scale = math.min(math.min(x_scale, y_scale), 1)
+            self.img_pos = v(self.pos.x + self.shape.x / 2 - self.img_scale * self.img_shape.x / 2,
+                             self.pos.y + (self.shape.y - 200) / 2 - self.img_scale * self.img_shape.y / 2)
         end
     end,
 
@@ -514,7 +526,7 @@ class "Overlay" (Object) {
         lg.rectangle("fill", topleft.x, topleft.y, self.shape.x, self.shape.y)
 
         if self.img then
-            lg.draw(self.img, self.img_pos.x, self.img_pos.y)
+            lg.draw(self.img, self.img_pos.x, self.img_pos.y, 0, self.img_scale)
         end
         lg.setColor(0, 0, 0)
         lg.printf(self.words, self.pos.x, self.pos.y + self.shape.y - 80, self.shape.x, "center")
