@@ -242,9 +242,8 @@ class "Legislation" (Object) {
             else
                 if not progress.first_failing_legislation then
                     overlay:set("When projects are flashing it means they'll " ..
-                        "be rejected by their committee when you hit next. " ..
-                        "\nTry to use your legal machinations (or buy more) to " ..
-                        "save it!")
+                        "be rejected \nby their committee when you hit next. " ..
+                        "\nTry to use your legal machinations to save it!")
                 end
                 self.flashing = true
             end
@@ -613,9 +612,12 @@ class "MayorOffice" (Room) {
         self.strikes = self.strikes - 1
         log.trace(self.strikes)
         if self.strikes == 1 then
-            overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
+            overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll lose the game!",
+            Overlay.ANGRY_IMG)
         elseif self.strikes == 0 then
-            overlay:set("Well, technically this is game over. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
+            overlay:set("You've gotten on the mayor's bad side and he's decided\n" ..
+                "to fire you. You lose.",
+                Overlay.SHRUG_IMG)
         end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
@@ -766,7 +768,7 @@ class "Committee" (Room) {
                 overlay:set("Good work! You got a committee to approve your project.\n" ..
                   "Your reputation with the committee is increasing.\n" ..
                   "Every time a committee approves one of your projects they\n" ..
-                  "can block one detractor additional from joining the committee.")
+                  "can block one additional detractor from joining the committee.")
             end
             self.resilience = self.resilience + 1
         end
@@ -791,7 +793,9 @@ class "Committee" (Room) {
         local reputation_img = self.REPUTATION_IMG
         if self:is_commissioner() then
             if not progress.first_commissioner then
-                overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.COMMISSIONER_IMG)
+                overlay:set("Congratulations! You are now the commissioner.\n" ..
+                    "Become the commissioner of every committee and you win the game.",
+                    self.COMMISSIONER_IMG)
             end
             reputation_img = self.COMMISSIONER_IMG
         end

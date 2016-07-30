@@ -48,7 +48,10 @@ class "Controller" {
                 map:try_building(player, player.plan.building)
                 if not progress.first_try_building then
                     Timer.after(0.5, function()
-                        overlay:set("good, now look at the legislation screen and stuff")
+                        overlay:set("Good, you've successfully placed the " ..
+                            "foundation for a new project.\nTo get your project "..
+                            "built you'll need to get it through the relevant\n"..
+                            "legal committees on the right.")
                     end)
                     progress.first_try_building = true
                 end
