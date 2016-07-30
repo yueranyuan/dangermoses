@@ -39,10 +39,10 @@ FLOOR_POWERUP_DISTRIBUTION = {
     appeal=3
   }
 
-COMMITTEES = {park={size=7, ratio=0.6, resilience=1, img="grafix/luxury.png", name="park"},
-    tenement={size=9, ratio=0.4, resilience=1, img="grafix/luxury.png", name="tenement"},
-    road={size=9, ratio=0.4, resilience=0, img="grafix/luxury.png", name="road"},
-    washington={size=13, ratio=0.4, resilience=0, img="grafix/luxury.png", name="bridge"},
-    adams={size=15, ratio=0.2, resilience=0, img="grafix/luxury.png", name="playground"},
+COMMITTEES = {park={size=7, ratio=0.6, resilience=1, img="grafix/park.png", name="park"},
+    tenement={size=9, ratio=0.4, resilience=1, img="grafix/tenement.png", name="tenement"},
+    road={size=9, ratio=0.4, resilience=0, img="grafix/road.png", name="road"},
+    washington={size=13, ratio=0.4, resilience=0, img="grafix/bridge.png", name="bridge"},
+    adams={size=15, ratio=0.2, resilience=0, img="grafix/playground.png", name="playground"},
     jefferson={size=17, ratio=0.2, resilience=0, img="grafix/luxury.png", name="civic improvement"},
 }
