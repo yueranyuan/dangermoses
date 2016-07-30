@@ -1,6 +1,7 @@
 love.mouse.setVisible(true)
 
 class "MenuButton" (Button) {
+    font = lg.newFont(24),
     __init__ = function(self, pos, color, text, callback)
         self.color = color
         local shape = v(140, 50)
@@ -10,13 +11,17 @@ class "MenuButton" (Button) {
 
     draw = function(self)
         if self.clickable then
+            local oldFont = lg.getFont()
+            lg.setFont(self.font)
             self:super(MenuButton).draw(self)
             lg.setColor({255, 255, 255})
             local topleft = self.topleft
-            local padding = v(5,(self.shape.y-lg:getFont():getHeight())/4)
+            local padding = v(5,(self.shape.y-lg.getFont():getHeight())/4)
             topleft = topleft + padding
+            lg.setColor({0, 0, 0})
             lg.printf(self.text, topleft.x + padding.x, topleft.y + padding.y,
                 self.shape.x - 2*padding.x, 'center')
+            lg.setFont(oldFont)
         end
     end
 }
