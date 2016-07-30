@@ -340,7 +340,9 @@ class "Legislation" (Object) {
     end,
 
     remove_haters = function(self, n)
-        self.crowd.n = math.max(0, self.crowd.n - n)
+        if self.crowd and self.crowd.n then
+            self.crowd.n = math.max(0, self.crowd.n - n)
+        end
     end,
 
     get_action = function(self, callback)
@@ -363,7 +365,9 @@ class "Legislation" (Object) {
         next_committee:set_law(self)
         self.pos = start_pos  -- undo the position change
 
-        self:remove_haters(next_committee.resilience)
+        if next_committee.resilience then
+            self:remove_haters(next_committee.resilience)
+        end
 
         return function()
             Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
@@ -673,13 +677,13 @@ class "Committee" (Room) {
         if ratio == nil then
             ratio = 0.50
         end
-        local n_yeas = math.ceil(self.n_members * ratio)
+        self.n_yeas = math.ceil(self.n_members * ratio)
         self.yea_crowd_offset = v(50, 25)
-        self.yea_crowd = Crowd(self.yea_crowd_offset, n_yeas, {0, 255, 0})
+        self.yea_crowd = Crowd(self.yea_crowd_offset, self.n_yeas, {0, 255, 0})
         self.yea_crowd.show_n = false
         self.yea_crowd.parent = self
         self.nay_crowd_offset = v(self.shape.x - 15, 25)
-        self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - n_yeas, {255, 0, 0})
+        self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - self.n_yeas, {255, 0, 0})
         self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
     end,
@@ -698,6 +702,9 @@ class "Committee" (Room) {
         end
         self.yea_crowd.pos = self.pos + self.yea_crowd_offset
         self.nay_crowd.pos = self.pos + self.nay_crowd_offset
+
+        --if self.yea_crowd.n < self.n_yeas then
+            --add_supporter()
     end,
 
     attack = function(self, n, callback)
@@ -772,28 +779,28 @@ class "Committee" (Room) {
     draw = function(self)
         self:super(Committee).draw(self)
         self:lgSetColor(self.color)
-        lg.draw(self.img, self.pos.x + 30, self.pos.y)
+        lg.draw(self.img, self.pos.x, self.pos.y)
 
         --local center_pos = self.pos + (self.yea_crowd_offset + self.nay_crowd_offset) / 2
         --lg.print(lume.round(self.yea_crowd.n / self.n_members * 100).."%", center_pos.x, center_pos.y)
 
         self:lgSetColor({0, 0, 0})
-        lg.rectangle("fill", self.pos.x, self.pos.y, 30, self.shape.y)
+        --lg.rectangle("fill", self.pos.x, self.pos.y, 30, self.shape.y)
         if self.resilience > 0 then
-            self:lgSetColor({0, 150 + 100 * (self.resilience / 5), 0})
-        else
-            self.resilience = 0
-        end
-        local reputation_img = self.REPUTATION_IMG
-        if self:is_commissioner() then
-            if not progress.first_commissioner then
-                overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.COMMISSIONER_IMG)
+            local color = 255 + 100 * (self.resilience / 5)
+            self:lgSetColor({color, color, color})
+            if self:is_commissioner() then
+                if not progress.first_commissioner then
+                    overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.COMMISSIONER_IMG)
+                end
+                lg.draw(self.COMMISSIONER_IMG, self.pos.x + 5, self.pos.y + 5, 0, 2)
+                else
+                local offsets = {v(0, 5), v(20, 5), v(0, 30), v(20, 30) }
+                for i = 1, math.min(self.resilience, #offsets) do
+                    lg.draw(self.REPUTATION_IMG, self.pos.x + offsets[i].x, self.pos.y + offsets[i].y)
+                end
             end
-            reputation_img = self.COMMISSIONER_IMG
         end
-        lg.draw(reputation_img, self.pos.x - 10, self.pos.y + 5, 0, 2)
-        self:lgSetColor({0, 0, 0})
-        lg.print(self.resilience, self.pos.x + 7, self.pos.y + 20)
     end
 }
 

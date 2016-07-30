@@ -195,11 +195,11 @@ class "Map" (Object){
                 if powerup_dict[p:sub(1, #p-1)] then
                     local powerup = powerup_dict[p:sub(1, #p-1)]
                     local n = tonumber(p:sub(#p, #p))
-                    --local fpu = FloorPowerup(v(x, y), powerup, n)
-                    --table.insert(self.floor_powerups, fpu)
+                    local fpu = FloorPowerup(v(x, y), powerup, n)
+                    table.insert(self.floor_powerups, fpu)
                 elseif powerup_dict[p] then
-                    --local fpu = FloorPowerup(v(x, y), powerup_dict[p])
-                    --table.insert(self.floor_powerups, fpu)
+                    local fpu = FloorPowerup(v(x, y), powerup_dict[p])
+                    table.insert(self.floor_powerups, fpu)
                 elseif person_dict[p:sub(1, 1)] then
                     local density = 1
                     if #p > 1 then
@@ -376,8 +376,8 @@ class "Person" (Object) {
         self.img = Person.PERSON_IMG
         self:super(Person).__init__(self)
         self.pos = (local_pos - 0.5) * MAP_SCALE
-        self.pos.x = self.pos.x - self.shape.x / 2
-        self.pos.y = self.pos.y - self.shape.y
+        self.pos.x = lume.round(self.pos.x - self.shape.x / 2)
+        self.pos.y = lume.round(self.pos.y - self.shape.y)
     end,
 
     draw = function(self)
