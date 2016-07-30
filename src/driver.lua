@@ -91,7 +91,7 @@ function setup_level(map_name, committee_names)
 
     -- make committee side of screen
     building_button_tray = BuildingButtonTray()
-    powerup_tray = PowerupTray({[StrongArm]=0, [Shutdown]=0, [GoodPublicity]=0, [Resilience]=1, [Lackey]=3, [Mislabel]=2, [Appeal]=1})
+    powerup_tray = PowerupTray({[StrongArm]=0, [Shutdown]=0, [GoodPublicity]=0, [Resilience]=1, [Lackey]=5, [Mislabel]=5, [Appeal]=1})
     government = Government(GAME_WIDTH - 250)
 
     -- draw gui elements
