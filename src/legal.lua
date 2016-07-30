@@ -825,7 +825,6 @@ class "ProjectCommittee" (Committee) {
         self.color = Map.TYPES[type]
         self.data = COMMITTEES[type]
         self.icon = lg.newImage(self.data.img)
-        log.trace(self.data.img)
         self.name = self.data.name
         self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio, self.data.resilience)
         self.button_offset = v(self.shape.x + 30, 0)
