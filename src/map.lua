@@ -146,6 +146,7 @@ class "Map" (Object){
             end
         end
         -- write to file so we have a version we can edit
+        --[[
         local file = io.open("map_rand.csv", "w")
         io.output(file)
         for y = 1, #map_csv_grid do
@@ -160,7 +161,7 @@ class "Map" (Object){
             end
         end
         io.close(file)
-        io.output(io.stdout)
+        io.output(io.stdout)]]--
 
         -- make people
         -- empty grid first
