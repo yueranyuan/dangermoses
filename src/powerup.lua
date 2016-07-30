@@ -74,13 +74,14 @@ class "StrongArm" (Powerup) {
     end,
 
     _use = function(self, target)
-        self.borrowed_n = math.min(target.nay_crowd.n, 3)
-        target:add_supporter(self.borrowed_n)
+        self.borrowed_n = math.min(target.n_members - target.n_yeas, 3)
+        log.trace(self.borrowed_n)
+        target.extra_yeas = target.extra_yeas + self.borrowed_n
     end,
 
     _unuse = function(self, target)
         assert(self.borrowed_n ~= nil, "borrowed_n is nil. Was use() called?")
-        target:remove_supporter(self.borrowed_n)
+        target.extra_yeas = target.extra_yeas - self.borrowed_n
     end
 }
 
@@ -227,7 +228,7 @@ class "Lackey" (Powerup) {
     end,
 
     _use = function(self, target)
-        target:add_supporter()
+        target.base_yeas = math.min(target.n_members, target.base_yeas + 1)
     end
 }
 

@@ -270,7 +270,7 @@ class "Map" (Object){
                 self.people_grid[coord.y][coord.x] = 'none'
             end
         end
-        government.moses_office:add_supporters(new_supporters)
+        government.moses_office:add_yeas(new_supporters)
 
         self:remove_pending_building(building)
         -- get floor powerups

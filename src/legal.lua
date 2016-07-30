@@ -365,19 +365,8 @@ class "Legislation" (Object) {
         next_committee:set_law(self)
         self.pos = start_pos  -- undo the position change
 
-        if next_committee.resilience then
-            self:remove_haters(next_committee.resilience)
-        end
-
         return function()
-            Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
-                local n_attackers = self:get_attackers(next_committee)
-                if n_attackers > 0 then
-                    next_committee:attack(n_attackers, callback)
-                else
-                    callback()
-                end
-            end)
+            Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', callback)
         end
     end,
 }
@@ -677,7 +666,9 @@ class "Committee" (Room) {
         if ratio == nil then
             ratio = 0.50
         end
-        self.n_yeas = math.ceil(self.n_members * ratio)
+        self.extra_yeas = 0
+        self.base_yeas = math.ceil(self.n_members * ratio)
+        self.n_yeas = self.base_yeas + self.extra_yeas
         self.yea_crowd_offset = v(50, 25)
         self.yea_crowd = Crowd(self.yea_crowd_offset, self.n_yeas, {0, 255, 0})
         self.yea_crowd.show_n = false
@@ -686,6 +677,8 @@ class "Committee" (Room) {
         self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - self.n_yeas, {255, 0, 0})
         self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
+
+        self.crowd_syncing = false
     end,
 
     is_commissioner = function(self)
@@ -703,20 +696,24 @@ class "Committee" (Room) {
         self.yea_crowd.pos = self.pos + self.yea_crowd_offset
         self.nay_crowd.pos = self.pos + self.nay_crowd_offset
 
-        --if self.yea_crowd.n < self.n_yeas then
-            --add_supporter()
-    end,
-
-    attack = function(self, n, callback)
-        if n == nil then
-            n = 1
+        self.n_yeas = self.base_yeas
+        if self.law then
+            self.n_yeas = self.n_yeas - math.max(self.law:get_attackers(self) - self.resilience, 0)
         end
-        n = math.max(n - self.resilience, 0)
-        if callback == nil then
-            callback = function() end
-        end
+        self.n_yeas = math.min(math.max(self.n_yeas, 0), self.n_members)
+        self.n_yeas = self.n_yeas + self.extra_yeas
+        self.n_yeas = math.min(math.max(self.n_yeas, 0), self.n_members)
 
-        self:remove_supporter(n, callback)
+        if not self.crowd_syncing then
+            local diff = self.n_yeas - self.yea_crowd.n
+            if diff > 0 then
+                self.crowd_syncing = true
+                self:add_supporter(diff, function() self.crowd_syncing = false end)
+            elseif diff < 0 then
+                self.crowd_syncing = true
+                self:remove_supporter(-diff, function() self.crowd_syncing = false end)
+            end
+        end
     end,
 
     remove_supporter = function(self, n, callback)

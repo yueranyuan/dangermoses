@@ -109,6 +109,8 @@ function love.keypressed(key)
     elseif key == 'r' then
         -- TODO: remove
         setup_level()
+    elseif key == 'd' then
+        government.moses_office.crowd.n = 100
     end
 end
 
