@@ -363,7 +363,7 @@ class "Legislation" (Object) {
         next_committee:set_law(self)
         self.pos = start_pos  -- undo the position change
 
-        --self:remove_haters(next_committee.resilience)
+        self:remove_haters(next_committee.resilience)
 
         return function()
             Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
