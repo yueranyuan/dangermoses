@@ -557,7 +557,7 @@ class "HelpButton" (Button) {
     draw = function(self)
         lg.setColor(255, 0, 0)
         self:super(HelpButton).draw(self)
-        lg.setColor(255, 255, 255)
+        lg.setColor(255, 0, 0)
         lg.printf("Help", self.pos.x, self.pos.y, self.shape.x, "center")
     end
 }
