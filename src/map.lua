@@ -493,7 +493,7 @@ class "FloorPowerup" (Object) {
                 powerup_tray:add_powerup_anim(self.power_class, self.pos)
             end)
         end
-        lume.remove(map.floor_powerups, fpu)
+        lume.remove(map.floor_powerups, self)
         self:destroy()
     end
 }

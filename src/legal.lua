@@ -365,10 +365,6 @@ class "Legislation" (Object) {
         next_committee:set_law(self)
         self.pos = start_pos  -- undo the position change
 
-        if next_committee.resilience then
-            self:remove_haters(next_committee.resilience)
-        end
-
         return function()
             Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
                 local n_attackers = self:get_attackers(next_committee)
