@@ -783,7 +783,7 @@ class "Committee" (Room) {
     become_commissioner = function(self)
         if self:is_commissioner() then
             sfx_commissioner:play()
-            overlay:set("good work you just became the commissioner of "..self.name.."!", self.icon)
+            overlay:set("Good work! You just became the commissioner of "..self.name.."s!", self.icon)
         end
     end,
 
