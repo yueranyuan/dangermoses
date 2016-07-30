@@ -94,7 +94,7 @@ class "Map" (Object){
         assert(#self.district_grid == #self.grid and #self.district_grid[1] == #self.grid[1])
 
         -- auto-gen map.csv
-        local map_gen_img = love.graphics.newImage("grafix/map_gen.png")
+        local map_gen_img = love.graphics.newImage(MAP_DATA.gen)
         local full_committee_grid = load_grid(utils.img_to_grid(map_gen_img), function(val)
             for type, color in pairs(Map.TYPES) do
                 if val[1] == color[1] and val[2] == color[2] and val[3] == color[3] then
