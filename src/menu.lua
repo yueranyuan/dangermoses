@@ -1,15 +1,43 @@
 love.mouse.setVisible(true)
 
+class "MenuButton" (Button) {
+    __init__ = function(self, pos, color, text, callback)
+        self.color = color
+        self.text = text
+        self:super(MenuButton).__init__(self, pos, v(80, 30), callback)
+    end,
+
+    draw = function(self)
+        if self.clickable then
+            self:super(MenuButton).draw(self)
+            lg.setColor({255, 255, 255})
+            lg.printf(self.text, self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        end
+    end
+}
+
 function setup_menu()
+    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2), {0, 255, 0}, "Tutorial", function()
+        IS_TUTORIAL = true
+        MAP_DATA = TUTORIAL_MAP_DATA
+        require "src/game"
+    end)
 
+    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80), {0, 255, 0}, "Game", function()
+        IS_TUTORIAL = false
+        MAP_DATA = REGULAR_MAP_DATA
+        require "src/game"
+    end)
+
+    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 160), {255, 0, 0}, "Quit", function()
+        love.event.quit()
+    end)
 end
-
 setup_menu()
 
 function love.mousepressed(x, y)
     if not mouseenabled then return end
     local mousepos = v(x, y)
-    controller:move_mouse(mousepos)
     sfx_click:play()
 
     for _, obj in ipairs(Object.objects) do
@@ -27,12 +55,6 @@ function love.update(dt)
         obj:update(dt)
         if obj.dead then
             table.remove(Object.objects, obj_i)
-        end
-    end
-
-    for _, obj in ipairs(Object.objects) do
-        if obj:check_hover(controller.mousepos) then
-            break
         end
     end
 end
