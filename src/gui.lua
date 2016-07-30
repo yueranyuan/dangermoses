@@ -256,7 +256,10 @@ class "BuildingButton" (Button) {
 
     on_click = function(self)
         if player.power then return end
-        overlay:set_once("you are building your first building!", "grafix/tutorial/first_building.png")
+        overlay:set_once("You are building your first building!\n"..
+                "Try to place it somewhere with many 'supporters' \n(people "..
+                "who are the same color as the building) and few 'detractors'.",
+                "grafix/tutorial/first_building.png")
         player.plan = Plan(player, self.building)
         self.tray:set_active_button(self)
         return true
@@ -277,10 +280,11 @@ class "PowerupTray" (ButtonTray) {
 
         self.buy_mode = false
         self.buy_button = BuyButton(self.pos, v(self.shape.x, 40), function()
-            if not progress.buy_button_used then
-                overlay:set("this is the buy button dawg")
+            overlay:set_once("You can use the 'Buy' button to buy legal "..
+                "'machinations', \nunder-the-table tricks you can use to "..
+                "influence the legal process in your favor.\n"..
+                "These machinations are bought with your collected supporters.")
                 progress.buy_button_used = true
-            end
             self.buy_mode = not self.buy_mode
             return true
         end)
@@ -427,10 +431,11 @@ class "PowerupButton" (Button) {
         if powerup_tray.buy_mode then
             return self:buy()
         else
-            if not progress.first_powerup then
-                overlay:set("using powerup for the first time? bold sir!", self.icon)
-                progress.first_powerup = true
-            end
+              overlay:set_once("You can use these legal machinations to influence "..
+                    "the legal process \nand get projects through the system.\n" ..
+                    "Click on a project to apply the machination to it.",
+                    self.icon)
+              progress.first_powerup = true
             return self:try_use()
         end
     end,
