@@ -1,3 +1,4 @@
+
 class "Building" (Object) {
     --PATTERNS = {"building1", "building2", "building3", "building4", "building5"},
     --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
@@ -67,6 +68,28 @@ class "Map" (Object){
         self:super(Map).__init__(self)
 
         self.bg = love.graphics.newImage(MAP_DATA.bg)
+        -- Make water transparent
+        local img_data = self.bg:getData()
+        img_data:mapPixel(function(x,y,r,g,b,a)
+            if b > r and b > g then return 0,0,0,0 else return r,g,b,a end
+        end)
+        self.bg = lg.newImage(img_data)
+        local w,h = self.bg:getDimensions()
+        w = w + 20
+        h = h + 20
+        self.water_img = lg.newCanvas(w,h)
+        self.water_img:renderTo(function()
+            lg.clear(50,50,255)
+            local W,H = self.water_img:getDimensions()
+            local colors = {{100,100,255},{25,25,200},{50,75,225},{40,40,255}}
+            for _,c in ipairs(colors) do
+                lg.setColor(c)
+                for _=1,100 do
+                    lg.rectangle('fill',math.random(W),math.random(H),math.random(3,5),1)
+                end
+            end
+            lg.setColor(255,255,255)
+        end)
         -- load grid from map image
         local map_type_img = love.graphics.newImage(MAP_DATA.type)
 
@@ -312,6 +335,14 @@ class "Map" (Object){
 
     draw = function(self)
         self:lgSetColor(255, 255, 255)
+
+        lg.setScissor(0,0,self.bg:getWidth()*MAP_SCALE/4,self.bg:getHeight()*MAP_SCALE/4)
+        local t = love.timer.getTime()
+        local pos = v(MAP_SCALE,0):rotated(math.sin(t)+math.pi/2)
+        pos = pos - MAP_SCALE*v(5,5)
+        lg.draw(self.water_img, pos.x, pos.y, 0, MAP_SCALE / 4)
+        lg.setScissor()
+
         lg.draw(self.bg, 0, 0, 0, MAP_SCALE / 4)
 
         -- draw the base map
