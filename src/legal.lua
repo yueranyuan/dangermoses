@@ -614,7 +614,7 @@ class "MayorOffice" (Room) {
         if self.strikes == 1 then
             overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
         elseif self.strikes == 0 then
-            overlay:set("Well, technically this is game over. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
+            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
         end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
@@ -623,7 +623,7 @@ class "MayorOffice" (Room) {
     draw = function(self)
         self:super(MayorOffice).draw(self)
         self:lgSetColor(255, 255, 255)
-        for strike_i = 1, 3 - self.strikes do
+        for strike_i = 1, math.min(3, 3 - self.strikes) do
             local pos = self.pos + self.STRIKE_POS[strike_i]
             lg.draw(self.STRIKE_IMG, pos.x, pos.y)
         end
@@ -773,7 +773,17 @@ class "Committee" (Room) {
             if not progress.first_resilience then
                 overlay:set("good work! you got a legislation pass a committee. \nYour reputation with the committee is increasing. Every reputation point you get cancels out one hater")
             end
-            self.resilience = math.min(5, self.resilience + 1)
+            if self.resilience < 5 then
+                self.resilience = self.resilience + 1
+                self:become_commissioner()
+            end
+        end
+    end,
+
+    become_commissioner = function(self)
+        if self:is_commissioner() then
+            sfx_commissioner:play()
+            overlay:set("good work you just became the commissioner of "..self.name.."!", self.icon)
         end
     end,
 
@@ -796,9 +806,9 @@ class "Committee" (Room) {
             self:lgSetColor({color, color, color})
             if self:is_commissioner() then
                 if not progress.first_commissioner then
-                    overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.COMMISSIONER_IMG)
+                    overlay:set("Congradulations! you're the commissioner. Become the commissioner of every committee and you win", self.icon)
                 end
-                lg.draw(self.COMMISSIONER_IMG, self.pos.x + 5, self.pos.y + 5, 0, 2)
+                lg.draw(self.COMMISSIONER_IMG, self.pos.x + 5, self.pos.y + 5)
                 else
                 local offsets = {v(0, 5), v(20, 5), v(0, 30), v(20, 30) }
                 for i = 1, math.min(self.resilience, #offsets) do
@@ -814,6 +824,9 @@ class "ProjectCommittee" (Committee) {
         self.type = type
         self.color = Map.TYPES[type]
         self.data = COMMITTEES[type]
+        self.icon = lg.newImage(self.data.img)
+        log.trace(self.data.img)
+        self.name = self.data.name
         self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio, self.data.resilience)
         self.button_offset = v(self.shape.x + 30, 0)
         self.button = building_button_tray:add_button(self.pos + self.button_offset, self.type)
@@ -822,6 +835,12 @@ class "ProjectCommittee" (Committee) {
     update = function(self, dt)
         self:super(ProjectCommittee).update(self, dt)
         self.button.pos = self.pos + self.button_offset
+    end,
+
+    draw = function(self)
+        self:super(ProjectCommittee).draw(self)
+        self:lgSetColor(255, 255, 255)
+        lg.draw(self.icon, self.pos.x + self.shape.x / 2 + 5, self.pos.y)
     end
 }
 
