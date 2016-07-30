@@ -432,7 +432,10 @@ class "Room" (Object) {
 }
 
 class "MosesOffice" (Room) {
+    OFFICE_IMG = lg.newImage("grafix/mosesoffice.png"),
+
     __init__ = function(self, pos)
+        self.img = MosesOffice.OFFICE_IMG
         self:super(MosesOffice).__init__(self, pos)
         self.cancel_button = CancelButton(self.pos + v(10, 10), function()
              return self:cancel_building()
@@ -498,8 +501,6 @@ class "MosesOffice" (Room) {
 
     draw = function(self)
         self:super(MosesOffice).draw(self)
-        self:lgSetColor(0, 0, 0)
-        lg.print("Moses Office: ", self.pos.x + 10, self.pos.y + 10)
     end
 }
 
@@ -546,11 +547,15 @@ class "NextButton" (Button) {
 
 class "MayorOffice" (Room) {
     PERSON_IMG = lg.newImage("grafix/person.png"),
+    OFFICE_IMG = lg.newImage("grafix/mayoroffice.png"),
+    STRIKE_IMG = lg.newImage("grafix/strike.png"),
+    STRIKE_POS = {v(15, 42), v(13, 56), v(17, 70)},
 
     __init__ = function(self, pos)
-        self.strikes = 3
+        self.strikes = 1
         self.tiles = 0
         self.needed_tiles = 50
+        self.img = MayorOffice.OFFICE_IMG
         self.past_tiles = 0
         self.past_turns = 0
         self.total_turns = 12
@@ -558,7 +563,7 @@ class "MayorOffice" (Room) {
         self.needed_supporters = 30
         self:super(MayorOffice).__init__(self, pos, v(230, 140))
 
-        self.resign_button = ResignButton(self.pos + v(40, 40), function()
+        self.resign_button = ResignButton(self.pos + v(40, 50), function()
             self:resign()
         end)
     end,
@@ -617,10 +622,14 @@ class "MayorOffice" (Room) {
 
     draw = function(self)
         self:super(MayorOffice).draw(self)
-        self:lgSetColor(0, 0, 0)
-        lg.print("#Strikes: "..self.strikes, self.pos.x + 10, self.pos.y + 10)
-        lg.print("turns remaining: "..(government.turn_i - self.past_turns).."/"..self.total_turns,
-                 self.pos.x + 10, self.pos.y + 25)
+        self:lgSetColor(255, 255, 255)
+        for strike_i = 1, 3 - self.strikes do
+            local pos = self.pos + self.STRIKE_POS[strike_i]
+            lg.draw(self.STRIKE_IMG, pos.x, pos.y)
+        end
+        self:lgSetColor(255, 0, 0)
+        lg.print(self.total_turns - government.turn_i - self.past_turns,
+                 self.pos.x + 104, self.pos.y + 35)
         local n_tiles = player.built_cells + map.n_pending_tiles
 
         -- draw needed supporters
@@ -647,13 +656,13 @@ class "ResignButton" (Button) {
         if self.clickable then
             self:super(ResignButton).draw(self)
             lg.setColor({255, 255, 255})
-            lg.printf("Resign", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+            lg.printf("Intimidate", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
         end
     end
 }
 
 class "Committee" (Room) {
-    REPUTATION_IMG = lg.newImage("grafix/shield.png"),
+    REPUTATION_IMG = lg.newImage("grafix/star.png"),
     COMMISSIONER_IMG = lg.newImage("grafix/commissioner.png"),
     COMMITTEE_IMG = lg.newImage("grafix/committeeroom.png"),
 
