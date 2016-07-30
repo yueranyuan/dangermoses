@@ -70,5 +70,5 @@ function love.load()
     load_sounds()
 end
 
-require "src/game"
+require "src/menu"
 

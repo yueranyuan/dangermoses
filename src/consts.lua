@@ -39,7 +39,7 @@ FLOOR_POWERUP_DISTRIBUTION = {
     appeal=3
   }
 
-COMMITTEES = {park={size=7, ratio=0.6, resilience=2, img="grafix/luxury.png", name="park"},
+COMMITTEES = {park={size=7, ratio=0.6, resilience=1, img="grafix/luxury.png", name="park"},
     tenement={size=9, ratio=0.4, resilience=1, img="grafix/luxury.png", name="tenement"},
     road={size=9, ratio=0.4, resilience=0, img="grafix/luxury.png", name="road"},
     washington={size=13, ratio=0.4, resilience=0, img="grafix/luxury.png", name="bridge"},
