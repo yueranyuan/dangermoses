@@ -258,7 +258,10 @@ class "BuildingButton" (Button) {
     on_click = function(self)
         if player.power then return end
         if not progress.first_building then
-            overlay:set("you are building your first building!")
+            overlay:set("You are building your first building!\n"..
+                "Try to place it somewhere with many 'supporters' (people on the map"..
+                "who are the same color as the building) and few 'detractors'"..
+                "(people shown as gray or a different color on the map).")
             progress.first_building = true
         end
         player.plan = Plan(player, self.building)
@@ -282,7 +285,10 @@ class "PowerupTray" (ButtonTray) {
         self.buy_mode = false
         self.buy_button = BuyButton(self.pos, v(self.shape.x, 40), function()
             if not progress.buy_button_used then
-                overlay:set("this is the buy button dawg")
+                overlay:set("You can use the 'Buy' button to buy legal"..
+                    "'machinations', under-the-table tricks you can use to"..
+                    "influence the legal process in your favor."..
+                    "These machinations are bought with your collected supporters.")
                 progress.buy_button_used = true
             end
             self.buy_mode = not self.buy_mode
@@ -432,7 +438,10 @@ class "PowerupButton" (Button) {
             return self:buy()
         else
             if not progress.first_powerup then
-                overlay:set("using powerup for the first time? bold sir!", self.icon)
+                overlay:set("You can use these legal machinations to influence "..
+                    "the legal process and get projects through the system. " ..
+                    "Click on a project to apply the machination to it.",
+                    self.icon)
                 progress.first_powerup = true
             end
             return self:try_use()

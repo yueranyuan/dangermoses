@@ -48,7 +48,9 @@ class "Government" (Object) {
         if 0 == #lume.filter(self.committees, function(com) return not com:is_commissioner() end) then
             if not win then
                 win = true
-                overlay:set("You win! But since this is a debug build you get nothing", Overlay.SHRUG_IMG)
+                overlay:set("Congratulations! \nYou've shaped New York into your " ..
+                    "own vision, little people be damned. \nThose who can, build.",
+                    Overlay.SHRUG_IMG)
             end
         end
     end,
@@ -239,7 +241,10 @@ class "Legislation" (Object) {
                 self.color = {30, 50, 30}
             else
                 if not progress.first_failing_legislation then
-                    overlay:set("when legislations are flashing it means they're going to fail")
+                    overlay:set("When projects are flashing it means they'll " ..
+                        "be rejected by their committee when you hit next. " ..
+                        "\nTry to use your legal machinations (or buy more) to " ..
+                        "save it!")
                 end
                 self.flashing = true
             end
@@ -471,7 +476,9 @@ class "MosesOffice" (Room) {
     on_next = function(self)
         if not progress.first_try_building then
             Timer.after(0.8, function()
-                overlay:set("now build another thing")
+                overlay:set("Try building more! Keep in mind that the color of " ..
+                    "the territory you build on\n will determine which committees " ..
+                    "your building will have to pass.")
             end)
             progress.first_try_building = true
         end
@@ -562,7 +569,8 @@ class "MayorOffice" (Room) {
     end,
 
     resign = function(self)
-        overlay:set("you just threatened to resign! The Mayor is not pleased but he'll do what you want this time.\n You've lost all your strikes. One more failure and you'll be fired!",
+        overlay:set("You just threatened to resign! The Mayor is not pleased "..
+            "but he'll do what you want this time.\n You've lost all your strikes. One more failure and you'll be fired!",
                     Overlay.RESIGN_IMG)
         self.law.n_failures = 0
         self.strikes = 0
@@ -755,7 +763,10 @@ class "Committee" (Room) {
     finish = function(self, law, passed)
         if passed then
             if not progress.first_resilience then
-                overlay:set("good work! you got a legislation pass a committee. \nYour reputation with the committee is increasing. Every reputation point you get cancels out one hater")
+                overlay:set("Good work! You got a committee to approve your project.\n" ..
+                  "Your reputation with the committee is increasing.\n" ..
+                  "Every time a committee approves one of your projects they\n" ..
+                  "can block one detractor additional from joining the committee.")
             end
             self.resilience = self.resilience + 1
         end
