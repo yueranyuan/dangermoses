@@ -163,7 +163,7 @@ class "Swap" (Powerup) {
 class "Mislabel" (Powerup) {
     name = "mislabel",
     cost = "priceless",
-    hover_text = "Mislabel Building Plan\nMake a building be evaluated as a different color.",
+    hover_text = "Mislabel Building Plan\nMake a building be evaluated as a different color. Use before placement on the map.",
     img = lg.newImage("grafix/mislabel.png"),
     sfx_sound = Sound("sfx/mislabel_pen.wav", "static"),
     __init__ = function(self)

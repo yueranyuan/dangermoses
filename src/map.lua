@@ -442,7 +442,14 @@ class "Person" (Object) {
             if self.type == player.plan.building.type then
                 self.color = lume.concat(self.base_color, {alpha})
             else
-                self.color = lume.concat(Map.PERSON_TYPES["hater"], {alpha})
+                if alpha == 100 then
+                    self.color = lume.concat(Map.PERSON_TYPES["hater"], {alpha})
+                else
+                    local mix = lume.lerp
+                    local k = .5+.5*math.sin(love.timer.getTime()*13)
+                    local r,g,b = mix(80,255,k),mix(80,0,k),mix(80,0,k)
+                    self.color = {r,g,b,alpha}
+                end
             end
         else
             self.color = self.base_color

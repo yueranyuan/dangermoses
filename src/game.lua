@@ -23,7 +23,7 @@ function setup_level()
 
     -- draw gui elements
     hud = HUD()
-    overlay = Overlay(v(500, 300))
+    overlay = Overlay(v(600, 450))
 
       overlay:set_once("Welcome! Take a quick look at the map. There's a lot to take in!\n"..
         "Colors on the ground show which committee controls that area.\n"..

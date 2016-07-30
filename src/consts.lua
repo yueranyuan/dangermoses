@@ -21,7 +21,7 @@ TUTORIAL_MAP_DATA = {
     type="grafix/map_tutorial_type.png",
     district="grafix/map_tutorial_district.png",
     gen="grafix/map_tutorial_gen.png",
-    committees={"park", "tenement", "road"},
+    committees={"park", "tenement"},
     csv=nil --"map.csv"
 }
 MAP_DATA = REGULAR_MAP_DATA

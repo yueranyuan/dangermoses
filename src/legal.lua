@@ -561,6 +561,7 @@ class "MayorOffice" (Room) {
         self.past_tiles = 0
         self.past_turns = 0
         self.total_turns = 12
+        self.turn_i = 0
         self.n_supporters = 0
         self.needed_supporters = 30
         self:super(MayorOffice).__init__(self, pos, v(230, 140))
@@ -596,9 +597,9 @@ class "MayorOffice" (Room) {
     end,
 
     next = function(self, law)
-        if government.turn_i - self.past_turns >= self.total_turns then
+        if government.turn_i >= self.total_turns then
             overlay:set("A new mayor has been elected! He is confident in your skills.\nYou now have 3 more strikes", Overlay.NEW_MAYOR_IMG)
-            self.past_turns = government.turn_i
+            government.turn_i = 0
             local n_tiles = player.built_cells + map.n_pending_tiles
             self.past_tiles = n_tiles
             self.strikes = 3
@@ -633,7 +634,7 @@ class "MayorOffice" (Room) {
             lg.draw(self.STRIKE_IMG, pos.x, pos.y)
         end
         self:lgSetColor(255, 0, 0)
-        lg.print(self.total_turns - government.turn_i - self.past_turns,
+        lg.print(self.total_turns - government.turn_i,
                  self.pos.x + 104, self.pos.y + 35)
         local n_tiles = player.built_cells + map.n_pending_tiles
 
@@ -662,6 +663,13 @@ class "ResignButton" (Button) {
             self:super(ResignButton).draw(self)
             lg.setColor({255, 255, 255})
             lg.printf("Intimidate", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+        end
+    end,
+
+    on_hover = function(self)
+        if self.clickable then
+            hud:set_message("Resigning will allow you to pass a failing building but you will lose all your strikes for the current Mayor")
+            return true
         end
     end
 }
