@@ -3,7 +3,7 @@ class "Building" (Object) {
     --PATTERNS = {"head", "plane", "tree", "scorp", "eagle"},
     PATTERNS = {park={"6s", "6m", "6l", "6xl"},
                 road={"2m", "2l", "2xl", "2m_v", "2l_v", "2xl_v"},
-                tenament={"1s", "1m", "1l", "1xl"},
+                tenement={"1s", "1m", "1l", "1xl"},
                 washington={"3s", "3m"},
                 adams={"4s", "4m"},
                 jefferson={"5s", "5m"}},
@@ -46,13 +46,13 @@ end
 
 
 class "Map" (Object){
-    TYPES = {park={150, 230, 100}, tenament={136, 136, 250}, road={250, 180, 130},
+    TYPES = {park={150, 230, 100}, tenement={136, 136, 250}, road={250, 180, 130},
             washington={255, 252, 157},
             adams={251, 133, 219},
             jefferson={123, 255, 253}},
-    TYPE_ORDER = {'park', 'tenament', 'road', 'washington', 'adams', 'jefferson'},
+    TYPE_ORDER = {'park', 'tenement', 'road', 'washington', 'adams', 'jefferson'},
     --PERSON_TYPES = {hater={80, 80, 80}, moses={230, 230, 230}},
-    PERSON_TYPES = {hater={80, 80, 80}, park={150, 230, 100}, tenament={136, 136, 250}, road={250, 180, 130},
+    PERSON_TYPES = {hater={80, 80, 80}, park={150, 230, 100}, tenement={136, 136, 250}, road={250, 180, 130},
             washington={255, 252, 157},
             adams={251, 133, 219},
             jefferson={123, 255, 253},
@@ -183,7 +183,7 @@ class "Map" (Object){
         end
         self.floor_powerups = {}
         -- fill empty grid
-        local person_dict = {r="road", p="park", t="tenament", h="hater", m="jefferson",
+        local person_dict = {r="road", p="park", t="tenement", h="hater", m="jefferson",
                              w="washington", a="adams", j="jefferson", d="madison"}
         local powerup_dict = {}
         for _, powerup_class in ipairs(PowerupTray.POWERS) do
