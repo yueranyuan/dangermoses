@@ -664,6 +664,13 @@ class "ResignButton" (Button) {
             lg.setColor({255, 255, 255})
             lg.printf("Intimidate", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
         end
+    end,
+
+    on_hover = function(self)
+        if self.clickable then
+            hud:set_message("Resigning will allow you to pass a failing building but you will lose all your strikes for the current Mayor")
+            return true
+        end
     end
 }
 
