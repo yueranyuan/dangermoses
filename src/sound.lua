@@ -16,7 +16,6 @@ class "Sound" {
 
         return function(arg1, arg2, arg3, arg4, arg5)
             if not pcall(function()
-                log.trace(SOUND_ON)
                 if not SOUND_ON then return end
                 local func = self.sound[key]
                 if arg1 == self then
