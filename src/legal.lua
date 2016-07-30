@@ -48,7 +48,7 @@ class "Government" (Object) {
         if 0 == #lume.filter(self.committees, function(com) return not com:is_commissioner() end) then
             if not win then
                 win = true
-                overlay:set("You win! But since this is a debug build you get nothing", Overlay.SHRUG_IMG)
+                overlay:set("You win! But since this is a debug build you get nothing", Overlay.WIN_IMG)
             end
         end
     end,
@@ -614,7 +614,7 @@ class "MayorOffice" (Room) {
         if self.strikes == 1 then
             overlay:set("Careful! You're on your last strike with this mayor. \nOne more failed building and you'll be fired!", Overlay.ANGRY_IMG)
         elseif self.strikes == 0 then
-            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.SHRUG_IMG)
+            overlay:set("Well, technically you lose. But since it's a debug build. You get to keep playing :3", Overlay.LOSE_IMG)
         end
         hud:set_message("project rejected", HUD.FAIL, 2)
         map:remove_pending_building(law.building)
