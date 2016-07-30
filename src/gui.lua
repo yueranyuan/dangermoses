@@ -268,16 +268,16 @@ class "BuildingButton" (Button) {
 }
 
 class "PowerupTray" (ButtonTray) {
-    POWERS = {GoodPublicity, StrongArm, Shutdown, Appeal, Lackey, Mislabel, Swap},
+    POWERS = {GoodPublicity, StrongArm, Shutdown, Appeal, Lackey, Mislabel},
 
     __init__ = function(self, starting_powerups)
         self.active_button = nil
         self.buy_mode = false
 
-        local w, h = 4, 2
+        local w, h = 3, 2
 
         local shape = v(w * PowerupButton.BUTTON_SIZE, h * PowerupButton.BUTTON_SIZE + 45)
-        self:super(PowerupTray).__init__(self, v(GAME_WIDTH - shape.x, 0), shape)
+        self:super(PowerupTray).__init__(self, v(GAME_WIDTH - 250, 0), shape)
 
         self.buy_mode = false
         self.buy_button = BuyButton(self.pos, v(self.shape.x, 40), function()

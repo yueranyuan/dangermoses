@@ -78,8 +78,8 @@ class "Map" (Object){
             end
             return "empty"
         end)
-        self.height = #self.grid
-        self.width = #self.grid[1]
+        w = #self.grid
+        h = #self.grid[1]
 
         -- load district map
         local map_district_img = love.graphics.newImage(MAP_DATA.district)
@@ -195,11 +195,11 @@ class "Map" (Object){
                 if powerup_dict[p:sub(1, #p-1)] then
                     local powerup = powerup_dict[p:sub(1, #p-1)]
                     local n = tonumber(p:sub(#p, #p))
-                    local fpu = FloorPowerup(v(x, y), powerup, n)
-                    table.insert(self.floor_powerups, fpu)
+                    --local fpu = FloorPowerup(v(x, y), powerup, n)
+                    --table.insert(self.floor_powerups, fpu)
                 elseif powerup_dict[p] then
-                    local fpu = FloorPowerup(v(x, y), powerup_dict[p])
-                    table.insert(self.floor_powerups, fpu)
+                    --local fpu = FloorPowerup(v(x, y), powerup_dict[p])
+                    --table.insert(self.floor_powerups, fpu)
                 elseif person_dict[p:sub(1, 1)] then
                     local density = 1
                     if #p > 1 then

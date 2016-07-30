@@ -3,7 +3,7 @@ class "Government" (Object) {
         self:super(Government).__init__(self, v(x, powerup_tray.pos.y + powerup_tray.shape.y), v(GAME_WIDTH - x, GAME_HEIGHT))
         self.moses_office = MosesOffice(self.pos)
         self.committees = {}
-        for type_i, type in ipairs(Map.TYPE_ORDER) do
+        for type_i, type in ipairs(MAP_DATA.committees) do
             if type ~= "moses" then
                 local com = ProjectCommittee(self.pos + v(0, (#self.committees+1) * Committee.HEIGHT), type)
                 table.insert(self.committees, com)
@@ -670,7 +670,7 @@ class "Committee" (Room) {
             ratio = 0.50
         end
         local n_yeas = math.ceil(self.n_members * ratio)
-        self.yea_crowd_offset = v(30, 20)
+        self.yea_crowd_offset = v(50, 20)
         self.yea_crowd = Crowd(self.yea_crowd_offset, n_yeas, {0, 255, 0})
         self.yea_crowd.show_n = false
         self.yea_crowd.parent = self

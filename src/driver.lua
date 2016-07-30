@@ -22,8 +22,6 @@ require "src/map"
 require "src/player"
 require "src/plan"
 
-SOUND_ON = true
-
 mouseenabled = true
 
 class "progress" {
@@ -33,13 +31,10 @@ class "progress" {
         if not IS_TUTORIAL then
             return true
         end
-        log.trace(self.dict[key])
         if not self.dict[key] then
             self.dict[key] = true
-            log.trace("1")
             return false
         else
-            log.trace("2")
             return true
         end
     end
