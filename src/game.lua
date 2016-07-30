@@ -25,7 +25,24 @@ function setup_level()
     hud = HUD()
     overlay = Overlay(v(600, 450))
 
-    overlay:set_once("this is the page that tells you want to do at the start", "grafix/tutorial/first_building.png", 1)
+      overlay:set_once("Welcome! Take a quick look at the map. There's a lot to take in!\n"..
+        "Colors on the ground show which committee controls that area.\n"..
+        "To get your project built, each committee whose land you're building on\n has to approve it.",
+        "grafix/tutorial/overall_map.png", 1)
+      Timer.after(6, function()
+      overlay:set_once("The people on the map can be either detractors or supporters.\n"..
+        "If they're the same color as your project they will support it.\n"..
+        "If they're a different color they will become attached to the project as\n"..
+        "detractors and jump off onto any committees it passes through!",
+        "grafix/tutorial/overall_map.png", 1)
+      end)
+
+      Timer.after(10, function()
+      overlay:set_once("To get started, click on the buildings on the right.\n"..
+        "You have a choice between different types of buildings.\n"..
+        "Try to pick one that you can fit onto ground that's the same color.",
+        "grafix/tutorial/first_building.png", 1)
+      end)
 end
 setup_level()
 
