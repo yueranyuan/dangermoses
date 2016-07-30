@@ -72,6 +72,9 @@ class "Government" (Object) {
 
         -- begin next turn
         self.turn_i = self.turn_i + 1
+        if self.turn_i >= 10 then
+            overlay:set_once("Okay! you've completed the tutorial! Now restart and choose Game :3", Overlay.WIN_IMG)
+        end
         for room_i, room in lume.ripairs(self.rooms) do
             if room.law then
                 local law_action = room.law:get_action(self.run_next_action)

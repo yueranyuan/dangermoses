@@ -27,6 +27,7 @@ class "MenuButton" (Button) {
 }
 
 function setup_menu()
+    Object.objects = {}
     local bg = Image(v(0, 0), lg.newImage("grafix/menubg.png"))
     local buttons = {
         {
