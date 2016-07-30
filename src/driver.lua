@@ -12,7 +12,6 @@ class = require "extern/slither"
 csv = require "extern/csv"
 utils = require "src/utils"
 require "src/consts"
-require "src/game_data"
 require "src/sound"
 require "src/gameobject"
 require "src/powerup"
@@ -65,7 +64,6 @@ function load_sounds()
     sfx_mayor_reject = Sound("sfx/mayor_fail_paper_rip.wav", "static")
     sfx_next = Sound("sfx/next_button_typewriter.wav", "static")
     sfx_commissioner = Sound("sfx/commissioner_cheer.wav", "static")
-
 end
 
 function love.load()
