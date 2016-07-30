@@ -18,7 +18,8 @@ class "MenuButton" (Button) {
 }
 
 function setup_menu()
-    local bg = Image(v(0, 0), lg.newImage("grafix/menubg.png"))
+    Image(v(0, 0), lg.newImage("grafix/menubg.png"))
+
     MenuButton(v(GAME_WIDTH / 2 - 400, GAME_HEIGHT - 100), {0, 255, 0}, "Tutorial", function()
         IS_TUTORIAL = true
         MAP_DATA = TUTORIAL_MAP_DATA
