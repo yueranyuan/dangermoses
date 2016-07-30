@@ -24,7 +24,7 @@ TUTORIAL_MAP_DATA = {
     committees={"park", "tenement", "road"},
     csv=nil --"map.csv"
 }
-MAP_DATA = TUTORIAL_MAP_DATA
+MAP_DATA = REGULAR_MAP_DATA
 
 SHITTINESS_BASE = 1  -- the shittiness of the first committee
 SHITTINESS_SLOPE = 16  -- how much the shittiness increase with each committee level
