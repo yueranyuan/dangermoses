@@ -12,29 +12,38 @@ class "MenuButton" (Button) {
         if self.clickable then
             self:super(MenuButton).draw(self)
             lg.setColor({255, 255, 255})
-            lg.printf(self.text, self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
+            local topleft = self.topleft
+            local padding = v(5,(self.shape.y-lg:getFont():getHeight())/4)
+            topleft = topleft + padding
+            lg.printf(self.text, topleft.x + padding.x, topleft.y + padding.y,
+                self.shape.x - 2*padding.x, 'center')
         end
     end
 }
 
 function setup_menu()
-    Image(v(0, 0), lg.newImage("grafix/menubg.png"))
-
-    MenuButton(v(GAME_WIDTH / 2 - 400, GAME_HEIGHT - 100), {0, 255, 0}, "Tutorial", function()
-        IS_TUTORIAL = true
-        MAP_DATA = TUTORIAL_MAP_DATA
-        require "src/game"
-    end)
-
-    MenuButton(v(GAME_WIDTH / 2, GAME_HEIGHT - 100), {0, 255, 0}, "Game", function()
-        IS_TUTORIAL = false
-        MAP_DATA = REGULAR_MAP_DATA
-        require "src/game"
-    end)
-
-    MenuButton(v(GAME_WIDTH / 2 + 400, GAME_HEIGHT - 100), {255, 0, 0}, "Quit", function()
-        love.event.quit()
-    end)
+    local bg = Image(v(0, 0), lg.newImage("grafix/menubg.png"))
+    local buttons = {
+        {
+            MenuButton(v(0,0), {0, 255, 0}, "Tutorial", function()
+                IS_TUTORIAL = true
+                MAP_DATA = TUTORIAL_MAP_DATA
+                require "src/game"
+            end),
+            MenuButton(v(0,0), {0, 255, 0}, "Game", function()
+                IS_TUTORIAL = false
+                MAP_DATA = REGULAR_MAP_DATA
+                require "src/game"
+            end),
+            MenuButton(v(0,0), {255, 0, 0}, "Quit", function()
+                love.event.quit()
+            end),
+        },
+    }
+    local W,H = lg.getDimensions()
+    local pos = v(0,H-100)
+    local size = v(W,100)
+    make_grid(pos, size, buttons)
 end
 setup_menu()
 

@@ -123,8 +123,8 @@ class "RefreshButton" (Button) {
         self:super(RefreshButton).__init__(self, pos, v(BuildingButton.BUTTON_SIZE, BuildingButton.BUTTON_SIZE))
     end,
 
-    draw = function(self, offset)
-        self:super(RefreshButton).draw(self, offset)
+    draw = function(self)
+        self:super(RefreshButton).draw(self)
         lg.setColor({0, 0, 0})
         lg.printf("Refresh", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, 'center')
     end,
@@ -186,7 +186,7 @@ class "BuildingButtonTray" (ButtonTray) {
         end
     end,
 
-    draw = function(self, offset)
+    draw = function(self)
     end,
 
     update = function(self)
@@ -245,7 +245,6 @@ class "BuildingButton" (Button) {
     end,
 
     draw = function(self)
-        -- TODO: offset doesn't work yet
         self:super(BuildingButton).draw(self)
         local pos = self.pos + self.shape / 2 - BuildingButton.ICON_SCALE * self.icon_shape / 2  -- center icon
         self:lgSetColor(self.icon_color)
@@ -523,7 +522,8 @@ class "Overlay" (Object) {
         if not self.on then return end
         draw_transparent_rect(0, 0, GAME_WIDTH, GAME_HEIGHT, {80, 80, 80})
         lg.setColor(255, 255, 255)
-        lg.rectangle("fill", self.pos.x, self.pos.y, self.shape.x, self.shape.y)
+        local topleft = self.topleft
+        lg.rectangle("fill", topleft.x, topleft.y, self.shape.x, self.shape.y)
 
         if self.img then
             lg.draw(self.img, self.img_pos.x, self.img_pos.y, 0, self.img_scale)
@@ -541,8 +541,18 @@ class "OkayButton" (Button) {
     draw = function(self)
         if not self.show then return end
         lg.setColor(230, 100, 100)
-        lg.rectangle("fill", self.pos.x, self.pos.y, self.shape.x, self.shape.y)
+        local topleft = self.topleft
+        lg.rectangle("fill", topleft.x, topleft.y, self.shape.x, self.shape.y)
         lg.setColor(255, 255, 255)
         lg.printf("Okay", self.pos.x, self.pos.y + self.shape.y / 2 - 10, self.shape.x, "center")
     end
 }
+
+function make_grid(topleft, size, entries)
+    for i,row in ipairs(entries) do
+        for j,entry in ipairs(row) do
+            entry.anchor = vec(.5, .5)
+            entry.pos = topleft + size:permul(vec(j/(#row+1), i/(#entries+1)))
+        end
+    end
+end
