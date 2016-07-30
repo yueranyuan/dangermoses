@@ -363,6 +363,8 @@ class "Legislation" (Object) {
         next_committee:set_law(self)
         self.pos = start_pos  -- undo the position change
 
+        --self:remove_haters(next_committee.resilience)
+
         return function()
             Timer.tween(0.3, start_pos, {y = next_committee.pos.y}, 'in-out-quad', function()
                 local n_attackers = self:get_attackers(next_committee)
@@ -382,7 +384,7 @@ class "Room" (Object) {
 
     __init__ = function(self, pos, shape)
         if shape == nil then
-            shape = v(GAME_WIDTH - POWERUP_TRAY_WIDTH - pos.x, Committee.HEIGHT - 5)
+            shape = v(GAME_WIDTH - 80 - pos.x, Committee.HEIGHT - 5)
         end
         self:super(Room).__init__(self, pos, shape)
         self.closed = false
@@ -653,9 +655,11 @@ class "ResignButton" (Button) {
 class "Committee" (Room) {
     REPUTATION_IMG = lg.newImage("grafix/shield.png"),
     COMMISSIONER_IMG = lg.newImage("grafix/commissioner.png"),
+    COMMITTEE_IMG = lg.newImage("grafix/committeeroom.png"),
 
     __init__ = function(self, pos, n_members, ratio, resilience)
         self.n_members = n_members
+        self.img = Committee.COMMITTEE_IMG
         self:super(Committee).__init__(self, pos)
 
         self.member_health = HATER_PER_MEMBER
@@ -670,11 +674,11 @@ class "Committee" (Room) {
             ratio = 0.50
         end
         local n_yeas = math.ceil(self.n_members * ratio)
-        self.yea_crowd_offset = v(50, 20)
+        self.yea_crowd_offset = v(50, 25)
         self.yea_crowd = Crowd(self.yea_crowd_offset, n_yeas, {0, 255, 0})
         self.yea_crowd.show_n = false
         self.yea_crowd.parent = self
-        self.nay_crowd_offset = v(self.shape.x - 35, 20)
+        self.nay_crowd_offset = v(self.shape.x - 15, 25)
         self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - n_yeas, {255, 0, 0})
         self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
@@ -757,7 +761,7 @@ class "Committee" (Room) {
             if not progress.first_resilience then
                 overlay:set("good work! you got a legislation pass a committee. \nYour reputation with the committee is increasing. Every reputation point you get cancels out one hater")
             end
-            self.resilience = self.resilience + 1
+            self.resilience = math.min(5, self.resilience + 1)
         end
     end,
 
@@ -767,6 +771,9 @@ class "Committee" (Room) {
 
     draw = function(self)
         self:super(Committee).draw(self)
+        self:lgSetColor(self.color)
+        lg.draw(self.img, self.pos.x + 30, self.pos.y)
+
         --local center_pos = self.pos + (self.yea_crowd_offset + self.nay_crowd_offset) / 2
         --lg.print(lume.round(self.yea_crowd.n / self.n_members * 100).."%", center_pos.x, center_pos.y)
 
@@ -796,7 +803,7 @@ class "ProjectCommittee" (Committee) {
         self.color = Map.TYPES[type]
         self.data = COMMITTEES[type]
         self:super(ProjectCommittee).__init__(self, pos, self.data.size, self.data.ratio, self.data.resilience)
-        self.button_offset = v(self.shape.x, 0)
+        self.button_offset = v(self.shape.x + 30, 0)
         self.button = building_button_tray:add_button(self.pos + self.button_offset, self.type)
     end,
 
