@@ -677,13 +677,13 @@ class "Committee" (Room) {
         if ratio == nil then
             ratio = 0.50
         end
-        local n_yeas = math.ceil(self.n_members * ratio)
+        self.n_yeas = math.ceil(self.n_members * ratio)
         self.yea_crowd_offset = v(50, 25)
-        self.yea_crowd = Crowd(self.yea_crowd_offset, n_yeas, {0, 255, 0})
+        self.yea_crowd = Crowd(self.yea_crowd_offset, self.n_yeas, {0, 255, 0})
         self.yea_crowd.show_n = false
         self.yea_crowd.parent = self
         self.nay_crowd_offset = v(self.shape.x - 15, 25)
-        self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - n_yeas, {255, 0, 0})
+        self.nay_crowd = Crowd(self.nay_crowd_offset, self.n_members - self.n_yeas, {255, 0, 0})
         self.nay_crowd.show_n = false
         self.nay_crowd.parent = self
     end,
@@ -702,6 +702,9 @@ class "Committee" (Room) {
         end
         self.yea_crowd.pos = self.pos + self.yea_crowd_offset
         self.nay_crowd.pos = self.pos + self.nay_crowd_offset
+
+        --if self.yea_crowd.n < self.n_yeas then
+            --add_supporter()
     end,
 
     attack = function(self, n, callback)
