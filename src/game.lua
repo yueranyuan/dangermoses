@@ -24,6 +24,8 @@ function setup_level()
     -- draw gui elements
     hud = HUD()
     overlay = Overlay(v(500, 300))
+
+    overlay:set_once("this is the page that tells you want to do at the start", "grafix/tutorial/first_building.png", 1)
 end
 setup_level()
 
